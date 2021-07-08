@@ -12,8 +12,6 @@
 
 USB_WeaponModule::USB_WeaponModule()
 {
-	SetCollisionProfileName("CharacterMesh");
-
 	bWantsToFire = false;
 	bIsFiring = false;
 	LastFireTime = 0.0f;

@@ -115,6 +115,11 @@ void ASB_Ship::PostInitializeComponents()
 		DataManager = *NewDataManager;
 		break;
 	}
+}
+
+void ASB_Ship::BeginPlay()
+{
+	Super::BeginPlay();
 
 	// Spawn and attach modules.
 	uint8 Index = 0;
@@ -125,6 +130,9 @@ void ASB_Ship::PostInitializeComponents()
 		USB_ModuleSlot* ModuleSlot = Cast<USB_ModuleSlot>(Component);
 		if (ModuleSlot)
 		{
+			if (ModuleSlot->GetModuleName() == "")
+				return;
+
 			const FSB_BaseModuleData* const ModuleData = DataManager->GetBaseModuleDataFromRow(ModuleSlot->GetModuleName());
 			if (ModuleData)
 			{
@@ -189,11 +197,6 @@ void ASB_Ship::PostInitializeComponents()
 
 		Index++;
 	}
-}
-
-void ASB_Ship::BeginPlay()
-{
-	Super::BeginPlay();
 }
 
 void ASB_Ship::Tick(float DeltaTime)

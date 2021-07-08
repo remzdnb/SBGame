@@ -18,6 +18,24 @@ FSB_BaseModuleData* const ASB_DataManager::GetBaseModuleDataFromRow(FName RowNam
 	}
 }
 
+const FSB_ThrusterModuleData* const ASB_DataManager::GetThrusterModuleDataFromRow(const FName& RowName) const
+{
+	if (ThrusterModuleDT == nullptr)
+		return nullptr;
+
+	FString ContextString;
+	const FSB_ThrusterModuleData* const ThrusterModuleData = ThrusterModuleDT->FindRow<FSB_ThrusterModuleData>(RowName, ContextString);
+	if (ThrusterModuleData)
+	{
+		return ThrusterModuleData;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("ASB_DataManager::GetThrusterModuleDataFromRow - Row not found : %s"), *RowName.ToString());
+		return nullptr;
+	}
+}
+
 FSB_WeaponModuleData* const ASB_DataManager::GetWeaponModuleDataFromRow(FName RowName) const
 {
 	if (WeaponModuleDT == nullptr)

@@ -73,10 +73,6 @@ private:
 	UFUNCTION() void MoveForwardAxis(float AxisValue);
 	UFUNCTION() void MoveRightAxis(float AxisValue);
 	UFUNCTION() void MouseWheelAxis(float AxisValue);
-	UFUNCTION() void MoveForwardKey();
-	UFUNCTION() void MoveBackwardKey();
-	UFUNCTION() void TurnRightKey();
-	UFUNCTION() void TurnLeftKey();
 	UFUNCTION() void LeftMouseButtonPressed();
 	UFUNCTION() void LeftMouseButtonReleased();
 	UFUNCTION() void RightMouseButtonPressed();

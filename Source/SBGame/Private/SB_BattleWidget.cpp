@@ -43,7 +43,6 @@ void USB_BattleWidget::OnNewOwnedShip(ASB_Ship* const NewOwnedShip)
 		return;
 
 	NewOwnedShip->DestroyedEvent.AddUniqueDynamic(this, &USB_BattleWidget::OnShipDestroyedBPI);
-	NewOwnedShip->GetShipMovementCT()->ShipMovementUpdatedEvent.AddUniqueDynamic(this, &USB_BattleWidget::OnShipMovementUpdatedBPI);
 	NewOwnedShip->GetShipCombatCT()->DurabilityUpdatedEvent.AddUniqueDynamic(this, &USB_BattleWidget::OnShipDurabilityUpdated);
 
 	//

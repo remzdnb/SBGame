@@ -9,24 +9,15 @@
 
 USB_ShipMovementComponent::USB_ShipMovementComponent()
 {
-	MaxForwardInput = 3;
-	MinForwardInput = -1;
-	MaxRightInput = 1;
-	ForwardInput = 0;
-	RightInput = 0;
-
-	//
-
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
 void USB_ShipMovementComponent::InitializeComponent()
 {
-	for (TActorIterator<ASB_DataManager> NewDataManager(GetWorld()); NewDataManager; ++NewDataManager)
-	{
-		DataManager = *NewDataManager;
-		break;
-	}
+	if (GetWorld()->IsGameWorld() == false)
+		return;
+
+	SetIsReplicated(true);
 }
 
 void USB_ShipMovementComponent::BeginPlay()
@@ -34,7 +25,12 @@ void USB_ShipMovementComponent::BeginPlay()
 	Super::BeginPlay();
 
 	OwnerShip = Cast<ASB_Ship>(GetOwner());
-	RotationYaw = OwnerShip->GetActorRotation().Yaw;
+	if (OwnerShip)
+	{
+		DataManager = OwnerShip->GetDataManager();
+		TargetRotationYaw = OwnerShip->GetActorRotation().Yaw;
+		MaxWalkSpeed = DataManager->ShipSettings.MoveSpeed;
+	}
 }
 
 void USB_ShipMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -43,86 +39,59 @@ void USB_ShipMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 
 	TickMovement(DeltaTime);
 
-	if (OwnerShip)
-	{
-		if (OwnerShip->GetLocalRole() == ROLE_Authority)
-		{
-			//Cast<APlayerController>(OwnerShip->GetOwner())->SetControlRotation(FRotator(0.0f, RotationYaw, 0.0f));
-		}
-		//OwnerShip->SetActorRotation(FRotator(OwnerShip->GetActorRotation().Pitch, RotationYaw, OwnerShip->GetActorRotation().Roll));
-	}
-
 	Debug(DeltaTime);
 }
 
-void USB_ShipMovementComponent::AddForwardInput(int32 ForwardInputToAdd)
+void USB_ShipMovementComponent::MoveForward(float AxisValue)
 {
-	if (OwnerShip == nullptr)
-		return;
-
-	if (OwnerShip->GetState() == ESB_ShipState::Destroyed)
+	if (DataManager == nullptr || OwnerShip == nullptr)
 		return;
 
 	if (OwnerShip->GetLocalRole() < ROLE_Authority)
-		AddForwardInput_Server(ForwardInputToAdd);
+		MoveForward_Server(AxisValue);
 
-	if (ForwardInputToAdd > 0)
+	ForwardAxisValue = AxisValue;
+
+	if (AxisValue > 0)
 	{
-		if (ForwardInput + ForwardInputToAdd <= MaxForwardInput)
-		{
-			ForwardInput += ForwardInputToAdd; 
-		}
+		const FRotator Rotation = OwnerShip->GetActorRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		OwnerShip->AddMovementInput(Direction);
+	}
+	else if (AxisValue < 0)
+	{
+		const FRotator Rotation = OwnerShip->GetActorRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X) * -1;
+		OwnerShip->AddMovementInput(Direction);
 	}
 
-	if (ForwardInputToAdd < 0)
-	{
-		if (ForwardInput + ForwardInputToAdd >= MinForwardInput)
-		{
-			ForwardInput += ForwardInputToAdd;
-		}
-	}
-
-	ShipMovementUpdatedEvent.Broadcast(ForwardInput, RightInput);
 }
 
-void USB_ShipMovementComponent::AddForwardInput_Server_Implementation(int32 ForwardInputToAdd)
+void USB_ShipMovementComponent::MoveForward_Server_Implementation(float AxisValue)
 {
-	AddForwardInput(ForwardInputToAdd);
+	MoveForward(AxisValue);
 }
 
-void USB_ShipMovementComponent::AddRightInput(int32 RightInputToAdd)
+void USB_ShipMovementComponent::TurnRight(float AxisValue)
 {
-	if (OwnerShip == nullptr)
-		return;
-
-	if (OwnerShip->GetState() == ESB_ShipState::Destroyed)
+	if (GetWorld() == nullptr || DataManager == nullptr || OwnerShip == nullptr)
 		return;
 
 	if (OwnerShip->GetLocalRole() < ROLE_Authority)
-		AddRightInput_Server(RightInputToAdd);
-
-	if (RightInputToAdd > 0)
 	{
-		if (RightInput + RightInputToAdd <= MaxRightInput)
-		{
-			RightInput += RightInputToAdd;
-		}
+		TurnRight_Server(AxisValue);
+		return;
 	}
 
-	if (RightInputToAdd < 0)
-	{
-		if (RightInput + RightInputToAdd >= MaxRightInput * -1)
-		{
-			RightInput += RightInputToAdd;
-		}
-	}
-
-	ShipMovementUpdatedEvent.Broadcast(ForwardInput, RightInput);
+	RightAxisValue = AxisValue;
+	TargetRotationYaw = TargetRotationYaw + AxisValue * DataManager->ShipSettings.TurnSpeed * GetWorld()->GetDeltaSeconds();
 }
 
-void USB_ShipMovementComponent::AddRightInput_Server_Implementation(int32 RightInputToAdd)
+void USB_ShipMovementComponent::TurnRight_Server_Implementation(float AxisValue)
 {
-	AddRightInput(RightInputToAdd);
+	TurnRight(AxisValue);
 }
 
 void USB_ShipMovementComponent::TickMovement(float DeltaTime)
@@ -133,40 +102,6 @@ void USB_ShipMovementComponent::TickMovement(float DeltaTime)
 	if (OwnerShip->GetState() == ESB_ShipState::Destroyed)
 		return;
 
-	if (ForwardInput != 0)
-	{
-		if (ForwardInput > 0)
-		{
-			MaxWalkSpeed = DataManager->ShipSettings.BaseMoveSpeed * ForwardInput;
-			const FRotator Rotation = OwnerShip->GetActorRotation();
-			const FRotator YawRotation(0, Rotation.Yaw, 0);
-			const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-			OwnerShip->AddMovementInput(Direction);
-		}
-		else
-		{
-			MaxWalkSpeed = DataManager->ShipSettings.BaseMoveSpeed * ForwardInput * -1;
-			const FRotator Rotation = OwnerShip->GetActorRotation();
-			const FRotator YawRotation(0, Rotation.Yaw, 0);
-			const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X) * -1;
-			OwnerShip->AddMovementInput(Direction);
-		}
-	}
-
-	if (RightInput != 0)
-	{
-		if (RightInput > 0)
-		{
-			RotationYaw += DataManager->ShipSettings.BaseTurnSpeed * DeltaTime;
-			//OwnerShip->AddActorWorldRotation(FRotator(0.0f, DataManager->ShipSettings.BaseTurnSpeed * DeltaTime, 0.0f));
-		}
-		else
-		{
-			RotationYaw -= DataManager->ShipSettings.BaseTurnSpeed * DeltaTime;
-
-			//OwnerShip->AddActorWorldRotation(FRotator(0.0f, DataManager->ShipSettings.BaseTurnSpeed * DeltaTime * -1, 0.0f));
-		}
-	}
 }
 
 #pragma region +++++ Network / Debug ...
@@ -175,7 +110,9 @@ void USB_ShipMovementComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(USB_ShipMovementComponent, RotationYaw);
+	DOREPLIFETIME(USB_ShipMovementComponent, ForwardAxisValue);
+	DOREPLIFETIME(USB_ShipMovementComponent, RightAxisValue);
+	DOREPLIFETIME(USB_ShipMovementComponent, TargetRotationYaw);
 }
 
 void USB_ShipMovementComponent::Debug(float DeltaTime)
@@ -202,9 +139,9 @@ void USB_ShipMovementComponent::Debug(float DeltaTime)
 		Color = FColor::Orange;
 	}
 
-	const FString DebugString = RoleString + this->GetName() + " // ForwardInput : " + FString::FromInt(ForwardInput) + " // RightInput : " + FString::FromInt(RightInput);
+	//const FString DebugString = RoleString + this->GetName() + " // ForwardInput : " + FString::FromInt(ForwardInput) + " // RightInput : " + FString::FromInt(RightInput);
 
-	GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Yellow, DebugString);
+	//GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Yellow, DebugString);
 }
 
 #pragma endregion

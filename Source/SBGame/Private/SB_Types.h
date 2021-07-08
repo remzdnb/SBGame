@@ -49,6 +49,9 @@ struct FSB_GameSettings
 	bool bIsDebugEnabled_ShipMovement;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool bIsDebugEnabled_ThrusterModule;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	bool bIsDebugEnabled_WeaponModule;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -63,6 +66,7 @@ struct FSB_GameSettings
 		bIsDebugEnabled_GameMode = false;
 		bIsDebugEnabled_Ship = false;
 		bIsDebugEnabled_ShipMovement = false;
+		bIsDebugEnabled_ThrusterModule = false;
 		bIsDebugEnabled_WeaponModule = false;
 		bIsDebugEnabled_Projectile = false;
 	}
@@ -93,10 +97,13 @@ struct FSB_ShipSettings
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float BaseMoveSpeed;
+	float MoveSpeed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float BaseTurnSpeed;
+	float TurnSpeed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float TurnInertia;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float MaxDurability;
@@ -112,8 +119,9 @@ struct FSB_ShipSettings
 
 	FSB_ShipSettings()
 	{
-		BaseMoveSpeed = 10000.0f;
-		BaseTurnSpeed = 2.0f;
+		MoveSpeed = 5000.0f;
+		TurnSpeed = 2.0f;
+		TurnInertia = 0.1f;
 		MaxDurability = 10000.0f;
 		DestroyedMaterial = nullptr;
 		DestroyedParticle = nullptr;
@@ -186,6 +194,27 @@ struct FSB_BaseModuleData : public FTableRowBase
 		MaxPower = 0;
 		MaxDurability = 1000;
 		RepairAmount = 10;
+	}
+};
+
+USTRUCT(BlueprintType)
+struct FSB_ThrusterModuleData : public FTableRowBase
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TArray<FName> ExhaustSocketNames;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	class UParticleSystem* ExhaustParticle;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float ExhaustParticleScale;
+
+	FSB_ThrusterModuleData()
+	{
+		ExhaustParticle = nullptr;
+		ExhaustParticleScale = 1.0f;
 	}
 };
 

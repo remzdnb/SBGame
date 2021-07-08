@@ -82,7 +82,7 @@ void ASB_PlayerController::BeginPlay()
 		}
 	}
 
-	//SetControlRotation(FRotator(-45.0f, 0.0f, 0.0f));
+	//SetControlRotation(FRotator(0.0f, OwnedShip->GetShipMovementCT()->GetTargetRotationYaw(), 0.0f));
 }
 
 void ASB_PlayerController::Tick(float DeltaTime)
@@ -93,7 +93,8 @@ void ASB_PlayerController::Tick(float DeltaTime)
 	{
 		if (OwnedShip->GetShipMovementCT())
 		{
-			SetControlRotation(FRotator(0.0f, OwnedShip->GetShipMovementCT()->GetRotationYaw(), 0.0f));
+			float LerpedYaw = FMath::Lerp(GetControlRotation().Yaw, OwnedShip->GetShipMovementCT()->GetTargetRotationYaw(), DataManager->ShipSettings.TurnInertia);
+			SetControlRotation(FRotator(0.0f, LerpedYaw, 0.0f));
 		}
 	}
 
@@ -184,10 +185,6 @@ void ASB_PlayerController::SetupInputComponent()
 	InputComponent->BindAxis("MoveForwardAxis", this, &ASB_PlayerController::MoveForwardAxis).bConsumeInput = false;
 	InputComponent->BindAxis("MoveRightAxis", this, &ASB_PlayerController::MoveRightAxis).bConsumeInput = false;
 	InputComponent->BindAxis("MouseWheelAxis", this, &ASB_PlayerController::MouseWheelAxis).bConsumeInput = false;
-	InputComponent->BindAction("MoveForwardKey", IE_Pressed, this, &ASB_PlayerController::MoveForwardKey).bConsumeInput = false;
-	InputComponent->BindAction("MoveBackwardKey", IE_Pressed, this, &ASB_PlayerController::MoveBackwardKey).bConsumeInput = false;
-	InputComponent->BindAction("TurnRightKey", IE_Pressed, this, &ASB_PlayerController::TurnRightKey).bConsumeInput = false;
-	InputComponent->BindAction("TurnLeftKey", IE_Pressed, this, &ASB_PlayerController::TurnLeftKey).bConsumeInput = false;
 	InputComponent->BindAction("LeftMouseButton", IE_Pressed, this, &ASB_PlayerController::LeftMouseButtonPressed).bConsumeInput = false;
 	InputComponent->BindAction("LeftMouseButton", IE_Released, this, &ASB_PlayerController::LeftMouseButtonReleased).bConsumeInput = false;
 	InputComponent->BindAction("RightMouseButton", IE_Pressed, this, &ASB_PlayerController::RightMouseButtonPressed).bConsumeInput = false;
@@ -234,18 +231,18 @@ void ASB_PlayerController::LookRightAxis(float AxisValue)
 
 void ASB_PlayerController::MoveForwardAxis(float AxisValue)
 {
-	/*if (GetPawn() == Cast<APawn>(GetSpectatorPawn()))
+	if (OwnedShip && OwnedShip == GetPawn())
 	{
-		RTSCameraPawn->MoveForward(AxisValue);
-	}*/
+		OwnedShip->GetShipMovementCT()->MoveForward(AxisValue);
+	}
 }
 
 void ASB_PlayerController::MoveRightAxis(float AxisValue)
 {
-	/*if (GetPawn() == Cast<APawn>(GetSpectatorPawn()))
+	if (OwnedShip && OwnedShip == GetPawn())
 	{
-		//RTSCameraPawn->MoveRight(AxisValue);
-	}*/
+		OwnedShip->GetShipMovementCT()->TurnRight(AxisValue);
+	}
 }
 
 void ASB_PlayerController::MouseWheelAxis(float AxisValue)
@@ -254,38 +251,6 @@ void ASB_PlayerController::MouseWheelAxis(float AxisValue)
 	{
 		//RTSCameraPawn->Zoom(AxisValue);
 	}*/
-}
-
-void ASB_PlayerController::MoveForwardKey()
-{
-	if (OwnedShip && OwnedShip == GetPawn())
-	{
-		OwnedShip->GetShipMovementCT()->AddForwardInput(1);
-	}
-}
-
-void ASB_PlayerController::MoveBackwardKey()
-{
-	if (OwnedShip && OwnedShip == GetPawn())
-	{
-		OwnedShip->GetShipMovementCT()->AddForwardInput(-1);
-	}
-}
-
-void ASB_PlayerController::TurnRightKey()
-{
-	if (OwnedShip && OwnedShip == GetPawn())
-	{
-		OwnedShip->GetShipMovementCT()->AddRightInput(1);
-	}
-}
-
-void ASB_PlayerController::TurnLeftKey()
-{
-	if (OwnedShip && OwnedShip == GetPawn())
-	{
-		OwnedShip->GetShipMovementCT()->AddRightInput(-1);
-	}
 }
 
 void ASB_PlayerController::LeftMouseButtonPressed()

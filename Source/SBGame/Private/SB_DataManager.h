@@ -14,6 +14,7 @@ class ASB_DataManager : public AInfo
 public:
 
 	FSB_BaseModuleData* const GetBaseModuleDataFromRow(FName RowName) const;
+	const FSB_ThrusterModuleData* const GetThrusterModuleDataFromRow(const FName& RowName) const;
 	FSB_WeaponModuleData* const GetWeaponModuleDataFromRow(FName RowName) const;
 	const FSB_ProjectileData* const GetProjectileDataFromRow(FName RowName) const;
 
@@ -33,10 +34,10 @@ public:
 	class UDataTable* BaseModuleDT;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	class UDataTable* WeaponModuleDT;
+	class UDataTable* ThrusterModuleDT;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	class UDataTable* EngineModuleDT;
+	class UDataTable* WeaponModuleDT;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	class UDataTable* ProjectileDT;

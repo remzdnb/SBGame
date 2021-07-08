@@ -10,8 +10,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "SB_ShipMovementComponent.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FShipMovementUpdated, int32, ForwardInput, int32, RightInput);
-
 UCLASS()
 class USB_ShipMovementComponent : public UCharacterMovementComponent
 {
@@ -23,49 +21,47 @@ public:
 
 	virtual void InitializeComponent() override;
 	virtual void BeginPlay() override;
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
-	//
-
-	FShipMovementUpdated ShipMovementUpdatedEvent;
+	virtual void TickComponent(float NewDeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	//
 
 	UFUNCTION()
-	void AddForwardInput(int32 ForwardInputToAdd);
+	void MoveForward(float AxisValue);
 
 	UFUNCTION(Server, Reliable)
-	void AddForwardInput_Server(int32 ForwardInputToAdd);
+	void MoveForward_Server(float AxisValue);
 
 	UFUNCTION()
-	void AddRightInput(int32 RightInputToAdd);
+	void TurnRight(float AxisValue);
 
 	UFUNCTION(Server, Reliable)
-	void AddRightInput_Server(int32 RightInputToAdd);
+	void TurnRight_Server(float AxisValue);
 
 	//
 
-	FORCEINLINE UFUNCTION() float GetRotationYaw() const { return RotationYaw; }
+	FORCEINLINE UFUNCTION() float GetForwardAxisValue() const { return ForwardAxisValue; }
+	FORCEINLINE UFUNCTION() float GetRightAxisValue() const { return RightAxisValue; }
+	FORCEINLINE UFUNCTION() float GetTargetRotationYaw() const { return TargetRotationYaw; }
 
 private:
 
-	UPROPERTY() class ASB_DataManager* DataManager;
-	UPROPERTY() class ASB_Ship* OwnerShip;
+	const class ASB_DataManager* DataManager;
 
 	//
 
-	UPROPERTY() int32 MaxForwardInput;
-	UPROPERTY() int32 MinForwardInput;
-	UPROPERTY() int32 MaxRightInput;
-
 	UPROPERTY()
-	int32 ForwardInput;
+	class ASB_Ship* OwnerShip;
 
-	UPROPERTY()
-	int32 RightInput;
+	//
 
 	UPROPERTY(Replicated)
-	float RotationYaw;
+	float ForwardAxisValue;
+
+	UPROPERTY(Replicated)
+	float RightAxisValue;
+
+	UPROPERTY(Replicated)
+	float TargetRotationYaw;
 
 	//
 
