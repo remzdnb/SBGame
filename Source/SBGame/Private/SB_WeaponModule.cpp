@@ -19,12 +19,11 @@ USB_WeaponModule::USB_WeaponModule()
 	LastFireTime = 0.0f;
 }
 
-void USB_WeaponModule::Init(const class ASB_DataManager* const NewDataManager, const FName& NewDataRowName)
+void USB_WeaponModule::Init(const class ASB_DataManager* const NewDataManager, const FName& NewParentSlotName, const FName& NewDataRowName)
 {
-	Super::Init(NewDataManager, NewDataRowName);
+	Super::Init(NewDataManager, NewParentSlotName, NewDataRowName);
 
 	WeaponModuleData = *NewDataManager->GetWeaponModuleDataFromRow(NewDataRowName);
-	//AInstance = Cast<USB_WeaponModuleAnimInstance>(GetAnimInstance());
 }
 
 void USB_WeaponModule::ToggleSelection()

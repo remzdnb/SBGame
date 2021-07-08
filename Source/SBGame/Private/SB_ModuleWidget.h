@@ -39,8 +39,9 @@ private:
 
 	//
 
-	UPROPERTY(meta = (BindWidget)) class UImage* ModuleImage;
+	UPROPERTY(meta = (BindWidget)) class UTextBlock* ModuleSlotText;
 	UPROPERTY(meta = (BindWidget)) class UTextBlock* ModuleClassText;
+	UPROPERTY(meta = (BindWidget)) class UImage* ModuleImage;
 	UPROPERTY(meta = (BindWidget)) class UProgressBar* ModuleDurabilityProgressBar;
 	UPROPERTY(meta = (BindWidget)) class UProgressBar* ModuleStatusProgressBar;
 };

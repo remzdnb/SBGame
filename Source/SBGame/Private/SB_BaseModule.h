@@ -29,19 +29,24 @@ public:
 	//
 
 	UFUNCTION()
-	virtual void Init(const class ASB_DataManager* const NewDataManager, const FName& NewDataRowName);
+	virtual void Init(const class ASB_DataManager* const NewDataManager, const FName& NewParentSlotName, const FName& NewDataRowName);
 
 	UFUNCTION()
 	void ApplyDamage(float Damage);
 
 	//
 
+	FORCEINLINE UFUNCTION() const FName& GetParentSlotName() const { return ParentSlotName; }
 	FORCEINLINE UFUNCTION() const FSB_BaseModuleData* const GetBaseModuleData() const { return BaseModuleData; }
 
 protected:
 
 	const class ASB_DataManager* DataManager;
 	const struct FSB_BaseModuleData* BaseModuleData;
+
+	//
+	
+	FName ParentSlotName;
 	FTimerHandle RepairTimer;
 
 	//

@@ -12,8 +12,3 @@ void USB_ModuleSlot::BeginPlay()
 {
 	Super::BeginPlay();
 }
-
-void USB_ModuleSlot::Init(const ASB_DataManager* const NewDataManager)
-{
-	DataManager = NewDataManager;
-}

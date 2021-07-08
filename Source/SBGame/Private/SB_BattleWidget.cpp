@@ -51,7 +51,7 @@ void USB_BattleWidget::OnNewOwnedShip(ASB_Ship* const NewOwnedShip)
 	ThrusterModulesContainer->ClearChildren();
 	for (auto& ThrusterModule : NewOwnedShip->GetThrusterModules())
 	{
-		USB_ModuleWidget* ModuleWidget = CreateWidget<USB_ModuleWidget>(GetWorld(), DataManager->GameSettings.BaseModuleWidgetClass);
+		USB_ModuleWidget* ModuleWidget = CreateWidget<USB_ModuleWidget>(GetWorld(), DataManager->GameSettings.ModuleWidgetClass);
 		if (ModuleWidget)
 		{
 			ModuleWidget->Init(DataManager, NewOwnedShip, Cast<USB_BaseModule>(ThrusterModule));
@@ -62,7 +62,7 @@ void USB_BattleWidget::OnNewOwnedShip(ASB_Ship* const NewOwnedShip)
 	WeaponModulesContainer->ClearChildren();
 	for (auto& WeaponModule : NewOwnedShip->GetWeaponModules())
 	{
-		USB_ModuleWidget* ModuleWidget = CreateWidget<USB_ModuleWidget>(GetWorld(), DataManager->GameSettings.WeaponModuleWidgetClass);
+		USB_ModuleWidget* ModuleWidget = CreateWidget<USB_ModuleWidget>(GetWorld(), DataManager->GameSettings.ModuleWidgetClass);
 		if (ModuleWidget)
 		{
 			ModuleWidget->Init(DataManager, NewOwnedShip, Cast<USB_BaseModule>(WeaponModule));

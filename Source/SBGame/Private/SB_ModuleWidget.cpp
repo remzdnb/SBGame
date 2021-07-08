@@ -17,8 +17,9 @@ void USB_ModuleWidget::Init(const class ASB_DataManager* const NewDataManager, c
 	ShipRef = NewShipRef;
 	BaseModuleRef = NewBaseModuleRef;
 
-	ModuleImage->SetBrushFromTexture(NewBaseModuleRef->GetBaseModuleData()->DisplayTexture);
+	ModuleSlotText->SetText(FText::FromString(NewBaseModuleRef->GetParentSlotName().ToString()));
 	ModuleClassText->SetText(FText::FromString(NewBaseModuleRef->GetBaseModuleData()->DisplayName.ToString()));
+	ModuleImage->SetBrushFromTexture(NewBaseModuleRef->GetBaseModuleData()->DisplayTexture);
 
 	//
 

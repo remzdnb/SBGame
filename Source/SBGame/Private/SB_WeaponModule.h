@@ -29,7 +29,7 @@ public:
 
 public:
 
-	virtual void Init(const class ASB_DataManager* const NewDataManager, const FName& NewDataRowName) override;
+	virtual void Init(const class ASB_DataManager* const NewDataManager, const FName& NewParentSlotName, const FName& NewDataRowName) override;
 
 	//
 

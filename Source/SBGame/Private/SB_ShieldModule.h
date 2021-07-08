@@ -14,7 +14,6 @@ public:
 
 	USB_ShieldModule();
 
-	virtual void InitializeComponent() override;
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 

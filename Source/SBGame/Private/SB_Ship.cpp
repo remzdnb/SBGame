@@ -125,65 +125,65 @@ void ASB_Ship::PostInitializeComponents()
 		USB_ModuleSlot* ModuleSlot = Cast<USB_ModuleSlot>(Component);
 		if (ModuleSlot)
 		{
-			const FSB_BaseModuleData* const ModuleData = DataManager->GetBaseModuleDataFromRow(ModuleSlot->GetDataRowName());
+			const FSB_BaseModuleData* const ModuleData = DataManager->GetBaseModuleDataFromRow(ModuleSlot->GetModuleName());
 			if (ModuleData)
 			{
 				if (ModuleData->ModuleType == ESB_ModuleType::Power)
 				{
-					const FName ModuleName = *("PowerModule_" + ModuleSlot->GetDataRowName().ToString() + "_" + FString::FromInt(Index));
+					const FName ModuleName = *("PowerModule_" + ModuleSlot->GetModuleName().ToString() + "_" + FString::FromInt(Index));
 					USB_PowerModule* const NewPowerModule = NewObject<USB_PowerModule>(this, ModuleName);
 					if (NewPowerModule)
 					{
 						NewPowerModule->SetupAttachment(ModuleSlot);
 						NewPowerModule->RegisterComponent();
 						NewPowerModule->SetSkeletalMesh(ModuleData->SkeletalMesh);
-						NewPowerModule->Init(DataManager, ModuleSlot->GetDataRowName());
+						NewPowerModule->Init(DataManager, ModuleSlot->GetSlotName(), ModuleSlot->GetModuleName());
 						BaseModules.Add(NewPowerModule);
 						PowerModules.Add(NewPowerModule);
 					}
 				}
 				else if (ModuleData->ModuleType == ESB_ModuleType::Thruster)
 				{
-					const FName ModuleName = *("ThrusterModule_" + ModuleSlot->GetDataRowName().ToString() + "_" + FString::FromInt(Index));
+					const FName ModuleName = *("ThrusterModule_" + ModuleSlot->GetModuleName().ToString() + "_" + FString::FromInt(Index));
 					USB_ThrusterModule* const NewThrusterModule = NewObject<USB_ThrusterModule>(this, ModuleName);
 					if (NewThrusterModule)
 					{
 						NewThrusterModule->SetupAttachment(ModuleSlot);
 						NewThrusterModule->RegisterComponent();
 						NewThrusterModule->SetSkeletalMesh(ModuleData->SkeletalMesh);
-						NewThrusterModule->Init(DataManager, ModuleSlot->GetDataRowName());
+						NewThrusterModule->Init(DataManager, ModuleSlot->GetSlotName(), ModuleSlot->GetModuleName());
 						BaseModules.Add(NewThrusterModule);
 						ThrusterModules.Add(NewThrusterModule);
 					}
 				}
 				else if (ModuleData->ModuleType == ESB_ModuleType::Weapon)
 				{
-					const FName ModuleName = *("WeaponModule_" + ModuleSlot->GetDataRowName().ToString() + "_" + FString::FromInt(Index));
+					const FName ModuleName = *("WeaponModule_" + ModuleSlot->GetModuleName().ToString() + "_" + FString::FromInt(Index));
 					USB_WeaponModule* const NewWeaponModule = NewObject<USB_WeaponModule>(this, ModuleName);
 					if (NewWeaponModule)
 					{
 						NewWeaponModule->SetupAttachment(ModuleSlot);
 						NewWeaponModule->RegisterComponent();
 						NewWeaponModule->SetSkeletalMesh(ModuleData->SkeletalMesh);
-						NewWeaponModule->Init(DataManager, ModuleSlot->GetDataRowName());
+						NewWeaponModule->Init(DataManager, ModuleSlot->GetSlotName(), ModuleSlot->GetModuleName());
 						BaseModules.Add(NewWeaponModule);
 						WeaponModules.Add(NewWeaponModule);
 					}
 				}
-				/*else if (ModuleData->ModuleType == ESB_ModuleType::Shield)
+				else if (ModuleData->ModuleType == ESB_ModuleType::Shield)
 				{
-					const FName ModuleName = *("ShieldModule_" + ModuleSlot->GetDataRowName().ToString() + "_" + FString::FromInt(Index));
+					const FName ModuleName = *("ShieldModule_" + ModuleSlot->GetModuleName().ToString() + "_" + FString::FromInt(Index));
 					USB_ShieldModule* const NewShieldModule = NewObject<USB_ShieldModule>(this, ModuleName);
 					if (NewShieldModule)
 					{
 						NewShieldModule->SetupAttachment(ModuleSlot);
 						NewShieldModule->RegisterComponent();
 						NewShieldModule->SetSkeletalMesh(ModuleData->SkeletalMesh);
-						NewShieldModule->Init(DataManager, ModuleSlot->GetDataRowName());
+						NewShieldModule->Init(DataManager, ModuleSlot->GetSlotName(), ModuleSlot->GetModuleName());
 						BaseModules.Add(NewShieldModule);
 						ShieldModule = NewShieldModule;
 					}
-				}*/
+				}
 			}
 		}
 

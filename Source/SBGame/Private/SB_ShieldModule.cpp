@@ -19,14 +19,6 @@ USB_ShieldModule::USB_ShieldModule()
 	bIsDeployed = false;
 }
 
-void USB_ShieldModule::InitializeComponent()
-{
-	Super::InitializeComponent();
-
-	if (GetWorld()->IsGameWorld() == false)
-		return;
-}
-
 void USB_ShieldModule::BeginPlay()
 {
 	Super::BeginPlay();
@@ -65,6 +57,9 @@ void USB_ShieldModule::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 void USB_ShieldModule::StartSetup()
 {
+	if (ShieldActor == nullptr)
+		return;
+
 	if (bIsDeployed)
 	{
 		bIsDeployed = false;
@@ -76,6 +71,9 @@ void USB_ShieldModule::StartSetup()
 
 void USB_ShieldModule::StopSetup()
 {
+	if (ShieldActor == nullptr)
+		return;
+
 	if (bIsSetupMode)
 	{
 		bIsSetupMode = false;

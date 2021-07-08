@@ -27,34 +27,31 @@ struct FSB_GameSettings
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Game")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<class ASB_Ship> ShipClass;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Game")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<class AAIController> AIControllerClass;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Game")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	bool bAutoSpawnPlayers;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
-	TSubclassOf<class UUserWidget> BaseModuleWidgetClass;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class UUserWidget> ModuleWidgetClass;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
-	TSubclassOf<class UUserWidget> WeaponModuleWidgetClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Debug")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	bool bIsDebugEnabled_GameMode;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Debug")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	bool bIsDebugEnabled_Ship;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Debug")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	bool bIsDebugEnabled_ShipMovement;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Debug")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	bool bIsDebugEnabled_WeaponModule;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Debug")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	bool bIsDebugEnabled_Projectile;
 
 	FSB_GameSettings()
@@ -62,8 +59,7 @@ struct FSB_GameSettings
 		ShipClass = nullptr;
 		AIControllerClass = nullptr;
 		bAutoSpawnPlayers = false;
-		BaseModuleWidgetClass = nullptr;
-		WeaponModuleWidgetClass = nullptr;
+		ModuleWidgetClass = nullptr;
 		bIsDebugEnabled_GameMode = false;
 		bIsDebugEnabled_Ship = false;
 		bIsDebugEnabled_ShipMovement = false;

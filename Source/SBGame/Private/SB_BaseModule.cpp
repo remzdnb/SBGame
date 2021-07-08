@@ -32,17 +32,24 @@ void USB_BaseModule::BeginPlay()
 	}
 }
 
-void USB_BaseModule::Init(const class ASB_DataManager* const NewDataManager, const FName& NewDataRowName)
+void USB_BaseModule::Init(const class ASB_DataManager* const NewDataManager, const FName& NewParentSlotName, const FName& NewDataRowName)
 {
 	DataManager = NewDataManager;
-	BaseModuleData = DataManager->GetBaseModuleDataFromRow(NewDataRowName);
-	Durability = BaseModuleData->MaxDurability;
+	ParentSlotName = NewParentSlotName;
 
-	SetAnimInstanceClass(BaseModuleData->AnimInstance);
+	BaseModuleData = DataManager->GetBaseModuleDataFromRow(NewDataRowName);
+	if (BaseModuleData)
+	{
+		Durability = BaseModuleData->MaxDurability;
+		SetAnimInstanceClass(BaseModuleData->AnimInstance);
+	}
 }
 
 void USB_BaseModule::ApplyDamage(float Damage)
 {
+	if (OwnerShip->GetLocalRole() < ROLE_Authority)
+		return;
+
 	if (Durability > 0)
 	{
 		if (Durability - Damage <= 0)
@@ -61,6 +68,9 @@ void USB_BaseModule::ApplyDamage(float Damage)
 
 void USB_BaseModule::RepairOnce()
 {
+	if (OwnerShip->GetLocalRole() < ROLE_Authority)
+		return;
+
 	if (Durability + BaseModuleData->RepairAmount >= BaseModuleData->MaxDurability)
 	{
 		Durability = BaseModuleData->MaxDurability;
@@ -73,13 +83,13 @@ void USB_BaseModule::RepairOnce()
 	ModuleDurabilityUpdatedEvent.Broadcast(Durability);
 }
 
-void USB_BaseModule::OnModuleDestroyed()
-{
-}
-
 void USB_BaseModule::OnRep_Durability()
 {
 	ModuleDurabilityUpdatedEvent.Broadcast(Durability);
+}
+
+void USB_BaseModule::OnModuleDestroyed()
+{
 }
 
 void USB_BaseModule::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

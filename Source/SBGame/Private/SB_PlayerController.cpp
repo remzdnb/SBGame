@@ -350,7 +350,10 @@ void ASB_PlayerController::ShiftKeyPressed()
 {
 	if (OwnedShip)
 	{
-		OwnedShip->GetShieldModule()->StartSetup();
+		if (OwnedShip->GetShieldModule())
+		{
+			OwnedShip->GetShieldModule()->StartSetup();
+		}
 	}
 
 	/*if (GetPawn() == Cast<APawn>(GetSpectatorPawn()))
@@ -363,7 +366,10 @@ void ASB_PlayerController::ShiftKeyReleased()
 {
 	if (OwnedShip)
 	{
-		OwnedShip->GetShieldModule()->StopSetup();
+		if (OwnedShip->GetShieldModule())
+		{
+			OwnedShip->GetShieldModule()->StopSetup();
+		}
 	}
 
 	/*if (GetPawn() == Cast<APawn>(GetSpectatorPawn()))

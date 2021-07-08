@@ -25,19 +25,14 @@ public:
 
 public:
 
-	void Init(const class ASB_DataManager* const NewDataManager);
-
-	FORCEINLINE UFUNCTION() FName GetDataRowName() const { return DataRowName; }
+	FORCEINLINE UFUNCTION() FName GetSlotName() const { return SlotName; }
+	FORCEINLINE UFUNCTION() FName GetModuleName() const { return ModuleName; }
 
 private:
 
-	const class ASB_DataManager* DataManager;
-
-	//
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	FName SlotName;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	FName DataRowName;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	FName DisplayName;
+	FName ModuleName;
 };
