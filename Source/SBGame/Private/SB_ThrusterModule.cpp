@@ -29,7 +29,7 @@ void USB_ThrusterModule::Init(const class ASB_DataManager* const NewDataManager,
 				EAttachLocation::SnapToTarget
 			);
 
-			if (NewExhaustParticle) // ? crash ? not spawning on simulated proxies ?
+			if (NewExhaustParticle)
 			{
 				NewExhaustParticle->SetWorldScale3D(FVector(ThrusterModuleData->ExhaustParticleScale));
 				NewExhaustParticle->SetHiddenInGame(true);

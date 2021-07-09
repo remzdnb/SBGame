@@ -36,7 +36,7 @@ const FSB_ThrusterModuleData* const ASB_DataManager::GetThrusterModuleDataFromRo
 	}
 }
 
-FSB_WeaponModuleData* const ASB_DataManager::GetWeaponModuleDataFromRow(FName RowName) const
+const FSB_WeaponModuleData* const ASB_DataManager::GetWeaponModuleDataFromRow(const FName& RowName) const
 {
 	if (WeaponModuleDT == nullptr)
 		return nullptr;

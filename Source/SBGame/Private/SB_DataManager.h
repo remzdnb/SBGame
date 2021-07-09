@@ -15,7 +15,7 @@ public:
 
 	FSB_BaseModuleData* const GetBaseModuleDataFromRow(FName RowName) const;
 	const FSB_ThrusterModuleData* const GetThrusterModuleDataFromRow(const FName& RowName) const;
-	FSB_WeaponModuleData* const GetWeaponModuleDataFromRow(FName RowName) const;
+	const FSB_WeaponModuleData* const GetWeaponModuleDataFromRow(const FName& RowName) const;
 	const FSB_ProjectileData* const GetProjectileDataFromRow(FName RowName) const;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)

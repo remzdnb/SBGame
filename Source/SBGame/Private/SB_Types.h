@@ -4,6 +4,8 @@
 #include "Engine/DataTable.h"
 #include "SB_Types.generated.h"
 
+#define TRACE_OVERLAP ECC_GameTraceChannel2
+
 UENUM(BlueprintType)
 enum class ESB_ShipState : uint8
 {

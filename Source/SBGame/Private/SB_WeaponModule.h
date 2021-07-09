@@ -20,8 +20,6 @@ public:
 
 public:
 
-	//virtual void InitializeComponent() override;
-	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 /////
@@ -34,21 +32,35 @@ public:
 	//
 
 	UFUNCTION()
-	void ToggleSelection();
+	void ToggleSelection(bool bNewIsSelected);
 
 	UFUNCTION()
 	void SetWantsToFire(bool bNewWantsToFire);
 
+	UFUNCTION()
+	void SetTargetShip(class ASB_Ship* const NewTargetShip);
+
 private:
 
-	UPROPERTY() FSB_WeaponModuleData WeaponModuleData;
-	//USB_WeaponModuleAnimInstance* AInstance;
+	const FSB_WeaponModuleData* WeaponModuleData;
+
+	//
+
+	UPROPERTY()
+	class ASB_Ship* TargetShip;
+
+	UPROPERTY()
+	const class USceneComponent* TargetAutoLockCT;
+
 	UPROPERTY() float LastFireTime;
 	UPROPERTY() bool bIsSelected;
 	UPROPERTY() bool bWantsToFire;
 	UPROPERTY() bool bIsFiring;
 
 	//
+
+	UFUNCTION()
+	void SelectAutoLockCT();
 
 	UFUNCTION()
 	void FireTick();

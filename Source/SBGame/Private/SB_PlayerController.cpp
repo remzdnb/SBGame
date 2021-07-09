@@ -118,7 +118,8 @@ void ASB_PlayerController::UpdateViewTarget()
 		{
 			if (OwnedShip)
 			{
-				OwnedShip->UpdateOwnerViewData(GetControlRotation(), Hit.Location);
+				OwnedShip->UpdateOwnerViewData(GetControlRotation(), Hit.Location, Hit.Actor.Get());
+
 				//UKismetSystemLibrary::DrawDebugSphere(GetWorld(), Hit.Location, 10.0f, 10, FColor::Green, .1f, 0.3f);
 			}
 
@@ -266,7 +267,7 @@ void ASB_PlayerController::LeftMouseButtonPressed()
 		}
 		else
 		{*/
-			OwnedShip->StartFireWeapons();
+			OwnedShip->StartFireSelectedWeapon();
 		//}
 	}
 }
@@ -275,18 +276,20 @@ void ASB_PlayerController::LeftMouseButtonReleased()
 {
 	if (OwnedShip)
 	{
-		OwnedShip->StopFireWeapons();
+		OwnedShip->StopFireSelectedWeapon();
 	}
 }
 
 void ASB_PlayerController::RightMouseButtonPressed()
 {
-
+	if (OwnedShip)
+	{
+		OwnedShip->StartAutoLockSelectedWeapon();
+	}
 }
 
 void ASB_PlayerController::RightMouseButtonReleased()
 {
-
 }
 
 void ASB_PlayerController::MouseWheelUp()
@@ -358,7 +361,7 @@ void ASB_PlayerController::Quickslot1KeyPressed()
 {
 	if (OwnedShip)
 	{
-		OwnedShip->SelectWeapon(0);
+		OwnedShip->SelectWeapon(1);
 	}
 }
 
@@ -366,7 +369,7 @@ void ASB_PlayerController::Quickslot2KeyPressed()
 {
 	if (OwnedShip)
 	{
-		OwnedShip->SelectWeapon(1);
+		OwnedShip->SelectWeapon(2);
 	}
 }
 
@@ -374,7 +377,7 @@ void ASB_PlayerController::Quickslot3KeyPressed()
 {
 	if (OwnedShip)
 	{
-		OwnedShip->SelectWeapon(2);
+		OwnedShip->SelectWeapon(3);
 	}
 }
 
@@ -382,7 +385,7 @@ void ASB_PlayerController::Quickslot4KeyPressed()
 {
 	if (OwnedShip)
 	{
-		OwnedShip->SelectWeapon(3);
+		OwnedShip->SelectWeapon(4);
 	}
 }
 
@@ -390,7 +393,7 @@ void ASB_PlayerController::Quickslot5KeyPressed()
 {
 	if (OwnedShip)
 	{
-		OwnedShip->SelectWeapon(4);
+		OwnedShip->SelectWeapon(5);
 	}
 }
 

@@ -22,6 +22,8 @@
 #include "Net/UnrealNetwork.h"
 #include "EngineUtils.h"
 
+#pragma region +++++ Setup ...
+
 ASB_Ship::ASB_Ship(const FObjectInitializer& ObjectInitializer) :
 	Super(ObjectInitializer.SetDefaultSubobjectClass<USB_ShipMovementComponent>(ACharacter::CharacterMovementComponentName)),
 	State(ESB_ShipState::Ready)
@@ -39,7 +41,6 @@ ASB_Ship::ASB_Ship(const FObjectInitializer& ObjectInitializer) :
 	GetMesh()->bEnablePerPolyCollision = true;
 	GetMesh()->SetGenerateOverlapEvents(true);
 	GetMesh()->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
-	GetMesh()->SetCustomDepthStencilValue(1);
 
 	CameraArmCT = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraArmCT"));
 	CameraArmCT->SetupAttachment(RootComponent);
@@ -61,26 +62,17 @@ ASB_Ship::ASB_Ship(const FObjectInitializer& ObjectInitializer) :
 	BackThrusterSlotCT->SetupAttachment(GetMesh());
 	RightThrusterSlotCT = CreateDefaultSubobject<USB_ModuleSlot>(TEXT("RightThrusterSlotCT"));
 	RightThrusterSlotCT->SetupAttachment(GetMesh());
-	PowerSlot_1_CT = CreateDefaultSubobject<USB_ModuleSlot>(TEXT("PowerSlot_1_CT"));
-	PowerSlot_1_CT->SetupAttachment(GetMesh());
-	PowerSlot_2_CT = CreateDefaultSubobject<USB_ModuleSlot>(TEXT("PowerSlot_2_CT"));
-	PowerSlot_2_CT->SetupAttachment(GetMesh());
-	PowerSlot_3_CT = CreateDefaultSubobject<USB_ModuleSlot>(TEXT("PowerSlot_3_CT"));
-	PowerSlot_3_CT->SetupAttachment(GetMesh());
-	PowerSlot_4_CT = CreateDefaultSubobject<USB_ModuleSlot>(TEXT("PowerSlot_4_CT"));
-	PowerSlot_4_CT->SetupAttachment(GetMesh());
-	WeaponSlot_1_CT = CreateDefaultSubobject<USB_ModuleSlot>(TEXT("WeaponSlot_1_CT"));
-	WeaponSlot_1_CT->SetupAttachment(GetMesh());
-	WeaponSlot_2_CT = CreateDefaultSubobject<USB_ModuleSlot>(TEXT("WeaponSlot_2_CT"));
-	WeaponSlot_2_CT->SetupAttachment(GetMesh());
-	WeaponSlot_3_CT = CreateDefaultSubobject<USB_ModuleSlot>(TEXT("WeaponSlot_3_CT"));
-	WeaponSlot_3_CT->SetupAttachment(GetMesh());
-	WeaponSlot_4_CT = CreateDefaultSubobject<USB_ModuleSlot>(TEXT("WeaponSlot_4_CT"));
-	WeaponSlot_4_CT->SetupAttachment(GetMesh());
-	WeaponSlot_5_CT = CreateDefaultSubobject<USB_ModuleSlot>(TEXT("WeaponSlot_5_CT"));
-	WeaponSlot_5_CT->SetupAttachment(GetMesh());
 	ShieldSlot_CT = CreateDefaultSubobject<USB_ModuleSlot>(TEXT("ShieldSlot_CT"));
 	ShieldSlot_CT->SetupAttachment(GetMesh());
+
+	//
+
+	for (uint8 Index = 0; Index < MAXAUTOLOCKCOMPONENTS; Index++)
+	{
+		USceneComponent* const NewAutoLockCT = CreateDefaultSubobject<USceneComponent>(FName("AutoLockCT_0" + FString::FromInt(Index)));
+		NewAutoLockCT->SetupAttachment(RootComponent);
+		AutoLockCTs.Add(NewAutoLockCT);
+	}
 
 	//
 
@@ -101,6 +93,10 @@ ASB_Ship::ASB_Ship(const FObjectInitializer& ObjectInitializer) :
 	AutoPossessPlayer = EAutoReceiveInput::Disabled;
 	bReplicates = true;
 	bAlwaysRelevant = true;
+
+	//
+
+	SelectedWeaponID = 0;
 }
 
 void ASB_Ship::PostInitializeComponents()
@@ -130,27 +126,10 @@ void ASB_Ship::BeginPlay()
 		USB_ModuleSlot* ModuleSlot = Cast<USB_ModuleSlot>(Component);
 		if (ModuleSlot)
 		{
-			if (ModuleSlot->GetModuleName() == "")
-				return;
-
 			const FSB_BaseModuleData* const ModuleData = DataManager->GetBaseModuleDataFromRow(ModuleSlot->GetModuleName());
 			if (ModuleData)
 			{
-				if (ModuleData->ModuleType == ESB_ModuleType::Power)
-				{
-					const FName ModuleName = *("PowerModule_" + ModuleSlot->GetModuleName().ToString() + "_" + FString::FromInt(Index));
-					USB_PowerModule* const NewPowerModule = NewObject<USB_PowerModule>(this, ModuleName);
-					if (NewPowerModule)
-					{
-						NewPowerModule->SetupAttachment(ModuleSlot);
-						NewPowerModule->RegisterComponent();
-						NewPowerModule->SetSkeletalMesh(ModuleData->SkeletalMesh);
-						NewPowerModule->Init(DataManager, ModuleSlot->GetSlotName(), ModuleSlot->GetModuleName());
-						BaseModules.Add(NewPowerModule);
-						PowerModules.Add(NewPowerModule);
-					}
-				}
-				else if (ModuleData->ModuleType == ESB_ModuleType::Thruster)
+				if (ModuleData->ModuleType == ESB_ModuleType::Thruster)
 				{
 					const FName ModuleName = *("ThrusterModule_" + ModuleSlot->GetModuleName().ToString() + "_" + FString::FromInt(Index));
 					USB_ThrusterModule* const NewThrusterModule = NewObject<USB_ThrusterModule>(this, ModuleName);
@@ -192,12 +171,32 @@ void ASB_Ship::BeginPlay()
 						ShieldModule = NewShieldModule;
 					}
 				}
+				else if (ModuleData->ModuleType == ESB_ModuleType::Power)
+				{
+					const FName ModuleName = *("PowerModule_" + ModuleSlot->GetModuleName().ToString() + "_" + FString::FromInt(Index));
+					USB_PowerModule* const NewPowerModule = NewObject<USB_PowerModule>(this, ModuleName);
+					if (NewPowerModule)
+					{
+						NewPowerModule->SetupAttachment(ModuleSlot);
+						NewPowerModule->RegisterComponent();
+						NewPowerModule->SetSkeletalMesh(ModuleData->SkeletalMesh);
+						NewPowerModule->Init(DataManager, ModuleSlot->GetSlotName(), ModuleSlot->GetModuleName());
+						BaseModules.Add(NewPowerModule);
+						PowerModules.Add(NewPowerModule);
+					}
+				}
 			}
 		}
 
 		Index++;
 	}
+
+	// Spawn and attach AutoLock components.
 }
+
+#pragma endregion
+
+#pragma region +++++ Main ...
 
 void ASB_Ship::Tick(float DeltaTime)
 {
@@ -214,81 +213,23 @@ void ASB_Ship::Tick(float DeltaTime)
 	Debug(DeltaTime);
 }
 
-void ASB_Ship::UpdateOwnerViewData(const FRotator& NewOwnerViewRotation, const FVector& NewOwnerViewLocation)
+void ASB_Ship::UpdateOwnerViewData(const FRotator& NewOwnerViewRotation, const FVector& NewOwnerViewLocation, AActor* const NewOwnerViewActor)
 {
 	if (State != ESB_ShipState::Ready)
 		return;
 
-	if (GetLocalRole() < ROLE_Authority)
-		UpdateOwnerViewData_Server(NewOwnerViewRotation, NewOwnerViewLocation);
+	//if (GetLocalRole() < ROLE_Authority)
+		//UpdateOwnerViewData_Server(NewOwnerViewRotation, NewOwnerViewLocation, NewOwnerViewActor);
 
 	OwnerViewRotation = NewOwnerViewRotation;
 	OwnerViewLocation = NewOwnerViewLocation;
+	OwnerViewActor = NewOwnerViewActor;
 }
 
-void ASB_Ship::UpdateOwnerViewData_Server_Implementation(const FRotator& NewOwnerViewRotation, const FVector& NewOwnerViewLocation)
+/*void ASB_Ship::UpdateOwnerViewData_Server_Implementation(const FRotator& NewOwnerViewRotation, const FVector& NewOwnerViewLocation, AActor* const NewOwnerViewActor)
 {
-	UpdateOwnerViewData(NewOwnerViewRotation, NewOwnerViewLocation);
-}
-
-void ASB_Ship::SelectWeapon(uint8 WeaponID)
-{
-	if (State != ESB_ShipState::Ready)
-		return;
-
-	if (GetLocalRole() < ROLE_Authority)
-		SelectWeapon_Server(WeaponID);
-
-	if (WeaponModules.IsValidIndex(WeaponID))
-	{
-		if (WeaponModules[WeaponID])
-		{
-			WeaponModules[WeaponID]->ToggleSelection();
-		}
-	}
-}
-
-void ASB_Ship::SelectWeapon_Server_Implementation(uint8 WeaponID)
-{
-	SelectWeapon(WeaponID);
-}
-
-void ASB_Ship::StartFireWeapons()
-{
-	if (State != ESB_ShipState::Ready)
-		return;
-
-	if (GetLocalRole() < ROLE_Authority)
-		StartFireWeapons_Server();
-
-	for (auto& WeaponModule : WeaponModules)
-	{
-		WeaponModule->SetWantsToFire(true);
-	}
-}
-
-void ASB_Ship::StartFireWeapons_Server_Implementation()
-{
-	StartFireWeapons();
-}
-
-void ASB_Ship::StopFireWeapons()
-{
-	if (GetLocalRole() < ROLE_Authority)
-	{
-		StopFireWeapons_Server();
-	}
-
-	for (auto& WeaponModule : WeaponModules)
-	{
-		WeaponModule->SetWantsToFire(false);
-	}
-}
-
-void ASB_Ship::StopFireWeapons_Server_Implementation()
-{
-	StopFireWeapons();
-}
+	UpdateOwnerViewData(NewOwnerViewRotation, NewOwnerViewLocation, NewOwnerViewActor);
+}*/
 
 void ASB_Ship::UpdateState(ESB_ShipState NewState)
 {
@@ -297,7 +238,7 @@ void ASB_Ship::UpdateState(ESB_ShipState NewState)
 
 	if (NewState == ESB_ShipState::Destroyed)
 	{
-		StopFireWeapons();
+		//StopFireWeapons();
 	}
 
 	UpdateState_Multicast(NewState);
@@ -324,6 +265,111 @@ void ASB_Ship::UpdateState_Multicast_Implementation(ESB_ShipState NewState)
 
 	State = NewState;
 }
+
+#pragma endregion
+
+#pragma region +++++ Weapons ...
+
+void ASB_Ship::SelectWeapon(uint8 WeaponID)
+{
+	if (State != ESB_ShipState::Ready)
+		return;
+
+	if (GetLocalRole() < ROLE_Authority)
+		SelectWeapon_Server(WeaponID);
+
+	if (WeaponModules.IsValidIndex(SelectedWeaponID - 1))
+	{
+		if (WeaponModules[SelectedWeaponID - 1])
+		{
+			WeaponModules[SelectedWeaponID - 1]->ToggleSelection(false);
+		}
+	}
+
+	if (WeaponModules.IsValidIndex(WeaponID - 1))
+	{
+		if (WeaponModules[WeaponID - 1])
+		{
+			WeaponModules[WeaponID - 1]->ToggleSelection(true);
+		}
+	}
+
+	SelectedWeaponID = WeaponID;
+}
+
+void ASB_Ship::SelectWeapon_Server_Implementation(uint8 WeaponID)
+{
+	SelectWeapon(WeaponID);
+}
+
+void ASB_Ship::StartFireSelectedWeapon()
+{
+	if (State != ESB_ShipState::Ready)
+		return;
+
+	if (GetLocalRole() < ROLE_Authority)
+		StartFireSelectedWeapon_Server();
+
+	if (WeaponModules.IsValidIndex(SelectedWeaponID - 1))
+	{
+		if (WeaponModules[SelectedWeaponID - 1])
+		{
+			WeaponModules[SelectedWeaponID - 1]->SetWantsToFire(true);
+		}
+	}
+}
+
+void ASB_Ship::StartFireSelectedWeapon_Server_Implementation()
+{
+	StartFireSelectedWeapon();
+}
+
+void ASB_Ship::StopFireSelectedWeapon()
+{
+	if (GetLocalRole() < ROLE_Authority)
+		StopFireSelectedWeapon_Server();
+
+	if (WeaponModules.IsValidIndex(SelectedWeaponID - 1))
+	{
+		if (WeaponModules[SelectedWeaponID - 1])
+		{
+			WeaponModules[SelectedWeaponID - 1]->SetWantsToFire(false);
+		}
+	}
+}
+
+void ASB_Ship::StartAutoLockSelectedWeapon()
+{
+	if (WeaponModules.IsValidIndex(SelectedWeaponID - 1))
+	{
+		WeaponModules[SelectedWeaponID - 1]->SetTargetShip(Cast<ASB_Ship>(OwnerViewActor));
+	}
+}
+
+void ASB_Ship::StopAutoLockSelectedWeapon()
+{
+	if (WeaponModules.IsValidIndex(SelectedWeaponID - 1))
+	{
+		WeaponModules[SelectedWeaponID - 1]->SetTargetShip(nullptr);
+	}
+}
+
+void ASB_Ship::StopFireSelectedWeapon_Server_Implementation()
+{
+	StopFireSelectedWeapon();
+}
+
+#pragma endregion
+
+#pragma region +++++ Mesh ...
+
+void ASB_Ship::ToggleOutline(bool bNewIsVisible)
+{
+	GetMesh()->SetCustomDepthStencilValue(2);
+	GetMesh()->SetRenderCustomDepth(bNewIsVisible);
+}
+
+#pragma endregion
 
 #pragma region +++++ Replication / Debug ...
 
