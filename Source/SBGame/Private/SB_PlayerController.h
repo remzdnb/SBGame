@@ -37,7 +37,7 @@ public:
 private:
 
 	class ASB_DataManager* DataManager;
-	class ARZ_UIManager* UIManager;
+	class ASB_UIManager* UIManager;
 	class ASB_GameMode* GMode;
 
 	//
@@ -77,9 +77,10 @@ private:
 	UFUNCTION() void LeftMouseButtonReleased();
 	UFUNCTION() void RightMouseButtonPressed();
 	UFUNCTION() void RightMouseButtonReleased();
-	UFUNCTION() void SpaceBarKeyPressed();
+	UFUNCTION() void TabKeyPressed();
 	UFUNCTION() void ShiftKeyPressed();
 	UFUNCTION() void ShiftKeyReleased();
+	UFUNCTION() void SpaceBarKeyPressed();
 	UFUNCTION() void SelectWeapon1KeyPressed();
 	UFUNCTION() void SelectWeapon2KeyPressed();
 	UFUNCTION() void SelectWeapon3KeyPressed();

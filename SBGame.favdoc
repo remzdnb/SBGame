@@ -75,6 +75,36 @@
           <folders />
           <favorites>
             <Favorite>
+              <name>SB_UIManager.cpp</name>
+              <path>Source\SBGame\Private\SB_UIManager.cpp</path>
+              <absolutePath>D:\UE\Projects\Launcher_4.24.3\SBGame\Source\SBGame\Private\SB_UIManager.cpp</absolutePath>
+            </Favorite>
+            <Favorite>
+              <name>SB_UIManager.h</name>
+              <path>Source\SBGame\Private\SB_UIManager.h</path>
+              <absolutePath>D:\UE\Projects\Launcher_4.24.3\SBGame\Source\SBGame\Private\SB_UIManager.h</absolutePath>
+            </Favorite>
+            <Favorite>
+              <name>SB_BattleMenuWidget.cpp</name>
+              <path>Source\SBGame\Private\SB_BattleMenuWidget.cpp</path>
+              <absolutePath>D:\UE\Projects\Launcher_4.24.3\SBGame\Source\SBGame\Private\SB_BattleMenuWidget.cpp</absolutePath>
+            </Favorite>
+            <Favorite>
+              <name>SB_BattleMenuWidget.h</name>
+              <path>Source\SBGame\Private\SB_BattleMenuWidget.h</path>
+              <absolutePath>D:\UE\Projects\Launcher_4.24.3\SBGame\Source\SBGame\Private\SB_BattleMenuWidget.h</absolutePath>
+            </Favorite>
+            <Favorite>
+              <name>SB_BattleHUDWidget.cpp</name>
+              <path>Source\SBGame\Private\SB_BattleHUDWidget.cpp</path>
+              <absolutePath>D:\UE\Projects\Launcher_4.24.3\SBGame\Source\SBGame\Private\SB_BattleHUDWidget.cpp</absolutePath>
+            </Favorite>
+            <Favorite>
+              <name>SB_BattleHUDWidget.h</name>
+              <path>Source\SBGame\Private\SB_BattleHUDWidget.h</path>
+              <absolutePath>D:\UE\Projects\Launcher_4.24.3\SBGame\Source\SBGame\Private\SB_BattleHUDWidget.h</absolutePath>
+            </Favorite>
+            <Favorite>
               <name>SB_BattleWidget.cpp</name>
               <path>Source\SBGame\Private\SB_BattleWidget.cpp</path>
               <absolutePath>D:\Unreal\Projects\Launcher_4.24.3\SBGame\Source\SBGame\Private\SB_BattleWidget.cpp</absolutePath>

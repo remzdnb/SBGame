@@ -1,8 +1,8 @@
-// RZEssentials Plugin
-#include "RZ_MenuLayoutWidget.h"
-#include "Input/RZ_ButtonWidget.h"
-#include "RZ_UIManager.h"
-#include "RZ_UIPluginDataManager.h"
+//
+#include "SB_BattleMenuWidget.h"
+#include "SB_UIManager.h"
+#include "SB_DataManager.h"
+#include "RZ_ButtonWidget.h"
 //
 #include "Components/WidgetSwitcher.h"
 #include "Components/HorizontalBox.h"
@@ -10,11 +10,11 @@
 #include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
 
-void URZ_MenuLayoutWidget::NativeOnInitialized()
+void USB_BattleMenuWidget::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
-	for (TActorIterator<ARZ_UIPluginDataManager> UIDataManager(GetWorld()); UIDataManager; ++UIDataManager)
+	for (TActorIterator<ASB_DataManager> UIDataManager(GetWorld()); UIDataManager; ++UIDataManager)
 	{
 		DataManager = *UIDataManager;
 		break;
@@ -24,7 +24,7 @@ void URZ_MenuLayoutWidget::NativeOnInitialized()
 	WidgetSwitcher->ClearChildren();
 }
 
-class UUserWidget* URZ_MenuLayoutWidget::LoadWidget(TSubclassOf<UUserWidget> WidgetClass, FName TabName, bool bShouldCreateTab, class URZ_ButtonWidget* TabToAssign)
+class UUserWidget* USB_BattleMenuWidget::LoadWidget(TSubclassOf<UUserWidget> WidgetClass, FName TabName, bool bShouldCreateTab, class URZ_ButtonWidget* TabToAssign)
 {
 	if (DataManager == nullptr)
 		return nullptr;
@@ -38,13 +38,13 @@ class UUserWidget* URZ_MenuLayoutWidget::LoadWidget(TSubclassOf<UUserWidget> Wid
 
 		if (bShouldCreateTab)
 		{
-			URZ_ButtonWidget* NewTabWidget = CreateWidget<URZ_ButtonWidget>(GetWorld(), DataManager->RZ_Button_Large_WB); // Create new TabWidget
+			URZ_ButtonWidget* NewTabWidget = CreateWidget<URZ_ButtonWidget>(GetWorld(), DataManager->UISettings.LargeButtonWidgetClass); // Create new TabWidget
 			if (NewTabWidget)
 			{
 				TopBarHBox->AddChild(NewTabWidget);
 				TabWidgets.Add(NewTabWidget);
 				NewTabWidget->Init(NewWidgetID, TabName);
-				//NewTabWidget->OnButtonPressed.AddDynamic(this, &URZ_MenuLayoutWidget::SetActiveWidget);
+				//NewTabWidget->OnButtonPressed.AddDynamic(this, &USB_BattleMenuWidget::SetActiveWidget);
 
 			}
 		}
@@ -52,7 +52,7 @@ class UUserWidget* URZ_MenuLayoutWidget::LoadWidget(TSubclassOf<UUserWidget> Wid
 		{
 			TabWidgets.Add(TabToAssign);
 			TabToAssign->Init(NewWidgetID, TabName);
-			//TabToAssign->OnButtonPressed.AddDynamic(this, &URZ_MenuLayoutWidget::SetActiveWidget);
+			//TabToAssign->OnButtonPressed.AddDynamic(this, &USB_BattleMenuWidget::SetActiveWidget);
 		}
 
 		// Load widget
@@ -70,7 +70,7 @@ class UUserWidget* URZ_MenuLayoutWidget::LoadWidget(TSubclassOf<UUserWidget> Wid
 	return nullptr;
 }
 
-/*void URZ_MenuLayoutWidget::SetActiveWidget(uint8 NewTabID)
+/*void USB_BattleMenuWidget::SetActiveWidget(uint8 NewTabID)
 {
 	if (NewTabID == SwitcherIndex)
 		return;
@@ -109,7 +109,7 @@ class UUserWidget* URZ_MenuLayoutWidget::LoadWidget(TSubclassOf<UUserWidget> Wid
 	}
 }*/
 
-void URZ_MenuLayoutWidget::SetActiveWidgetByRef(UUserWidget* WidgetRef)
+void USB_BattleMenuWidget::SetActiveWidgetByRef(UUserWidget* WidgetRef)
 {
 	if (WidgetSwitcher->GetActiveWidget() == WidgetRef)
 		return;

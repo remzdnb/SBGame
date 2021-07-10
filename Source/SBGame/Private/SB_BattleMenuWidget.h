@@ -2,10 +2,10 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "RZ_MenuLayoutWidget.generated.h"
+#include "SB_BattleMenuWidget.generated.h"
 
 UCLASS()
-class RZ_UIPLUGIN_API URZ_MenuLayoutWidget : public UUserWidget
+class USB_BattleMenuWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
@@ -24,7 +24,7 @@ public:
 
 private:
 
-	class ARZ_UIPluginDataManager* DataManager;
+	class ASB_DataManager* DataManager;
 
 	UPROPERTY() TArray<class URZ_ButtonWidget*> TabWidgets;
 	UPROPERTY() TArray<UUserWidget*> LoadedWidgets;

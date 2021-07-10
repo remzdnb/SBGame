@@ -1,9 +1,10 @@
 #include "SB_GameMode.h"
 #include "SB_GameState.h"
+#include "SB_PlayerState.h"
 #include "SB_PlayerController.h"
 #include "SB_AIController.h"
-#include "SB_PlayerState.h"
 #include "SB_ShipStart.h"
+#include "SB_UIManager.h"
 #include "SB_DataManager.h"
 //
 #include "GameFramework/PlayerStart.h"
@@ -14,7 +15,7 @@ ASB_GameMode::ASB_GameMode()
 	PlayerControllerClass = ASB_PlayerController::StaticClass();
 	GameStateClass = ASB_GameState::StaticClass();
 	PlayerStateClass = ASB_PlayerState::StaticClass();
-	//HUDClass = ARZ_UIManager::StaticClass();
+	HUDClass = ASB_UIManager::StaticClass();
 
 	DefaultPawnClass = nullptr;
 	SpectatorClass = nullptr;
@@ -32,13 +33,16 @@ void ASB_GameMode::PostInitializeComponents()
 		break;
 	}
 
+	if (DataManager == nullptr)
+		UE_LOG(LogTemp, Error, TEXT("ARZ_BaseGameMode::PostInitializeComponents - Missing DataManager."));
+
 	for (TActorIterator<ASB_ShipStart> ShipStart(GetWorld()); ShipStart; ++ShipStart)
 	{
 		ShipStartArray.Add(*ShipStart);
 	}
 
 	if (ShipStartArray.Num() == 0)
-		UE_LOG(LogTemp, Error, TEXT("ARZ_BaseGameMode::BeginPlay - No PlayerStart found in level."));
+		UE_LOG(LogTemp, Error, TEXT("ARZ_BaseGameMode::PostInitializeComponents - Missing ShipStart."));
 }
 
 void ASB_GameMode::BeginPlay()

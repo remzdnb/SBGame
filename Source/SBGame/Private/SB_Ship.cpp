@@ -270,19 +270,19 @@ void ASB_Ship::UpdateState_Multicast_Implementation(ESB_ShipState NewState)
 
 #pragma region +++++ Weapons ...
 
-void ASB_Ship::SelectWeapon(uint8 WeaponID)
+void ASB_Ship::SelectWeapon(uint8 WeaponID, bool bIsAdditive)
 {
 	if (State != ESB_ShipState::Ready)
 		return;
 
 	if (GetLocalRole() < ROLE_Authority)
-		SelectWeapon_Server(WeaponID);
+		SelectWeapon_Server(WeaponID, bIsAdditive);
 
-	if (WeaponModules.IsValidIndex(SelectedWeaponID - 1))
+	if (bIsAdditive == false)
 	{
-		if (WeaponModules[SelectedWeaponID - 1])
+		for (auto& WeaponModule : WeaponModules)
 		{
-			WeaponModules[SelectedWeaponID - 1]->ToggleSelection(false);
+			WeaponModule->ToggleSelection(false);
 		}
 	}
 
@@ -304,9 +304,9 @@ void ASB_Ship::SelectWeapon(uint8 WeaponID)
 	}
 }
 
-void ASB_Ship::SelectWeapon_Server_Implementation(uint8 WeaponID)
+void ASB_Ship::SelectWeapon_Server_Implementation(uint8 WeaponID, bool bIsAdditive)
 {
-	SelectWeapon(WeaponID);
+	SelectWeapon(WeaponID, bIsAdditive);
 }
 
 void ASB_Ship::StartFireSelectedWeapon()

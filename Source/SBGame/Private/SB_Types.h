@@ -75,6 +75,32 @@ struct FSB_GameSettings
 };
 
 USTRUCT(BlueprintType)
+struct FSB_UISettings
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TMap<FName, TSubclassOf<class UUserWidget>> BattleMenuWidgets;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class UUserWidget> BattleMenuWidget_WBP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class UUserWidget> BattleHUDWidget_WBP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class UUserWidget> SmallButtonWidgetClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class UUserWidget> LargeButtonWidgetClass;
+
+	FSB_UISettings()
+	{
+
+	}
+};
+
+USTRUCT(BlueprintType)
 struct FSB_CameraSettings
 {
 	GENERATED_USTRUCT_BODY()

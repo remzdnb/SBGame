@@ -41,10 +41,10 @@ public:
 	void UpdateOwnerViewData_Server(const FRotator& NewOwnerViewRotation, const FVector& NewOwnerViewLocation, class AActor* const NewOwnerViewActor);*/
 
 	UFUNCTION()
-	void SelectWeapon(uint8 WeaponID);
+	void SelectWeapon(uint8 WeaponID, bool bIsAdditive = false);
 
 	UFUNCTION(Server, Reliable)
-	void SelectWeapon_Server(uint8 WeaponID);
+	void SelectWeapon_Server(uint8 WeaponID, bool bIsAdditive = false);
 
 	UFUNCTION()
 	void StartFireSelectedWeapon();

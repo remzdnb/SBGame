@@ -42,6 +42,7 @@
 *.VC.opendb
 
 # Precompiled Assets
+SourceArt/*
 SourceArt/**/*.png
 SourceArt/**/*.tga
 

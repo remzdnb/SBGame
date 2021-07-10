@@ -22,6 +22,9 @@ public:
 	FSB_GameSettings GameSettings;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FSB_UISettings UISettings;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FSB_CameraSettings CameraSettings;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)

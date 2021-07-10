@@ -6,9 +6,9 @@
 #include "SB_ShipCameraManager.h"
 #include "SB_ShieldModule.h"
 #include "SB_SpectatorPawn.h"
-#include "RZ_UIManager.h"
-#include "RZ_HUDLayoutWidget.h"
-#include "RZ_MenuLayoutWidget.h"
+#include "SB_UIManager.h"
+#include "SB_BattleMenuWidget.h"
+#include "SB_BattleHUDWidget.h"
 #include "SB_DataManager.h"
 //
 #include "Kismet/GameplayStatics.h"
@@ -49,10 +49,10 @@ void ASB_PlayerController::BeginPlay()
 	if (IsLocalController())
 	{
 		// UI setup
-		UIManager = Cast<ARZ_UIManager>(GetHUD());
+		UIManager = Cast<ASB_UIManager>(GetHUD());
 		if (UIManager)
 		{
-			UIManager->OpenHUD();
+			UIManager->ToggleHUD(true);
 			UWidgetBlueprintLibrary::SetInputMode_GameOnly(this);
 			bShowMouseCursor = false;
 		}
@@ -191,6 +191,7 @@ void ASB_PlayerController::SetupInputComponent()
 	InputComponent->BindAction("LeftMouseButton", IE_Released, this, &ASB_PlayerController::LeftMouseButtonReleased).bConsumeInput = false;
 	InputComponent->BindAction("RightMouseButton", IE_Pressed, this, &ASB_PlayerController::RightMouseButtonPressed).bConsumeInput = false;
 	InputComponent->BindAction("RightMouseButton", IE_Released, this, &ASB_PlayerController::RightMouseButtonReleased).bConsumeInput = false;
+	InputComponent->BindAction("Tab", IE_Pressed, this, &ASB_PlayerController::TabKeyPressed).bConsumeInput = false;
 	InputComponent->BindAction("Shift", IE_Pressed, this, &ASB_PlayerController::ShiftKeyPressed).bConsumeInput = false;
 	InputComponent->BindAction("Shift", IE_Released, this, &ASB_PlayerController::ShiftKeyReleased).bConsumeInput = false;
 	InputComponent->BindAction("SpaceBar", IE_Pressed, this, &ASB_PlayerController::SpaceBarKeyPressed).bConsumeInput = false;
@@ -304,6 +305,29 @@ void ASB_PlayerController::RightMouseButtonReleased()
 {
 }
 
+void ASB_PlayerController::TabKeyPressed()
+{
+	if (UIManager)
+	{
+		if (UIManager->IsMenuOpen())
+		{
+			UIManager->ToggleMenu(false);
+			UIManager->ToggleHUD(true);
+
+			UWidgetBlueprintLibrary::SetInputMode_GameOnly(this);
+			bShowMouseCursor = false;
+		}
+		else
+		{
+			UIManager->ToggleMenu(true);
+			UIManager->ToggleHUD(false);
+
+			UWidgetBlueprintLibrary::SetInputMode_UIOnlyEx(this);
+			bShowMouseCursor = true;
+		}
+	}
+}
+
 void ASB_PlayerController::ShiftKeyPressed()
 {
 	if (OwnedShip)
@@ -405,10 +429,10 @@ void ASB_PlayerController::SelectAllWeaponsKeyPressed()
 	if (OwnedShip)
 	{
 		OwnedShip->SelectWeapon(1);
-		OwnedShip->SelectWeapon(2);
-		OwnedShip->SelectWeapon(3);
-		OwnedShip->SelectWeapon(4);
-		OwnedShip->SelectWeapon(5);
+		OwnedShip->SelectWeapon(2, true);
+		OwnedShip->SelectWeapon(3, true);
+		OwnedShip->SelectWeapon(4, true);
+		OwnedShip->SelectWeapon(5, true);
 	}
 }
 
