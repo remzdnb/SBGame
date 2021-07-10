@@ -8,7 +8,7 @@
 #include "SB_WeaponModule.h"
 #include "SB_ShieldModule.h"
 #include "SB_DataManager.h"
-#include "SB_ShipCameraComponent.h"
+#include "SB_ShipCameraManager.h"
 //
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -42,15 +42,6 @@ ASB_Ship::ASB_Ship(const FObjectInitializer& ObjectInitializer) :
 	GetMesh()->SetGenerateOverlapEvents(true);
 	GetMesh()->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
 
-	CameraArmCT = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraArmCT"));
-	CameraArmCT->SetupAttachment(RootComponent);
-	CameraArmCT->bUsePawnControlRotation = false;
-	CameraArmCT->bDoCollisionTest = true;
-
-	CameraCT = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraCT"));
-	CameraCT->SetupAttachment(CameraArmCT, USpringArmComponent::SocketName);
-	CameraCT->bUsePawnControlRotation = false;
-
 	CircleParticleCT = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("CircleParticleCT"));
 	CircleParticleCT->SetupAttachment(RootComponent);
 
@@ -76,7 +67,7 @@ ASB_Ship::ASB_Ship(const FObjectInitializer& ObjectInitializer) :
 
 	//
 
-	ShipCameraCT = CreateDefaultSubobject<USB_ShipCameraComponent>(FName("ShipCameraCT"));
+	ShipCameraManager = CreateDefaultSubobject<USB_ShipCameraManager>(FName("ShipCameraManager"));
 	PowerCT = CreateDefaultSubobject<USB_ShipPowerComponent>(FName("PowerCT"));
 	MovementCT = Cast<USB_ShipMovementComponent>(GetMovementComponent());
 	CombatCT = CreateDefaultSubobject<USB_ShipCombatComponent>(FName("CombatCT"));
@@ -155,6 +146,15 @@ void ASB_Ship::BeginPlay()
 						NewWeaponModule->Init(DataManager, ModuleSlot->GetSlotName(), ModuleSlot->GetModuleName());
 						BaseModules.Add(NewWeaponModule);
 						WeaponModules.Add(NewWeaponModule);
+
+						const FName CameraName = *("WeaponCamera_" + FString::FromInt(Index));
+						UCameraComponent* const NewWeaponCamera = NewObject<UCameraComponent>(this, CameraName);
+						if (NewWeaponCamera)
+						{
+							NewWeaponCamera->SetupAttachment(NewWeaponModule, "ViewSocket");
+							NewWeaponCamera->RegisterComponent();
+							ShipCameraManager->AddSniperCamera(NewWeaponCamera);
+						}
 					}
 				}
 				else if (ModuleData->ModuleType == ESB_ModuleType::Shield)
@@ -292,9 +292,16 @@ void ASB_Ship::SelectWeapon(uint8 WeaponID)
 		{
 			WeaponModules[WeaponID - 1]->ToggleSelection(true);
 		}
-	}
 
-	SelectedWeaponID = WeaponID;
+		SelectedWeaponID = WeaponID;
+
+		if (ShipCameraManager)
+		{
+			ShipCameraManager->SetActiveSniperCamera(WeaponID - 1);
+		}
+
+		SelectedWeaponUpdatedEvent.Broadcast(SelectedWeaponID);
+	}
 }
 
 void ASB_Ship::SelectWeapon_Server_Implementation(uint8 WeaponID)
@@ -338,25 +345,25 @@ void ASB_Ship::StopFireSelectedWeapon()
 	}
 }
 
+void ASB_Ship::StopFireSelectedWeapon_Server_Implementation()
+{
+	StopFireSelectedWeapon();
+}
+
 void ASB_Ship::StartAutoLockSelectedWeapon()
 {
-	if (WeaponModules.IsValidIndex(SelectedWeaponID - 1))
+	/*if (WeaponModules.IsValidIndex(SelectedWeaponID - 1))
 	{
 		WeaponModules[SelectedWeaponID - 1]->SetTargetShip(Cast<ASB_Ship>(OwnerViewActor));
-	}
+	}*/
 }
 
 void ASB_Ship::StopAutoLockSelectedWeapon()
 {
-	if (WeaponModules.IsValidIndex(SelectedWeaponID - 1))
+	/*if (WeaponModules.IsValidIndex(SelectedWeaponID - 1))
 	{
 		WeaponModules[SelectedWeaponID - 1]->SetTargetShip(nullptr);
-	}
-}
-
-void ASB_Ship::StopFireSelectedWeapon_Server_Implementation()
-{
-	StopFireSelectedWeapon();
+	}*/
 }
 
 #pragma endregion

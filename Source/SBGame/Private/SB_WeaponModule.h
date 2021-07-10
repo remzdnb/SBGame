@@ -35,6 +35,9 @@ public:
 	void ToggleSelection(bool bNewIsSelected);
 
 	UFUNCTION()
+	void ToggleSniperView(bool bNewIsSniperView);
+
+	UFUNCTION()
 	void SetWantsToFire(bool bNewWantsToFire);
 
 	UFUNCTION()
@@ -43,6 +46,7 @@ public:
 private:
 
 	const FSB_WeaponModuleData* WeaponModuleData;
+	class USB_WeaponModuleAnimInstance* WeaponAnimInstance;
 
 	//
 
@@ -52,10 +56,13 @@ private:
 	UPROPERTY()
 	const class USceneComponent* TargetAutoLockCT;
 
-	UPROPERTY() float LastFireTime;
+	UParticleSystemComponent* MuzzleParticle;
+
 	UPROPERTY() bool bIsSelected;
+	UPROPERTY() bool bIsSniperView;
 	UPROPERTY() bool bWantsToFire;
 	UPROPERTY() bool bIsFiring;
+	UPROPERTY() float LastFireTime;
 
 	//
 

@@ -11,6 +11,7 @@
 USB_BaseModule::USB_BaseModule()
 {
 	SetCollisionProfileName("CharacterMesh");
+	SetCustomDepthStencilValue(1);
 	SetGenerateOverlapEvents(true);
 	//SetIsReplicatedByDefault(true);
 }

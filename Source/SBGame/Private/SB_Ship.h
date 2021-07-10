@@ -13,6 +13,7 @@
 #define DEFAULTRELATIVEMESHROTATION FRotator(0.0f, -90.0f, 0.0f)
 #define MAXAUTOLOCKCOMPONENTS 4
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSelectedWeaponUpdated, uint8, NewSelectedWeaponID);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDestroyed, const APlayerState* const, Instigator);
 
 UCLASS()
@@ -32,10 +33,6 @@ public:
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 public:
-
-	FDestroyed DestroyedEvent;
-
-	//
 
 	UFUNCTION()
 	void UpdateOwnerViewData(const FRotator& NewOwnerViewRotation, const FVector& NewOwnerViewLocation, class AActor* const NewOwnerViewActor);
@@ -79,21 +76,27 @@ public:
 	// Setters / Getters
 
 	FORCEINLINE UFUNCTION() const class ASB_DataManager* const GetDataManager() const { return DataManager; }
-	//
+
 	FORCEINLINE UFUNCTION() class USB_ShipMovementComponent* const GetShipMovementCT() const { return MovementCT; }
 	FORCEINLINE UFUNCTION() class USB_ShipCombatComponent* const GetShipCombatCT() const { return CombatCT; }
-	FORCEINLINE UFUNCTION() class USB_ShipCameraComponent* const GetShipCameraCT() const { return ShipCameraCT; }
-	//
+	FORCEINLINE UFUNCTION() class USB_ShipCameraManager* const GetShipCameraManager() const { return ShipCameraManager; }
+
 	FORCEINLINE UFUNCTION() TArray<class USB_BaseModule*> GetModules() const { return BaseModules; }
 	FORCEINLINE UFUNCTION() TArray<class USB_ThrusterModule*> GetThrusterModules() const { return ThrusterModules; }
 	FORCEINLINE UFUNCTION() TArray<class USB_WeaponModule*> GetWeaponModules() const { return WeaponModules; }
 	FORCEINLINE UFUNCTION() TArray<class USB_PowerModule*> GetPowerModules() const { return PowerModules; }
 	FORCEINLINE UFUNCTION() class USB_ShieldModule* const GetShieldModule() const { return ShieldModule; }
 	FORCEINLINE UFUNCTION() TArray<class USceneComponent*> GetAutoLockCTs() const { return AutoLockCTs; }
-	//
+
 	FORCEINLINE UFUNCTION() ESB_ShipState GetState() const { return State; }
 	FORCEINLINE UFUNCTION() const FRotator& GetOwnerViewRotation() const { return OwnerViewRotation; }
 	FORCEINLINE UFUNCTION() const FVector& GetOwnerViewLocation() const { return OwnerViewLocation; }
+	FORCEINLINE UFUNCTION() uint8 GetSelectedWeaponID() const { return SelectedWeaponID; }
+
+	//
+
+	FSelectedWeaponUpdated SelectedWeaponUpdatedEvent;
+	FDestroyed DestroyedEvent;
 
 private:
 
@@ -103,12 +106,6 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UBoxComponent* CollisionBoxCT;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class USpringArmComponent* CameraArmCT;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UCameraComponent* CameraCT;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UParticleSystemComponent* CircleParticleCT;
@@ -133,7 +130,7 @@ private:
 	// ActorComponents
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class USB_ShipCameraComponent* ShipCameraCT;
+	class USB_ShipCameraManager* ShipCameraManager;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class USB_ShipPowerComponent* PowerCT;

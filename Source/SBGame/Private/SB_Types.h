@@ -235,6 +235,9 @@ struct FSB_WeaponModuleData : public FTableRowBase
 	TSubclassOf<AActor> ProjectileBP;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	uint8 MuzzleCount;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	class UParticleSystem* MuzzleParticle;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -245,6 +248,13 @@ struct FSB_WeaponModuleData : public FTableRowBase
 
 	FSB_WeaponModuleData()
 	{
+		RotationRate = 1.0f;
+		FireRate = 0.5f;
+		ProjectileBP = nullptr;
+		MuzzleCount = 1;
+		MuzzleParticle = nullptr;
+		MuzzleParticleScale = 10.0f;
+		FireSound = nullptr;
 	}
 };
 

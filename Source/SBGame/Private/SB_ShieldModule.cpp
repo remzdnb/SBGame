@@ -1,7 +1,7 @@
 #include "SB_ShieldModule.h"
 #include "SB_Shield.h"
 #include "SB_Ship.h"
-#include "SB_ShipCameraComponent.h"
+#include "SB_ShipCameraManager.h"
 #include "SB_DataManager.h"
 //
 #include "GameFramework/SpringArmComponent.h"

@@ -3,7 +3,7 @@
 #include "SB_GameMode.h"
 #include "SB_Ship.h"
 #include "SB_ShipMovementComponent.h"
-#include "SB_ShipCameraComponent.h"
+#include "SB_ShipCameraManager.h"
 #include "SB_ShieldModule.h"
 #include "SB_SpectatorPawn.h"
 #include "RZ_UIManager.h"
@@ -108,7 +108,8 @@ void ASB_PlayerController::UpdateViewTarget()
 
 	const FVector Start = PlayerCameraManager->GetCameraLocation();
 	const FVector End = Start + (PlayerCameraManager->GetCameraRotation().Vector() * 10000000.0f);
-	const FCollisionQueryParams TraceParams;
+	FCollisionQueryParams TraceParams;
+	TraceParams.AddIgnoredActor(OwnedShip);
 	TArray<FHitResult> Hits;
 
 	GetWorld()->LineTraceMultiByChannel(Hits, Start, End, ECC_Visibility, TraceParams);
@@ -120,7 +121,7 @@ void ASB_PlayerController::UpdateViewTarget()
 			{
 				OwnedShip->UpdateOwnerViewData(GetControlRotation(), Hit.Location, Hit.Actor.Get());
 
-				//UKismetSystemLibrary::DrawDebugSphere(GetWorld(), Hit.Location, 10.0f, 10, FColor::Green, .1f, 0.3f);
+				//UKismetSystemLibrary::DrawDebugSphere(GetWorld(), Hit.Location, 500.0f, 10, FColor::Green, 0.1f, 20.0f);
 			}
 
 			break;
@@ -181,40 +182,34 @@ void ASB_PlayerController::SetupInputComponent()
 
 	check(InputComponent);
 
-	InputComponent->BindAxis("LookUpAxis", this, &ASB_PlayerController::LookUpAxis).bConsumeInput = false;
-	InputComponent->BindAxis("LookRightAxis", this, &ASB_PlayerController::LookRightAxis).bConsumeInput = false;
-	InputComponent->BindAxis("MoveForwardAxis", this, &ASB_PlayerController::MoveForwardAxis).bConsumeInput = false;
-	InputComponent->BindAxis("MoveRightAxis", this, &ASB_PlayerController::MoveRightAxis).bConsumeInput = false;
-	InputComponent->BindAxis("MouseWheelAxis", this, &ASB_PlayerController::MouseWheelAxis).bConsumeInput = false;
+	InputComponent->BindAxis("LookUp", this, &ASB_PlayerController::LookUpAxis).bConsumeInput = false;
+	InputComponent->BindAxis("LookRight", this, &ASB_PlayerController::LookRightAxis).bConsumeInput = false;
+	InputComponent->BindAxis("MoveForward", this, &ASB_PlayerController::MoveForwardAxis).bConsumeInput = false;
+	InputComponent->BindAxis("MoveRight", this, &ASB_PlayerController::MoveRightAxis).bConsumeInput = false;
+	InputComponent->BindAxis("MouseWheel", this, &ASB_PlayerController::MouseWheelAxis).bConsumeInput = false;
 	InputComponent->BindAction("LeftMouseButton", IE_Pressed, this, &ASB_PlayerController::LeftMouseButtonPressed).bConsumeInput = false;
 	InputComponent->BindAction("LeftMouseButton", IE_Released, this, &ASB_PlayerController::LeftMouseButtonReleased).bConsumeInput = false;
 	InputComponent->BindAction("RightMouseButton", IE_Pressed, this, &ASB_PlayerController::RightMouseButtonPressed).bConsumeInput = false;
 	InputComponent->BindAction("RightMouseButton", IE_Released, this, &ASB_PlayerController::RightMouseButtonReleased).bConsumeInput = false;
-	InputComponent->BindAction("MouseWheelUp", IE_Pressed, this, &ASB_PlayerController::MouseWheelUp).bConsumeInput = false;
-	InputComponent->BindAction("MouseWheelDown", IE_Pressed, this, &ASB_PlayerController::MouseWheelDown).bConsumeInput = false;
-	//InputComponent->BindAction("TabKey", IE_Pressed, this, &ASB_PlayerController::TabKeyPressed).bConsumeInput = false;
-	InputComponent->BindAction("SpaceBarKey", IE_Pressed, this, &ASB_PlayerController::SpaceBarKeyPressed).bConsumeInput = false;
-	InputComponent->BindAction("ShiftKey", IE_Pressed, this, &ASB_PlayerController::ShiftKeyPressed).bConsumeInput = false;
-	InputComponent->BindAction("ShiftKey", IE_Released, this, &ASB_PlayerController::ShiftKeyReleased).bConsumeInput = false;
-	InputComponent->BindAction("1Key", IE_Pressed, this, &ASB_PlayerController::Quickslot1KeyPressed).bConsumeInput = false;
-	InputComponent->BindAction("2Key", IE_Pressed, this, &ASB_PlayerController::Quickslot2KeyPressed).bConsumeInput = false;
-	InputComponent->BindAction("3Key", IE_Pressed, this, &ASB_PlayerController::Quickslot3KeyPressed).bConsumeInput = false;
-	InputComponent->BindAction("4Key", IE_Pressed, this, &ASB_PlayerController::Quickslot4KeyPressed).bConsumeInput = false;
-	InputComponent->BindAction("5Key", IE_Pressed, this, &ASB_PlayerController::Quickslot5KeyPressed).bConsumeInput = false;
+	InputComponent->BindAction("Shift", IE_Pressed, this, &ASB_PlayerController::ShiftKeyPressed).bConsumeInput = false;
+	InputComponent->BindAction("Shift", IE_Released, this, &ASB_PlayerController::ShiftKeyReleased).bConsumeInput = false;
+	InputComponent->BindAction("SpaceBar", IE_Pressed, this, &ASB_PlayerController::SpaceBarKeyPressed).bConsumeInput = false;
+	InputComponent->BindAction("SelectWeapon1", IE_Pressed, this, &ASB_PlayerController::SelectWeapon1KeyPressed).bConsumeInput = false;
+	InputComponent->BindAction("SelectWeapon2", IE_Pressed, this, &ASB_PlayerController::SelectWeapon2KeyPressed).bConsumeInput = false;
+	InputComponent->BindAction("SelectWeapon3", IE_Pressed, this, &ASB_PlayerController::SelectWeapon3KeyPressed).bConsumeInput = false;
+	InputComponent->BindAction("SelectWeapon4", IE_Pressed, this, &ASB_PlayerController::SelectWeapon4KeyPressed).bConsumeInput = false;
+	InputComponent->BindAction("SelectWeapon5", IE_Pressed, this, &ASB_PlayerController::SelectWeapon5KeyPressed).bConsumeInput = false;
+	InputComponent->BindAction("SelectAllWeapons", IE_Pressed, this, &ASB_PlayerController::SelectAllWeaponsKeyPressed).bConsumeInput = false;
+	InputComponent->BindAction("UnselectAllWeapons", IE_Pressed, this, &ASB_PlayerController::UnselectAllWeaponsKeyPressed).bConsumeInput = false;
 }
 
 void ASB_PlayerController::LookUpAxis(float AxisValue)
 {
-	if (GetStateName() == NAME_Spectating)
-	{
-		GetSpectatorPawn()->LookUpAtRate(AxisValue);
-	}
-
 	if (OwnedShip && OwnedShip == GetPawn())
 	{
-		if (OwnedShip->GetShipCameraCT())
+		if (OwnedShip->GetShipCameraManager())
 		{
-			OwnedShip->GetShipCameraCT()->AddPitchInput(AxisValue);
+			OwnedShip->GetShipCameraManager()->AddPitchInput(AxisValue);
 		}
 	}
 }
@@ -223,9 +218,9 @@ void ASB_PlayerController::LookRightAxis(float AxisValue)
 {
 	if (OwnedShip && OwnedShip == GetPawn())
 	{
-		if (OwnedShip->GetShipCameraCT())
+		if (OwnedShip->GetShipCameraManager())
 		{
-			OwnedShip->GetShipCameraCT()->AddYawInput(AxisValue);
+			OwnedShip->GetShipCameraManager()->AddYawInput(AxisValue);
 		}
 	}
 }
@@ -248,10 +243,27 @@ void ASB_PlayerController::MoveRightAxis(float AxisValue)
 
 void ASB_PlayerController::MouseWheelAxis(float AxisValue)
 {
-	/*if (GetPawn() == Cast<APawn>(GetSpectatorPawn()))
+	if (AxisValue > 0)
 	{
-		//RTSCameraPawn->Zoom(AxisValue);
-	}*/
+		if (OwnedShip && OwnedShip == GetPawn())
+		{
+			if (OwnedShip->GetShipCameraManager())
+			{
+				OwnedShip->GetShipCameraManager()->ZoomIn();
+			}
+		}
+	}
+	
+	if (AxisValue < 0)
+	{
+		if (OwnedShip && OwnedShip == GetPawn())
+		{
+			if (OwnedShip->GetShipCameraManager())
+			{
+				OwnedShip->GetShipCameraManager()->ZoomOut();
+			}
+		}
+	}
 }
 
 void ASB_PlayerController::LeftMouseButtonPressed()
@@ -292,28 +304,6 @@ void ASB_PlayerController::RightMouseButtonReleased()
 {
 }
 
-void ASB_PlayerController::MouseWheelUp()
-{
-	if (OwnedShip && OwnedShip == GetPawn())
-	{
-		if (OwnedShip->GetShipCameraCT())
-		{
-			OwnedShip->GetShipCameraCT()->ZoomIn();
-		}
-	}
-}
-
-void ASB_PlayerController::MouseWheelDown()
-{
-	if (OwnedShip && OwnedShip == GetPawn())
-	{
-		if (OwnedShip->GetShipCameraCT())
-		{
-			OwnedShip->GetShipCameraCT()->ZoomOut();
-		}
-	}
-}
-
 void ASB_PlayerController::ShiftKeyPressed()
 {
 	if (OwnedShip)
@@ -350,14 +340,27 @@ void ASB_PlayerController::SpaceBarKeyPressed()
 {
 	if (OwnedShip)
 	{
-		if (OwnedShip->GetState() == ESB_ShipState::Destroyed)
+		if (OwnedShip->GetState() == ESB_ShipState::Ready)
+		{
+			// If going into sniper mode without any weapon selected, select a weapon first.
+			if (OwnedShip->GetShipCameraManager()->GetIsSniperMode() == false)
+			{
+				if (OwnedShip->GetSelectedWeaponID() == 0)
+				{
+					OwnedShip->SelectWeapon(1);
+				}
+			}
+
+			OwnedShip->GetShipCameraManager()->ToggleSniperMode();
+		}
+		else
 		{
 			Respawn_Server();
 		}
 	}
 }
 
-void ASB_PlayerController::Quickslot1KeyPressed()
+void ASB_PlayerController::SelectWeapon1KeyPressed()
 {
 	if (OwnedShip)
 	{
@@ -365,7 +368,7 @@ void ASB_PlayerController::Quickslot1KeyPressed()
 	}
 }
 
-void ASB_PlayerController::Quickslot2KeyPressed()
+void ASB_PlayerController::SelectWeapon2KeyPressed()
 {
 	if (OwnedShip)
 	{
@@ -373,7 +376,7 @@ void ASB_PlayerController::Quickslot2KeyPressed()
 	}
 }
 
-void ASB_PlayerController::Quickslot3KeyPressed()
+void ASB_PlayerController::SelectWeapon3KeyPressed()
 {
 	if (OwnedShip)
 	{
@@ -381,7 +384,7 @@ void ASB_PlayerController::Quickslot3KeyPressed()
 	}
 }
 
-void ASB_PlayerController::Quickslot4KeyPressed()
+void ASB_PlayerController::SelectWeapon4KeyPressed()
 {
 	if (OwnedShip)
 	{
@@ -389,11 +392,31 @@ void ASB_PlayerController::Quickslot4KeyPressed()
 	}
 }
 
-void ASB_PlayerController::Quickslot5KeyPressed()
+void ASB_PlayerController::SelectWeapon5KeyPressed()
 {
 	if (OwnedShip)
 	{
 		OwnedShip->SelectWeapon(5);
+	}
+}
+
+void ASB_PlayerController::SelectAllWeaponsKeyPressed()
+{
+	if (OwnedShip)
+	{
+		OwnedShip->SelectWeapon(1);
+		OwnedShip->SelectWeapon(2);
+		OwnedShip->SelectWeapon(3);
+		OwnedShip->SelectWeapon(4);
+		OwnedShip->SelectWeapon(5);
+	}
+}
+
+void ASB_PlayerController::UnselectAllWeaponsKeyPressed()
+{
+	if (OwnedShip)
+	{
+		OwnedShip->SelectWeapon(0);
 	}
 }
 
