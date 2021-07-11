@@ -22,8 +22,7 @@ void ASB_PlayerState::PostInitializeComponents()
 
 void ASB_PlayerState::SetName(bool bIsPlayer)
 {
-	const FString NameString = bIsPlayer ? "Player_" + FMath::RandRange(0, 9999) : "Bot_" + FMath::RandRange(0, 9999);
-	DisplayName = *(NameString);
+	DisplayName = bIsPlayer ? "Player_" + FString::FromInt(FMath::RandRange(0, 9999)) : "Bot_" + FString::FromInt(FMath::RandRange(0, 9999));
 	GState->BroadcastGameStateUpdated();
 }
 

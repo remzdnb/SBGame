@@ -67,6 +67,9 @@ void ASB_PlayerController::BeginPlay()
 		{
 			UGameplayStatics::FinishSpawningActor(OwnedSpectatorPawn, FTransform(FVector()));
 		}*/
+
+		PState->SetName();
+		PState->SetTeamID(1);
 	}
 
 	// Start player

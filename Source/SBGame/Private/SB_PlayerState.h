@@ -25,7 +25,7 @@ public:
 
 	//
 
-	FORCEINLINE UFUNCTION() const FName& GetDisplayName() const { return DisplayName; }
+	FORCEINLINE UFUNCTION() const FString& GetDisplayName() const { return DisplayName; }
 	FORCEINLINE UFUNCTION() uint8 GetTeam() const { return TeamID; }
 
 private:
@@ -34,8 +34,8 @@ private:
 
 	//
 
-	UPROPERTY(Replicated)
-	FName DisplayName;
+	UPROPERTY()
+	FString DisplayName;
 
 	UPROPERTY(Replicated)
 	uint8 TeamID;

@@ -42,6 +42,9 @@ struct FSB_GameSettings
 	bool bIsDebugEnabled_GameMode;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool bIsDebugEnabled_AI;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	bool bIsDebugEnabled_Ship;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -62,11 +65,34 @@ struct FSB_GameSettings
 		AIControllerClass = nullptr;
 		bAutoSpawnPlayers = false;
 		bIsDebugEnabled_GameMode = false;
+		bIsDebugEnabled_AI = false;
 		bIsDebugEnabled_Ship = false;
 		bIsDebugEnabled_ShipMovement = false;
 		bIsDebugEnabled_ThrusterModule = false;
 		bIsDebugEnabled_WeaponModule = false;
 		bIsDebugEnabled_Projectile = false;
+	}
+};
+
+USTRUCT(BlueprintType)
+struct FSB_AISettings
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float DetectionUpdateRate;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float CollisionDetectionRange;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float CollisionDetectionSphereRadius;
+
+	FSB_AISettings()
+	{
+		DetectionUpdateRate = 0.5f;
+		CollisionDetectionRange = 35000.0f;
+		CollisionDetectionSphereRadius = 1000.0f;
 	}
 };
 

@@ -1,8 +1,18 @@
+///// SB_PlayerController.h - RemzDNB
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "SB_PlayerController.generated.h"
+
+class ASB_DataManager;
+class ASB_GameMode;
+class ASB_GameState;
+class ASB_PlayerState;
+class ASB_UIManager;
+class ASB_Ship;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FNewOwnedShip, class ASB_Ship* const, NewShip);
 
@@ -32,15 +42,16 @@ public:
 
 	//
 
-	FORCEINLINE UFUNCTION() class ASB_Ship* const GetOwnedShip() const { return OwnedShip; }
+	FORCEINLINE UFUNCTION() ASB_PlayerState* const GetPlayerState() const { return PState; }
+	FORCEINLINE UFUNCTION() ASB_Ship* const GetOwnedShip() const { return OwnedShip; }
 
 private:
 
-	class ASB_DataManager* DataManager;
-	class ASB_GameMode* GMode;
-	class ASB_GameState* GState;
-	class ASB_PlayerState* PState;
-	class ASB_UIManager* UIManager;
+	ASB_DataManager* DataManager;
+	ASB_GameMode* GMode;
+	ASB_GameState* GState;
+	ASB_PlayerState* PState;
+	ASB_UIManager* UIManager;
 
 	//
 

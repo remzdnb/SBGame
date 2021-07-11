@@ -60,14 +60,18 @@ void ASB_GameMode::Tick(float DeltaTime)
 	// Handle respawn.
 	if (RegisteredPlayerControllers.Num() != 0)
 	{
-		ASB_PlayerController* const SelectedController = RegisteredPlayerControllers[0];
-		if (SelectedController)
+		ASB_PlayerController* const SelectedPlayerController = RegisteredPlayerControllers[0].Get();
+		if (SelectedPlayerController)
 		{
-			ASB_ShipStart* const ShipStart = GetAvailableShipStart(1);
-			if (ShipStart)
+			ASB_PlayerState* const PlayerState = Cast<ASB_PlayerState>(SelectedPlayerController->PlayerState);
+			if (PlayerState)
 			{
-				SelectedController->SpawnAndPossessShip(ShipStart->GetStartTransform());
-				RegisteredPlayerControllers.RemoveAt(0);
+				ASB_ShipStart* const ShipStart = GetAvailableShipStart(PlayerState->GetTeam());
+				if (ShipStart)
+				{
+					SelectedPlayerController->SpawnAndPossessShip(ShipStart->GetStartTransform());
+					RegisteredPlayerControllers.RemoveAt(0);
+				}
 			}
 		}
 	}
@@ -75,18 +79,29 @@ void ASB_GameMode::Tick(float DeltaTime)
 	{
 		if (RegisteredAIControllers.Num() != 0)
 		{
-			ASB_AIController* const SelectedAIController = RegisteredAIControllers[0];
+			ASB_AIController* const SelectedAIController = RegisteredAIControllers[0].Get();
 			if (SelectedAIController)
 			{
-				ASB_ShipStart* const ShipStart = GetAvailableShipStart(1);
-				if (ShipStart)
+				ASB_PlayerState* const PlayerState = Cast<ASB_PlayerState>(SelectedAIController->PlayerState);
+				if (PlayerState)
 				{
-					//SelectedAIController->SpawnAndPossessShip(ShipStart->GetStartTransform());
-					RegisteredPlayerControllers.RemoveAt(0);
+					ASB_ShipStart* const ShipStart = GetAvailableShipStart(PlayerState->GetTeam());
+					if (ShipStart)
+					{
+						SelectedAIController->SpawnAndPossessShip(ShipStart->GetStartTransform());
+						RegisteredAIControllers.RemoveAt(0);
+					}
 				}
 			}
 		}
 	}
+}
+
+void ASB_GameMode::PostLogin(APlayerController* NewPlayerController)
+{
+	Super::PostLogin(NewPlayerController);
+
+	PlayerControllers.Add(Cast<ASB_PlayerController>(NewPlayerController));
 }
 
 void ASB_GameMode::QueryRespawn(AController* const NewController)

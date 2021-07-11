@@ -7,7 +7,7 @@ void USB_ScoreboardPlayerWidget::Init(const ASB_PlayerState* const PlayerState)
 {
 	if (PlayerState)
 	{
-		PlayerNameText->SetText(FText::FromName((PlayerState->GetDisplayName())));
+		PlayerNameText->SetText(FText::FromString(PlayerState->GetDisplayName()));
 		TeamText->SetText(FText::FromString(FString::FromInt(PlayerState->GetTeam())));
 	}
 }

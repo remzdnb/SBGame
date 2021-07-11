@@ -4,6 +4,9 @@
 #include "GameFramework/GameModeBase.h"
 #include "SB_GameMode.generated.h"
 
+class ASB_PlayerController;
+class ASB_AIController;
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FGameInitialized, class ASB_Ship* const, PlayerShip, class ASB_Ship* const, EnemyShip);
 
 UCLASS()
@@ -18,11 +21,17 @@ public:
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
+	virtual void PostLogin(APlayerController* NewPlayerController) override;
 
 	//
 
 	UFUNCTION()
 	void QueryRespawn(AController* const NewController);
+
+	//
+
+	FORCEINLINE UFUNCTION() TArray<TWeakObjectPtr<ASB_PlayerController>> const GetPlayerControllers() { return PlayerControllers; }
+	FORCEINLINE UFUNCTION() TArray<TWeakObjectPtr<ASB_AIController>> const GetAIControllers() { return AIControllers; }
 
 private:
 
@@ -30,16 +39,12 @@ private:
 	TArray<class ASB_ShipStart*> ShipStarts;
 	FTimerHandle SpawnTimer;
 
-	//
+	// "Registered" controllers are those ready to spawn their ships.
 
-	UPROPERTY()
-	TArray<class ASB_AIController*> AIControllers;
-
-	UPROPERTY()
-	TArray<class ASB_AIController*> RegisteredAIControllers;
-
-	UPROPERTY()
-	TArray<class ASB_PlayerController*> RegisteredPlayerControllers;
+	TArray<TWeakObjectPtr<ASB_PlayerController>> PlayerControllers;
+	TArray<TWeakObjectPtr<ASB_PlayerController>> RegisteredPlayerControllers;
+	TArray<TWeakObjectPtr<ASB_AIController>> AIControllers;
+	TArray<TWeakObjectPtr<ASB_AIController>> RegisteredAIControllers;
 
 	//
 
