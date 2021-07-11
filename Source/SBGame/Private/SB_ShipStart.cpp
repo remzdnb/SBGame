@@ -20,8 +20,20 @@ ASB_ShipStart::ASB_ShipStart()
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
 
+	//
+
 	bIsEnabled = true;
 	bIsAvailable = true;
+}
+
+void ASB_ShipStart::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+
+	if (TeamID == 1)
+		ArrowCT->SetArrowColor(FLinearColor::Blue);
+	if (TeamID == 2)
+		ArrowCT->SetArrowColor(FLinearColor::Red);
 }
 
 void ASB_ShipStart::BeginPlay()

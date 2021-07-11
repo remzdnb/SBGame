@@ -37,8 +37,10 @@ public:
 private:
 
 	class ASB_DataManager* DataManager;
-	class ASB_UIManager* UIManager;
 	class ASB_GameMode* GMode;
+	class ASB_GameState* GState;
+	class ASB_PlayerState* PState;
+	class ASB_UIManager* UIManager;
 
 	//
 

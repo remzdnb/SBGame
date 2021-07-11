@@ -16,8 +16,8 @@ public:
 	UFUNCTION() // Load UserWidget into the widget switcher and create associated top bar tab.
 	class UUserWidget* LoadWidget(TSubclassOf<UUserWidget> WidgetClass, FName TabName, bool bShouldCreateTab = true, class URZ_ButtonWidget* TabToAssign = nullptr);
 
-	/*UFUNCTION() //
-	void SetActiveWidget(uint8 NewWidgetID);*/
+	UFUNCTION()
+	void SetActiveWidgetByIndex(uint8 Index);
 
 	UFUNCTION()
 	void SetActiveWidgetByRef(UUserWidget* WidgetRef);

@@ -17,8 +17,21 @@ public:
 
 	ASB_ShipStart();
 
-///// Components
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	virtual void OnConstruction(const FTransform& Transform) override;
+	virtual void BeginPlay() override;
+
+	//
+
+	UFUNCTION(NetMulticast, Reliable)
+	void UpdateAvailability_Multicast(bool bNewIsAvailable);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void UpdateAvailability_BPI(bool bNewIsAvailable);
+
+	FORCEINLINE UFUNCTION(BlueprintCallable) bool GetIsEnabled() const { return bIsEnabled; }
+	FORCEINLINE UFUNCTION(BlueprintCallable) bool GetIsAvailable() const { return bIsAvailable; }
+	FORCEINLINE UFUNCTION(BlueprintCallable) uint8 GetTeamID() const { return TeamID; }
+	UFUNCTION(BlueprintCallable) FTransform GetStartTransform();
 
 private:
 
@@ -31,33 +44,7 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UParticleSystemComponent* StandParticleCT;
 
-	UFUNCTION() void OnBeginOverlap(class UPrimitiveComponent* OverlappedComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-	UFUNCTION() void OnEndOverlap(class UPrimitiveComponent* OverlappedComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
-///// Actor
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-protected:
-
-	virtual void BeginPlay() override;
-
-///// SB_ShipStart
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-public:
-
-	FORCEINLINE UFUNCTION(BlueprintCallable) bool GetIsEnabled() const { return bIsEnabled; }
-	FORCEINLINE UFUNCTION(BlueprintCallable) bool GetIsAvailable() const { return bIsAvailable; }
-	FORCEINLINE UFUNCTION(BlueprintCallable) uint8 GetTeamID() const { return TeamID; }
-	UFUNCTION(BlueprintCallable) FTransform GetStartTransform();
-
-	UFUNCTION(NetMulticast, Reliable)
-	void UpdateAvailability_Multicast(bool bNewIsAvailable);
-
-	UFUNCTION(BlueprintImplementableEvent)
-	void UpdateAvailability_BPI(bool bNewIsAvailable);
-
-private:
+	//
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true")) 
 	uint8 TeamID;
@@ -70,4 +57,9 @@ private:
 
 	UPROPERTY()
 	bool bIsAvailable;
+
+	//
+
+	UFUNCTION() void OnBeginOverlap(class UPrimitiveComponent* OverlappedComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION() void OnEndOverlap(class UPrimitiveComponent* OverlappedComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 };

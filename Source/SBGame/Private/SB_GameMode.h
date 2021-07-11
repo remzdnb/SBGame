@@ -26,23 +26,29 @@ public:
 
 private:
 
-	class ASB_DataManager* DataManager;
-
-	UPROPERTY() TArray<class ASB_ShipStart*> ShipStartArray;
-
-	UPROPERTY() TArray<TWeakObjectPtr<class ASB_PlayerController>> RegisteredPlayerControllers;
-	UPROPERTY() TArray<TWeakObjectPtr<class AAIController>> RegisteredAIControllers;
-
+	const class ASB_DataManager* DataManager;
+	TArray<class ASB_ShipStart*> ShipStarts;
 	FTimerHandle SpawnTimer;
 
 	//
 
-	UFUNCTION() // Returns nullptr if no one has been found.
+	UPROPERTY()
+	TArray<class ASB_AIController*> AIControllers;
+
+	UPROPERTY()
+	TArray<class ASB_AIController*> RegisteredAIControllers;
+
+	UPROPERTY()
+	TArray<class ASB_PlayerController*> RegisteredPlayerControllers;
+
+	//
+
+	UFUNCTION()
 	class ASB_ShipStart* GetAvailableShipStart(uint8 TeamID);
 
-	/*UFUNCTION(Exec)
-	void SpawnAIController(uint8 Team);
+	UFUNCTION(Exec)
+	void SpawnAIController(uint8 TeamID);
 
 	UFUNCTION(Exec)
-	void RemoveAIController(uint8 Team);*/
+	void RemoveAIController(uint8 TeamID);
 };

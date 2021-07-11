@@ -1,6 +1,7 @@
 #include "SB_PlayerController.h"
 #include "SB_PlayerState.h"
 #include "SB_GameMode.h"
+#include "SB_GameState.h"
 #include "SB_Ship.h"
 #include "SB_ShipMovementComponent.h"
 #include "SB_ShipCameraManager.h"
@@ -40,6 +41,9 @@ void ASB_PlayerController::PostInitializeComponents()
 	}*/
 
 	GMode = Cast<ASB_GameMode>(GetWorld()->GetAuthGameMode());
+	PState = Cast<ASB_PlayerState>(PlayerState);
+
+	//PState->SetName();
 }
 
 void ASB_PlayerController::BeginPlay()
@@ -322,7 +326,7 @@ void ASB_PlayerController::TabKeyPressed()
 			UIManager->ToggleMenu(true);
 			UIManager->ToggleHUD(false);
 
-			UWidgetBlueprintLibrary::SetInputMode_UIOnlyEx(this);
+			UWidgetBlueprintLibrary::SetInputMode_GameAndUIEx(this);
 			bShowMouseCursor = true;
 		}
 	}

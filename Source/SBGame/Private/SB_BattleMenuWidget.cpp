@@ -38,14 +38,13 @@ class UUserWidget* USB_BattleMenuWidget::LoadWidget(TSubclassOf<UUserWidget> Wid
 
 		if (bShouldCreateTab)
 		{
-			URZ_ButtonWidget* NewTabWidget = CreateWidget<URZ_ButtonWidget>(GetWorld(), DataManager->UISettings.LargeButtonWidgetClass); // Create new TabWidget
+			URZ_ButtonWidget* NewTabWidget = CreateWidget<URZ_ButtonWidget>(GetWorld(), DataManager->UISettings.Button_Large_WBP); // Create new TabWidget
 			if (NewTabWidget)
 			{
 				TopBarHBox->AddChild(NewTabWidget);
 				TabWidgets.Add(NewTabWidget);
 				NewTabWidget->Init(NewWidgetID, TabName);
-				//NewTabWidget->OnButtonPressed.AddDynamic(this, &USB_BattleMenuWidget::SetActiveWidget);
-
+				NewTabWidget->OnButtonPressed.AddUniqueDynamic(this, &USB_BattleMenuWidget::SetActiveWidgetByIndex);
 			}
 		}
 		else
@@ -60,9 +59,7 @@ class UUserWidget* USB_BattleMenuWidget::LoadWidget(TSubclassOf<UUserWidget> Wid
 		WidgetSwitcher->AddChild(CreatedWidget);
 		LoadedWidgets.Add(CreatedWidget);
 
-		// Hack
-
-		//SetActiveWidget(0);
+		SetActiveWidgetByIndex(0); // Hack
 
 		return CreatedWidget;
 	}
@@ -70,44 +67,42 @@ class UUserWidget* USB_BattleMenuWidget::LoadWidget(TSubclassOf<UUserWidget> Wid
 	return nullptr;
 }
 
-/*void USB_BattleMenuWidget::SetActiveWidget(uint8 NewTabID)
+void USB_BattleMenuWidget::SetActiveWidgetByIndex(uint8 Index)
 {
-	if (NewTabID == SwitcherIndex)
+	if (Index == SwitcherIndex)
 		return;
-	
-	//
 
-	if (LoadedWidgets.IsValidIndex(SwitcherIndex))
+	/*if (LoadedWidgets.IsValidIndex(SwitcherIndex))
 	{
 		IRZ_BaseMenuInterface* ClosedWidgetInterface = Cast<IRZ_BaseMenuInterface>(LoadedWidgets[SwitcherIndex]);
 		if (ClosedWidgetInterface)
 		{
 			ClosedWidgetInterface->RemovedFromViewportCallback();
 		}
-	}
+	}*/
 
 	// Set all tabs as unselected, then select the right one.
 
 	for (URZ_ButtonWidget* TabWidget : TabWidgets)
 		TabWidget->SetIsSelected_BPN(false);
-	TabWidgets[NewTabID]->SetIsSelected_BPN(true);
+	TabWidgets[Index]->SetIsSelected_BPN(true);
 
 	// Widget switcher
 
-	WidgetSwitcher->SetActiveWidgetIndex(NewTabID);
-	SwitcherIndex = NewTabID;
+	WidgetSwitcher->SetActiveWidgetIndex(Index);
+	SwitcherIndex = Index;
 
 	//
 
-	if (LoadedWidgets.IsValidIndex(SwitcherIndex))
+	/*if (LoadedWidgets.IsValidIndex(SwitcherIndex))
 	{
 		IRZ_BaseMenuInterface* OpenedWidgetInterface = Cast<IRZ_BaseMenuInterface>(LoadedWidgets[SwitcherIndex]);
 		if (OpenedWidgetInterface)
 		{
 			OpenedWidgetInterface->AddedToViewportCallback();
 		}
-	}
-}*/
+	}*/
+}
 
 void USB_BattleMenuWidget::SetActiveWidgetByRef(UUserWidget* WidgetRef)
 {

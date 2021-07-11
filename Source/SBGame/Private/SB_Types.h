@@ -39,9 +39,6 @@ struct FSB_GameSettings
 	bool bAutoSpawnPlayers;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class UUserWidget> ModuleWidgetClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	bool bIsDebugEnabled_GameMode;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -64,7 +61,6 @@ struct FSB_GameSettings
 		ShipClass = nullptr;
 		AIControllerClass = nullptr;
 		bAutoSpawnPlayers = false;
-		ModuleWidgetClass = nullptr;
 		bIsDebugEnabled_GameMode = false;
 		bIsDebugEnabled_Ship = false;
 		bIsDebugEnabled_ShipMovement = false;
@@ -83,21 +79,25 @@ struct FSB_UISettings
 	TMap<FName, TSubclassOf<class UUserWidget>> BattleMenuWidgets;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class UUserWidget> BattleMenuWidget_WBP;
+	TSubclassOf<class UUserWidget> BattleMenu_WBP;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class UUserWidget> BattleHUDWidget_WBP;
+	TSubclassOf<class UUserWidget> ScoreboardMain_WBP;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class UUserWidget> SmallButtonWidgetClass;
+	TSubclassOf<class UUserWidget> ScoreboardPlayer_WBP;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class UUserWidget> LargeButtonWidgetClass;
+	TSubclassOf<class UUserWidget> BattleHUD_WBP;
 
-	FSB_UISettings()
-	{
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class UUserWidget> Module_WBP;
 
-	}
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class UUserWidget> Button_Small_WBP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class UUserWidget> Button_Large_WBP;
 };
 
 USTRUCT(BlueprintType)

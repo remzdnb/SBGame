@@ -105,16 +105,6 @@
               <absolutePath>D:\UE\Projects\Launcher_4.24.3\SBGame\Source\SBGame\Private\SB_BattleHUDWidget.h</absolutePath>
             </Favorite>
             <Favorite>
-              <name>SB_BattleWidget.cpp</name>
-              <path>Source\SBGame\Private\SB_BattleWidget.cpp</path>
-              <absolutePath>D:\Unreal\Projects\Launcher_4.24.3\SBGame\Source\SBGame\Private\SB_BattleWidget.cpp</absolutePath>
-            </Favorite>
-            <Favorite>
-              <name>SB_BattleWidget.h</name>
-              <path>Source\SBGame\Private\SB_BattleWidget.h</path>
-              <absolutePath>D:\Unreal\Projects\Launcher_4.24.3\SBGame\Source\SBGame\Private\SB_BattleWidget.h</absolutePath>
-            </Favorite>
-            <Favorite>
               <name>SB_ModuleWidget.cpp</name>
               <path>Source\SBGame\Private\SB_ModuleWidget.cpp</path>
               <absolutePath>D:\Unreal\Projects\Launcher_4.24.3\SBGame\Source\SBGame\Private\SB_ModuleWidget.cpp</absolutePath>
@@ -125,14 +115,34 @@
               <absolutePath>D:\Unreal\Projects\Launcher_4.24.3\SBGame\Source\SBGame\Private\SB_ModuleWidget.h</absolutePath>
             </Favorite>
             <Favorite>
-              <name>SB_PowerSlotWidget.cpp</name>
-              <path>Source\SBGame\Private\SB_PowerSlotWidget.cpp</path>
-              <absolutePath>D:\Unreal\Projects\Launcher_4.24.3\SBGame\Source\SBGame\Private\SB_PowerSlotWidget.cpp</absolutePath>
+              <name>SB_ShipConfigWidget.cpp</name>
+              <path>Source\SBGame\Private\SB_ShipConfigWidget.cpp</path>
+              <absolutePath>D:\UE\Projects\Launcher_4.24.3\SBGame\Source\SBGame\Private\SB_ShipConfigWidget.cpp</absolutePath>
             </Favorite>
             <Favorite>
-              <name>SB_PowerSlotWidget.h</name>
-              <path>Source\SBGame\Private\SB_PowerSlotWidget.h</path>
-              <absolutePath>D:\Unreal\Projects\Launcher_4.24.3\SBGame\Source\SBGame\Private\SB_PowerSlotWidget.h</absolutePath>
+              <name>SB_ShipConfigWidget.h</name>
+              <path>Source\SBGame\Private\SB_ShipConfigWidget.h</path>
+              <absolutePath>D:\UE\Projects\Launcher_4.24.3\SBGame\Source\SBGame\Private\SB_ShipConfigWidget.h</absolutePath>
+            </Favorite>
+            <Favorite>
+              <name>SB_ScoreboardMainWidget.cpp</name>
+              <path>Source\SBGame\Private\SB_ScoreboardMainWidget.cpp</path>
+              <absolutePath>D:\UE\Projects\Launcher_4.24.3\SBGame\Source\SBGame\Private\SB_ScoreboardMainWidget.cpp</absolutePath>
+            </Favorite>
+            <Favorite>
+              <name>SB_ScoreboardMainWidget.h</name>
+              <path>Source\SBGame\Private\SB_ScoreboardMainWidget.h</path>
+              <absolutePath>D:\UE\Projects\Launcher_4.24.3\SBGame\Source\SBGame\Private\SB_ScoreboardMainWidget.h</absolutePath>
+            </Favorite>
+            <Favorite>
+              <name>SB_ScoreboardPlayerWidget.cpp</name>
+              <path>Source\SBGame\Private\SB_ScoreboardPlayerWidget.cpp</path>
+              <absolutePath>D:\UE\Projects\Launcher_4.24.3\SBGame\Source\SBGame\Private\SB_ScoreboardPlayerWidget.cpp</absolutePath>
+            </Favorite>
+            <Favorite>
+              <name>SB_ScoreboardPlayerWidget.h</name>
+              <path>Source\SBGame\Private\SB_ScoreboardPlayerWidget.h</path>
+              <absolutePath>D:\UE\Projects\Launcher_4.24.3\SBGame\Source\SBGame\Private\SB_ScoreboardPlayerWidget.h</absolutePath>
             </Favorite>
           </favorites>
         </Folder>

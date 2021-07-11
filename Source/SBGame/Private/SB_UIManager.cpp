@@ -34,11 +34,11 @@ void ASB_UIManager::BeginPlay()
 {
 	Super::BeginPlay();
 
-	MenuLayoutWidget = CreateWidget<USB_BattleMenuWidget>(GetWorld(), DataManager->UISettings.BattleMenuWidget_WBP);
+	MenuLayoutWidget = CreateWidget<USB_BattleMenuWidget>(GetWorld(), DataManager->UISettings.BattleMenu_WBP);
 	if (MenuLayoutWidget == nullptr)
 		return;
 
-	HUDLayoutWidget = CreateWidget<USB_BattleHUDWidget>(GetWorld(), DataManager->UISettings.BattleHUDWidget_WBP);
+	HUDLayoutWidget = CreateWidget<USB_BattleHUDWidget>(GetWorld(), DataManager->UISettings.BattleHUD_WBP);
 	if (HUDLayoutWidget == nullptr)
 		return;
 

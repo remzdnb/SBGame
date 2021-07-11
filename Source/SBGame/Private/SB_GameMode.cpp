@@ -7,7 +7,8 @@
 #include "SB_UIManager.h"
 #include "SB_DataManager.h"
 //
-#include "GameFramework/PlayerStart.h"
+#include "Kismet/GameplayStatics.h"
+#include "Engine/World.h"
 #include "EngineUtils.h"
 
 ASB_GameMode::ASB_GameMode()
@@ -16,7 +17,6 @@ ASB_GameMode::ASB_GameMode()
 	GameStateClass = ASB_GameState::StaticClass();
 	PlayerStateClass = ASB_PlayerState::StaticClass();
 	HUDClass = ASB_UIManager::StaticClass();
-
 	DefaultPawnClass = nullptr;
 	SpectatorClass = nullptr;
 
@@ -27,6 +27,9 @@ void ASB_GameMode::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
+	if (GetWorld()->IsGameWorld() == false)
+		return;
+
 	for (TActorIterator<ASB_DataManager> NewDataManager(GetWorld()); NewDataManager; ++NewDataManager)
 	{
 		DataManager = *NewDataManager;
@@ -36,12 +39,12 @@ void ASB_GameMode::PostInitializeComponents()
 	if (DataManager == nullptr)
 		UE_LOG(LogTemp, Error, TEXT("ARZ_BaseGameMode::PostInitializeComponents - Missing DataManager."));
 
-	for (TActorIterator<ASB_ShipStart> ShipStart(GetWorld()); ShipStart; ++ShipStart)
+	for (TActorIterator<ASB_ShipStart> NewShipStart(GetWorld()); NewShipStart; ++NewShipStart)
 	{
-		ShipStartArray.Add(*ShipStart);
+		ShipStarts.Add(*NewShipStart);
 	}
 
-	if (ShipStartArray.Num() == 0)
+	if (ShipStarts.Num() == 0)
 		UE_LOG(LogTemp, Error, TEXT("ARZ_BaseGameMode::PostInitializeComponents - Missing ShipStart."));
 }
 
@@ -57,7 +60,7 @@ void ASB_GameMode::Tick(float DeltaTime)
 	// Handle respawn.
 	if (RegisteredPlayerControllers.Num() != 0)
 	{
-		ASB_PlayerController* const SelectedController = Cast<ASB_PlayerController>(RegisteredPlayerControllers[0]);
+		ASB_PlayerController* const SelectedController = RegisteredPlayerControllers[0];
 		if (SelectedController)
 		{
 			ASB_ShipStart* const ShipStart = GetAvailableShipStart(1);
@@ -65,9 +68,22 @@ void ASB_GameMode::Tick(float DeltaTime)
 			{
 				SelectedController->SpawnAndPossessShip(ShipStart->GetStartTransform());
 				RegisteredPlayerControllers.RemoveAt(0);
-
-				//if (DataManager->bIsDebugEnabled_GameMode)
-					//UE_LOG(LogTemp, Warning, TEXT("ARZ_BaseGameMode::HandleFreeRespawn - SpawnAndPossess called on controller."));
+			}
+		}
+	}
+	else
+	{
+		if (RegisteredAIControllers.Num() != 0)
+		{
+			ASB_AIController* const SelectedAIController = RegisteredAIControllers[0];
+			if (SelectedAIController)
+			{
+				ASB_ShipStart* const ShipStart = GetAvailableShipStart(1);
+				if (ShipStart)
+				{
+					//SelectedAIController->SpawnAndPossessShip(ShipStart->GetStartTransform());
+					RegisteredPlayerControllers.RemoveAt(0);
+				}
 			}
 		}
 	}
@@ -83,14 +99,28 @@ void ASB_GameMode::QueryRespawn(AController* const NewController)
 			RegisteredPlayerControllers.Add(PlayerController);
 
 			if (DataManager->GameSettings.bIsDebugEnabled_GameMode)
-				UE_LOG(LogTemp, Warning, TEXT("ARZ_BaseGameMode::QueryRespawn - %s added to the spawn queue."), *NewController->GetName());
+				UE_LOG(LogTemp, Warning, TEXT("ARZ_BaseGameMode::QueryRespawn - Player : %s added to the spawn queue."), *NewController->GetName());
+		}
+	}
+	else
+	{
+		ASB_AIController* const AIController = Cast<ASB_AIController>(NewController);
+		if (AIController)
+		{
+			if (RegisteredAIControllers.Contains(AIController) == false)
+			{
+				RegisteredAIControllers.Add(AIController);
+
+				if (DataManager->GameSettings.bIsDebugEnabled_GameMode)
+					UE_LOG(LogTemp, Warning, TEXT("ARZ_BaseGameMode::QueryRespawn - AI : %s added to the spawn queue."), *NewController->GetName());
+			}
 		}
 	}
 }
 
-class ASB_ShipStart* ASB_GameMode::GetAvailableShipStart(uint8 TeamID)
+ASB_ShipStart* ASB_GameMode::GetAvailableShipStart(uint8 TeamID)
 {
-	for (ASB_ShipStart* ShipStart : ShipStartArray)
+	for (ASB_ShipStart* ShipStart : ShipStarts)
 	{
 		if (ShipStart->GetIsEnabled() == true &&
 			ShipStart->GetIsAvailable() == true &&
@@ -103,22 +133,27 @@ class ASB_ShipStart* ASB_GameMode::GetAvailableShipStart(uint8 TeamID)
 	return nullptr;
 }
 
-/*ASB_Ship* ASB_GameMode::SpawnShip(const APlayerStart* const ShipStart, bool bIsAIControlled)
+void ASB_GameMode::SpawnAIController(uint8 TeamID)
 {
-	ASB_Ship* NewShip = GetWorld()->SpawnActorDeferred<ASB_Ship>(DataManager->Settings.PawnClass, ShipStart->GetTransform(), this, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
-	if (NewShip)
+	FActorSpawnParameters SpawnParameters;
+
+	ASB_AIController* const NewAIController = GetWorld()->SpawnActorDeferred<ASB_AIController>(DataManager->GameSettings.AIControllerClass, FTransform(), this);
+	if (NewAIController)
 	{
-		if (bIsAIControlled)
-			NewShip->AIControllerClass = DataManager->Settings.AIControllerClass;
+		NewAIController->bWantsPlayerState = true;
+		UGameplayStatics::FinishSpawningActor(NewAIController, FTransform());
 
-		UGameplayStatics::FinishSpawningActor(NewShip, ShipStart->GetTransform());
+		AIControllers.Add(NewAIController);
 
-		if (bIsAIControlled)
-			NewShip->SpawnDefaultController();
-
-		return NewShip;
+		ASB_PlayerState* const PlayerState = Cast<ASB_PlayerState>(NewAIController->PlayerState);
+		if (PlayerState)
+		{
+			PlayerState->SetName(false);
+			PlayerState->SetTeamID(TeamID);
+		}
 	}
+}
 
-	return nullptr;
-}*/
-
+void ASB_GameMode::RemoveAIController(uint8 Team)
+{
+}
