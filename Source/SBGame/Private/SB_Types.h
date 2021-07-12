@@ -33,6 +33,9 @@ struct FSB_GameSettings
 	TSubclassOf<class ASB_Ship> ShipClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class AActor> DestructibleShipClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<class AAIController> AIControllerClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -46,6 +49,9 @@ struct FSB_GameSettings
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	bool bIsDebugEnabled_Ship;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool bIsDebugEnabled_ShipCamera;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	bool bIsDebugEnabled_ShipMovement;
@@ -67,6 +73,7 @@ struct FSB_GameSettings
 		bIsDebugEnabled_GameMode = false;
 		bIsDebugEnabled_AI = false;
 		bIsDebugEnabled_Ship = false;
+		bIsDebugEnabled_ShipCamera = false;
 		bIsDebugEnabled_ShipMovement = false;
 		bIsDebugEnabled_ThrusterModule = false;
 		bIsDebugEnabled_WeaponModule = false;

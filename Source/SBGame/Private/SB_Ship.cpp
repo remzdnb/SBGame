@@ -15,6 +15,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "PhysicsEngine/BodyInstance.h"
+#include "DestructibleActor.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Particles/ParticleSystemComponent.h"
@@ -278,7 +279,21 @@ void ASB_Ship::UpdateState_Multicast_Implementation(ESB_ShipState NewState)
 {
 	if (NewState == ESB_ShipState::Destroyed)
 	{
-		GetMesh()->SetMaterial(0, DataManager->ShipSettings.DestroyedMaterial);
+		GetCapsuleComponent()->SetCollisionProfileName("IgnoreAll");
+		GetMesh()->SetCollisionProfileName("IgnoreAll");
+		//GetMesh()->SetMaterial(0, DataManager->ShipSettings.DestroyedMaterial);
+		SetActorHiddenInGame(true);
+
+		AActor* DestructibleShip = GetWorld()->SpawnActorDeferred<AActor>(DataManager->GameSettings.DestructibleShipClass, GetMesh()->GetComponentTransform(), this, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+		if (DestructibleShip)
+		{
+			UGameplayStatics::FinishSpawningActor(DestructibleShip, GetMesh()->GetComponentTransform());
+		}
+
+		if (OTMWidget)
+		{
+			OTMWidget->RemoveFromViewport();
+		}
 
 		UGameplayStatics::SpawnEmitterAtLocation(
 			GetWorld(),

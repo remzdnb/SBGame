@@ -47,6 +47,9 @@ void USB_ShipMovementComponent::MoveForward(float AxisValue)
 	if (DataManager == nullptr || OwnerShip == nullptr)
 		return;
 
+	if (OwnerShip->GetState() == ESB_ShipState::Destroyed)
+		return;
+
 	if (OwnerShip->GetLocalRole() < ROLE_Authority)
 		MoveForward_Server(AxisValue);
 
@@ -76,7 +79,10 @@ void USB_ShipMovementComponent::MoveForward_Server_Implementation(float AxisValu
 
 void USB_ShipMovementComponent::TurnRight(float AxisValue)
 {
-	if (GetWorld() == nullptr || DataManager == nullptr || OwnerShip == nullptr)
+	if (DataManager == nullptr || OwnerShip == nullptr)
+		return;
+
+	if (OwnerShip->GetState() == ESB_ShipState::Destroyed)
 		return;
 
 	if (OwnerShip->GetLocalRole() < ROLE_Authority)

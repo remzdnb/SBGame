@@ -28,7 +28,7 @@ public:
 	UFUNCTION()
 	void MoveForward(float AxisValue);
 
-	UFUNCTION(Server, Reliable)
+	UFUNCTION(Server, Reliable) //unreliable ?
 	void MoveForward_Server(float AxisValue);
 
 	UFUNCTION()

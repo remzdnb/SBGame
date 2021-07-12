@@ -137,6 +137,20 @@ void ASB_PlayerController::UpdateViewTarget()
 	}
 }
 
+void ASB_PlayerController::Respawn_Server_Implementation()
+{
+	if (OwnedShip)
+	{
+		if (OwnedShip->GetState() == ESB_ShipState::Destroyed)
+		{
+			UnPossess();
+			OwnedShip->Destroy();
+			OwnedShip = nullptr;
+			GMode->QueryRespawn(this);
+		}
+	}
+}
+
 void ASB_PlayerController::SpawnAndPossessShip(const FTransform& SpawnTransform)
 {
 	if (GetLocalRole() < ROLE_Authority || GetPawn() != nullptr)
@@ -148,21 +162,6 @@ void ASB_PlayerController::SpawnAndPossessShip(const FTransform& SpawnTransform)
 		UGameplayStatics::FinishSpawningActor(NewShip, SpawnTransform);
 		OnPossess(NewShip);
 		OnRep_Pawn();
-	}
-}
-
-void ASB_PlayerController::OnDamageDealt(const FVector& HitLocation, float Damage)
-{
-	OnDamageDealt_Client(HitLocation, Damage);
-}
-
-void ASB_PlayerController::OnDamageDealt_Client_Implementation(const FVector& HitLocation, float Damage)
-{
-	URZ_DamageMarkerWidget* const NewDamageMarker = CreateWidget<URZ_DamageMarkerWidget>(GetWorld(), DataManager->UISettings.DamageMarker_WBP);
-	if (NewDamageMarker)
-	{
-		NewDamageMarker->Init(HitLocation, Damage);
-		UIManager->AddHUDWidget(NewDamageMarker);
 	}
 }
 
@@ -181,19 +180,21 @@ void ASB_PlayerController::OnRep_Pawn()
 
 void ASB_PlayerController::OnOwnedShipDestroyed(const APlayerState* const InstigatorPS)
 {
+	
 }
 
-void ASB_PlayerController::Respawn_Server_Implementation()
+void ASB_PlayerController::OnDamageDealt(const FVector& HitLocation, float Damage)
 {
-	if (OwnedShip)
+	OnDamageDealt_Client(HitLocation, Damage);
+}
+
+void ASB_PlayerController::OnDamageDealt_Client_Implementation(const FVector& HitLocation, float Damage)
+{
+	URZ_DamageMarkerWidget* const NewDamageMarker = CreateWidget<URZ_DamageMarkerWidget>(GetWorld(), DataManager->UISettings.DamageMarker_WBP);
+	if (NewDamageMarker)
 	{
-		if (OwnedShip->GetState() == ESB_ShipState::Destroyed)
-		{
-			UnPossess();
-			OwnedShip->Destroy();
-			OwnedShip = nullptr;
-			GMode->QueryRespawn(this);
-		}
+		NewDamageMarker->Init(HitLocation, Damage);
+		UIManager->AddHUDWidget(NewDamageMarker);
 	}
 }
 
@@ -267,24 +268,18 @@ void ASB_PlayerController::MoveRightAxis(float AxisValue)
 
 void ASB_PlayerController::MouseWheelAxis(float AxisValue)
 {
-	if (AxisValue > 0)
+	if (OwnedShip && OwnedShip == GetPawn())
 	{
-		if (OwnedShip && OwnedShip == GetPawn())
+		if (OwnedShip->GetShipCameraManager())
 		{
-			if (OwnedShip->GetShipCameraManager())
+			if (AxisValue > 0)
 			{
-				OwnedShip->GetShipCameraManager()->ZoomIn();
+				OwnedShip->GetShipCameraManager()->Zoom(true);
 			}
-		}
-	}
-	
-	if (AxisValue < 0)
-	{
-		if (OwnedShip && OwnedShip == GetPawn())
-		{
-			if (OwnedShip->GetShipCameraManager())
+
+			if (AxisValue < 0)
 			{
-				OwnedShip->GetShipCameraManager()->ZoomOut();
+				OwnedShip->GetShipCameraManager()->Zoom(false);
 			}
 		}
 	}

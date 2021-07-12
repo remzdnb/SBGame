@@ -15,6 +15,7 @@ public class SBGame : ModuleRules
 			"InputCore",
 			"UMG",
 			"AIModule",
+			"ApexDestruction",
 			"RZ_UIPlugin"
 		});
 

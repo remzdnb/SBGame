@@ -8,11 +8,13 @@
 #include "Components/ActorComponent.h"
 #include "SB_ShipCameraManager.generated.h"
 
-#define DEFAULTARMLENGTH 15000.0f
+#define MINARMLENGTH 2000.0f
+#define MAXARMLENGTH 60000.0f
+#define DEFAULTARMLENGTH 25000.0f
+#define ARMLENGTHSTEP 5000.0f
 #define ARMLENGTHLERPSPEED 10.0f
-#define ARMLENGTHSTEP 1000.0f
 #define MINPITCH -89.0f
-#define MAXPITCH 0.0f
+#define MAXPITCH 89.0f
 
 //DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FShipCameraModeUpdated, bool, bIsSniperMode);
 
@@ -32,8 +34,7 @@ public:
 
 	void AddPitchInput(float AxisValue);
 	void AddYawInput(float AxisValue);
-	void ZoomIn();
-	void ZoomOut();
+	void Zoom(bool bZoomIn);
 	void AddSniperCamera(class UCameraComponent* const NewActiveSniperCameraID);
 	void SetActiveSniperCamera(uint8 WeaponCameraID);
 	void ToggleSniperMode();

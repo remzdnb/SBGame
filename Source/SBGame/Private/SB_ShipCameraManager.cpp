@@ -27,7 +27,6 @@ void USB_ShipCameraManager::BeginPlay()
 		MainCameraArm->ProbeChannel = ECC_Camera;
 		MainCameraArm->TargetArmLength = DEFAULTARMLENGTH;
 		MainCameraArm->SetRelativeLocation(FVector(0.0f, 0.0f, 5000.0f));
-		MainCameraArm->SetRelativeRotation(FRotator(-45.0f, 0.0f, 0.0f));
 	}
 
 	MainCamera = NewObject<UCameraComponent>(GetOwner(), FName("MainCamera"));
@@ -38,7 +37,7 @@ void USB_ShipCameraManager::BeginPlay()
 	}
 
 	TargetArmLength = DEFAULTARMLENGTH;
-	TargetArmRotation = FRotator(-45.0f, 0.0f, 0.0f);
+	TargetArmRotation = FRotator(-10.0f, GetOwner()->GetActorRotation().Yaw, 0.0f);
 }
 
 void USB_ShipCameraManager::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -91,19 +90,15 @@ void USB_ShipCameraManager::AddYawInput(float AxisValue)
 	}
 }
 
-void USB_ShipCameraManager::ZoomIn()
+void USB_ShipCameraManager::Zoom(bool bZoomIn)
 {
-	if (MainCameraArm)
+	if (bZoomIn)
 	{
-		TargetArmLength -= ARMLENGTHSTEP;
+		TargetArmLength = FMath::Clamp(TargetArmLength - ARMLENGTHSTEP, MINARMLENGTH, MAXARMLENGTH);
 	}
-}
-
-void USB_ShipCameraManager::ZoomOut()
-{
-	if (MainCameraArm)
+	else
 	{
-		TargetArmLength += ARMLENGTHSTEP;
+		TargetArmLength = FMath::Clamp(TargetArmLength + ARMLENGTHSTEP, MINARMLENGTH, MAXARMLENGTH);
 	}
 }
 
@@ -138,4 +133,3 @@ void USB_ShipCameraManager::ToggleSniperMode()
 		bIsSniperMode = true;
 	}
 }
-
