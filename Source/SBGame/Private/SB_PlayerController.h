@@ -14,7 +14,7 @@ class ASB_PlayerState;
 class ASB_UIManager;
 class ASB_Ship;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FNewOwnedShip, class ASB_Ship* const, NewShip);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FNewOwnedShipDelegate, ASB_Ship* const, NewShip);
 
 UCLASS()
 class ASB_PlayerController : public APlayerController
@@ -28,22 +28,26 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void OnRep_Pawn() override;
 
-/////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-public:
-
-	FNewOwnedShip NewOwnedShipEvent;
-
 	//
 
 	UFUNCTION()
 	void SpawnAndPossessShip(const FTransform& SpawnTransform);
 
+	UFUNCTION()
+	void OnDamageDealt(const FVector& HitLocation, float Damage);
+
+	UFUNCTION(Client, Reliable)
+	void OnDamageDealt_Client(const FVector& HitLocation, float Damage);
+
 	//
 
 	FORCEINLINE UFUNCTION() ASB_PlayerState* const GetPlayerState() const { return PState; }
+	FORCEINLINE UFUNCTION() ASB_UIManager* const GetUIManager() const { return UIManager; }
 	FORCEINLINE UFUNCTION() ASB_Ship* const GetOwnedShip() const { return OwnedShip; }
+
+	//
+
+	FNewOwnedShipDelegate OnNewOwnedShip;
 
 private:
 

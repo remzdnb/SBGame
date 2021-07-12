@@ -1,3 +1,6 @@
+///// SB_WeaponModule.h - RemzDNB
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 #pragma once
 
 #include "SB_Types.h"
@@ -5,6 +8,9 @@
 //
 #include "CoreMinimal.h"
 #include "SB_WeaponModule.generated.h"
+
+class ASB_Ship;
+class ASB_DataManager;
 
 UCLASS()
 class USB_WeaponModule : public USB_BaseModule
@@ -15,33 +21,26 @@ public:
 
 	USB_WeaponModule();
 
-/////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-public:
-
+	virtual void Init(const ASB_DataManager* const NewDataManager, const FName& NewParentSlotName, const FName& NewDataRowName) override;
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
-/////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-public:
-
-	virtual void Init(const class ASB_DataManager* const NewDataManager, const FName& NewParentSlotName, const FName& NewDataRowName) override;
 
 	//
 
 	UFUNCTION()
-	void ToggleSelection(bool bNewIsSelected);
-
-	UFUNCTION()
-	void ToggleSniperView(bool bNewIsSniperView);
+	void SetIsSelected(bool bToggleSelection, bool bNewIsSelected);
 
 	UFUNCTION()
 	void SetWantsToFire(bool bNewWantsToFire);
 
 	UFUNCTION()
 	void SetTargetShip(class ASB_Ship* const NewTargetShip);
+
+	UFUNCTION()
+	void ToggleSniperView(bool bNewIsSniperView);
+
+	//
+
+	FORCEINLINE UFUNCTION() bool GetIsSelected() const { return bIsSelected; }
 
 private:
 
@@ -51,7 +50,7 @@ private:
 	//
 
 	UPROPERTY()
-	class ASB_Ship* TargetShip;
+	ASB_Ship* TargetShip;
 
 	UPROPERTY()
 	const class USceneComponent* TargetAutoLockCT;

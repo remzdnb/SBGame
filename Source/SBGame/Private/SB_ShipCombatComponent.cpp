@@ -1,6 +1,7 @@
 #include "SB_ShipCombatComponent.h"
 #include "SB_Ship.h"
 #include "SB_BaseModule.h"
+#include "SB_PlayerController.h"
 #include "SB_DataManager.h"
 //
 #include "GameFramework/Controller.h"
@@ -51,6 +52,12 @@ void USB_ShipCombatComponent::TakePointDamage(AActor* DamagedActor, float Damage
 	else
 	{
 		Durability -= Damage;
+	}
+
+	ASB_PlayerController* const InstigatorController = Cast<ASB_PlayerController>(InstigatedBy);
+	if (InstigatorController)
+	{
+		InstigatorController->OnDamageDealt(HitLocation, Damage);
 	}
 
 	OnRep_Durability();

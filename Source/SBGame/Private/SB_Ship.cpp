@@ -2,6 +2,7 @@
 #include "SB_ShipMovementComponent.h"
 #include "SB_ShipPowerComponent.h"
 #include "SB_ShipCombatComponent.h"
+#include "SB_ShipOTMWidget.h"
 #include "SB_ModuleSlot.h"
 #include "SB_PowerModule.h"
 #include "SB_ThrusterModule.h"
@@ -18,6 +19,7 @@
 #include "Camera/CameraComponent.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "EngineUtils.h"
@@ -191,7 +193,35 @@ void ASB_Ship::BeginPlay()
 		Index++;
 	}
 
-	// Spawn and attach AutoLock components.
+	// Create OTM widget
+
+	if (UKismetSystemLibrary::IsDedicatedServer(GetWorld()) == false)
+	{
+		APlayerController* PC = Cast<APlayerController>(GetOwner());
+		if (PC)
+		{
+			if (PC->IsLocalController())
+			{
+
+			}
+			else
+			{
+				OTMWidget = CreateWidget<USB_ShipOTMWidget>(GetWorld(), DataManager->UISettings.ShipOTM_WBP);
+				if (OTMWidget)
+				{
+					OTMWidget->Init(DataManager, this);
+				}
+			}
+		}
+		else
+		{
+			OTMWidget = CreateWidget<USB_ShipOTMWidget>(GetWorld(), DataManager->UISettings.ShipOTM_WBP);
+			if (OTMWidget)
+			{
+				OTMWidget->Init(DataManager, this);
+			}
+		}
+	}
 }
 
 #pragma endregion
@@ -213,23 +243,23 @@ void ASB_Ship::Tick(float DeltaTime)
 	Debug(DeltaTime);
 }
 
-void ASB_Ship::UpdateOwnerViewData(const FRotator& NewOwnerViewRotation, const FVector& NewOwnerViewLocation, AActor* const NewOwnerViewActor)
+void ASB_Ship::UpdateOwnerViewData(const FVector& NewOwnerViewLocation, AActor* NewOwnerViewActor)
 {
 	if (State != ESB_ShipState::Ready)
 		return;
 
-	//if (GetLocalRole() < ROLE_Authority)
-		//UpdateOwnerViewData_Server(NewOwnerViewRotation, NewOwnerViewLocation, NewOwnerViewActor);
+	if (GetLocalRole() < ROLE_Authority)
+		UpdateOwnerViewData_Server(NewOwnerViewLocation, NewOwnerViewActor);
 
-	OwnerViewRotation = NewOwnerViewRotation;
+	//OwnerViewRotation = NewOwnerViewRotation;
 	OwnerViewLocation = NewOwnerViewLocation;
 	OwnerViewActor = NewOwnerViewActor;
 }
 
-/*void ASB_Ship::UpdateOwnerViewData_Server_Implementation(const FRotator& NewOwnerViewRotation, const FVector& NewOwnerViewLocation, AActor* const NewOwnerViewActor)
+void ASB_Ship::UpdateOwnerViewData_Server_Implementation(const FVector& NewOwnerViewLocation, AActor* NewOwnerViewActor)
 {
-	UpdateOwnerViewData(NewOwnerViewRotation, NewOwnerViewLocation, NewOwnerViewActor);
-}*/
+	UpdateOwnerViewData(NewOwnerViewLocation, NewOwnerViewActor);
+}
 
 void ASB_Ship::UpdateState(ESB_ShipState NewState)
 {
@@ -270,15 +300,23 @@ void ASB_Ship::UpdateState_Multicast_Implementation(ESB_ShipState NewState)
 
 #pragma region +++++ Weapons ...
 
-void ASB_Ship::SelectWeapon(uint8 WeaponID, bool bIsAdditive)
+void ASB_Ship::SelectWeapon(uint8 WeaponID, bool bToggleSelection, bool bNewIsSelected)
 {
 	if (State != ESB_ShipState::Ready)
 		return;
 
 	if (GetLocalRole() < ROLE_Authority)
-		SelectWeapon_Server(WeaponID, bIsAdditive);
+		SelectWeapon_Server(WeaponID, bToggleSelection, bNewIsSelected);
 
-	if (bIsAdditive == false)
+	if (WeaponModules.IsValidIndex(WeaponID))
+	{
+		if (WeaponModules[WeaponID])
+		{
+			WeaponModules[WeaponID]->SetIsSelected(bToggleSelection, bNewIsSelected);
+		}
+	}
+
+	/*if (bToggleSelection == false)
 	{
 		for (auto& WeaponModule : WeaponModules)
 		{
@@ -301,53 +339,50 @@ void ASB_Ship::SelectWeapon(uint8 WeaponID, bool bIsAdditive)
 		}
 
 		SelectedWeaponUpdatedEvent.Broadcast(SelectedWeaponID);
-	}
+	}*/
 }
 
-void ASB_Ship::SelectWeapon_Server_Implementation(uint8 WeaponID, bool bIsAdditive)
+void ASB_Ship::SelectWeapon_Server_Implementation(uint8 WeaponID, bool bToggleSelection, bool bNewIsSelected)
 {
-	SelectWeapon(WeaponID, bIsAdditive);
+	SelectWeapon(WeaponID, bToggleSelection, bNewIsSelected);
 }
 
-void ASB_Ship::StartFireSelectedWeapon()
+void ASB_Ship::StartFireSelectedWeapons()
 {
 	if (State != ESB_ShipState::Ready)
 		return;
 
 	if (GetLocalRole() < ROLE_Authority)
-		StartFireSelectedWeapon_Server();
+		StartFireSelectedWeapons_Server();
 
-	if (WeaponModules.IsValidIndex(SelectedWeaponID - 1))
+	for (auto& WeaponModule : WeaponModules)
 	{
-		if (WeaponModules[SelectedWeaponID - 1])
+		if (WeaponModule->GetIsSelected())
 		{
-			WeaponModules[SelectedWeaponID - 1]->SetWantsToFire(true);
+			WeaponModule->SetWantsToFire(true);
 		}
 	}
 }
 
-void ASB_Ship::StartFireSelectedWeapon_Server_Implementation()
+void ASB_Ship::StartFireSelectedWeapons_Server_Implementation()
 {
-	StartFireSelectedWeapon();
+	StartFireSelectedWeapons();
 }
 
-void ASB_Ship::StopFireSelectedWeapon()
+void ASB_Ship::StopFireAllWeapons()
 {
 	if (GetLocalRole() < ROLE_Authority)
-		StopFireSelectedWeapon_Server();
+		StopFireAllWeapons_Server();
 
-	if (WeaponModules.IsValidIndex(SelectedWeaponID - 1))
+	for (auto& WeaponModule : WeaponModules)
 	{
-		if (WeaponModules[SelectedWeaponID - 1])
-		{
-			WeaponModules[SelectedWeaponID - 1]->SetWantsToFire(false);
-		}
+		WeaponModule->SetWantsToFire(false);
 	}
 }
 
-void ASB_Ship::StopFireSelectedWeapon_Server_Implementation()
+void ASB_Ship::StopFireAllWeapons_Server_Implementation()
 {
-	StopFireSelectedWeapon();
+	StopFireAllWeapons();
 }
 
 void ASB_Ship::StartAutoLockSelectedWeapon()

@@ -16,6 +16,8 @@ public:
 
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
+	virtual void Destroyed() override;
+
 
 	//
 
@@ -54,8 +56,8 @@ private:
 	UFUNCTION()
 	void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-	UFUNCTION()
-	void SpawnImpactFX(AActor* HitActor, FVector ImpactPoint, FVector ImpactNormal);
+	UFUNCTION(NetMulticast, Reliable)
+	void SpawnImpactFX_Multicast(AActor* HitActor, FVector ImpactPoint, FVector ImpactNormal);
 
 	UFUNCTION()
 	void Debug(AActor* HitActor);

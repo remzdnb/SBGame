@@ -4,7 +4,7 @@
 #include "Net/UnrealNetwork.h"
 
 ASB_PlayerState::ASB_PlayerState() :
-	TeamID(0),
+	TeamID(1),
 	KillCount(0),
 	DeathCount(0)
 {

@@ -15,8 +15,8 @@ public:
 
 private:
 
-	UPROPERTY(meta = (BindWidget))	class UTextBlock* PlayerNameText;
-	UPROPERTY(meta = (BindWidget))	class UTextBlock* TeamText;
-	UPROPERTY(meta = (BindWidget))	class UTextBlock* KillCountText;
-	UPROPERTY(meta = (BindWidget))	class UTextBlock* DeathCountText;
+	UPROPERTY(meta = (BindWidget)) class UTextBlock* PlayerNameText;
+	UPROPERTY(meta = (BindWidget)) class UTextBlock* TeamText;
+	UPROPERTY(meta = (BindWidget)) class UTextBlock* KillCountText;
+	UPROPERTY(meta = (BindWidget)) class UTextBlock* DeathCountText;
 };

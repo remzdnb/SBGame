@@ -1,10 +1,17 @@
+///// SB_BattleHUDWidget.h - RemzDNB
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 #pragma once
 
 #include "SB_Types.h"
-//
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "SB_BattleHUDWidget.generated.h"
+
+class ASB_DataManager;
+class USB_ModuleWidget;
+class UCanvasPanel;
+class UPanelWidget;
 
 
 UCLASS()
@@ -12,14 +19,11 @@ class USB_BattleHUDWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
-protected:
+public:
 
 	virtual void NativeOnInitialized() override;
 
-/////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-public:
+	//
 
 	UFUNCTION()
 	void OnNewOwnedShip(class ASB_Ship* const NewOwnedShip);
@@ -36,15 +40,20 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnShipDestroyedBPI(const APlayerState* const InstigatorPS);
 
+	//
+
+	FORCEINLINE UFUNCTION() UCanvasPanel* const GetMainCanvas() const { return MainCanvas; }
+
 private:
 
-	class ASB_PlayerController* OwnerPC;
-	class ASB_DataManager* DataManager;
+	const ASB_DataManager* DataManager;
+	class ASB_PlayerController* OwnerPC; //remove
 
 	//
 
+	UPROPERTY(meta = (BindWidget)) UCanvasPanel* MainCanvas;
 	UPROPERTY(meta = (BindWidget)) class UProgressBar* ShipDurabilityProgressBar;
-	UPROPERTY(meta = (BindWidget)) class UPanelWidget* WeaponModulesContainer;
-	UPROPERTY(meta = (BindWidget)) class UPanelWidget* ThrusterModulesContainer;
-	UPROPERTY(meta = (BindWidget)) class USB_ModuleWidget* ShieldModuleWidget;
+	UPROPERTY(meta = (BindWidget)) UPanelWidget* WeaponModulesContainer;
+	UPROPERTY(meta = (BindWidget)) UPanelWidget* ThrusterModulesContainer;
+	UPROPERTY(meta = (BindWidget)) USB_ModuleWidget* ShieldModuleWidget;
 };

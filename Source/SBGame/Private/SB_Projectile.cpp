@@ -40,9 +40,15 @@ void ASB_Projectile::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
+	if (GetWorld()->IsGameWorld() == false)
+		return;
+
 	SetLifeSpan(5.0f);
 
-	CollisionSphereCT->OnComponentBeginOverlap.AddDynamic(this, &ASB_Projectile::OnOverlap);
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		CollisionSphereCT->OnComponentBeginOverlap.AddDynamic(this, &ASB_Projectile::OnOverlap);
+	}
 }
 
 void ASB_Projectile::BeginPlay()
@@ -60,20 +66,59 @@ void ASB_Projectile::BeginPlay()
 	}
 }
 
+void ASB_Projectile::Destroyed()
+{
+	if (GetWorld()->IsGameWorld() == true)
+	{
+		//UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ProjectileData->ImpactParticle, GetActorLocation(), FRotator(), FVector(ProjectileData->ImpactParticleScale), true, EPSCPoolMethod::None, true);
+	}
+
+	Super::Destroyed();
+}
+
 void ASB_Projectile::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor != GetOwner())
 	{
 		UGameplayStatics::ApplyPointDamage(OtherActor, ProjectileData->Damage, FVector::ZeroVector, SweepResult, Cast<AController>(OwnerShip->GetOwner()), nullptr, nullptr); // ToDo : is ship always owner, even if not possessed ?
-		SpawnImpactFX(OtherActor, SweepResult.ImpactPoint, SweepResult.ImpactNormal);
-		Debug(OtherActor);
+		SpawnImpactFX_Multicast(OtherActor, SweepResult.ImpactPoint, SweepResult.ImpactNormal);
+		//Debug(OtherActor);
 		Destroy();
 	}
 }
 
-void ASB_Projectile::SpawnImpactFX(AActor* HitActor, FVector ImpactPoint, FVector ImpactNormal)
+void ASB_Projectile::SpawnImpactFX_Multicast_Implementation(AActor* HitActor, FVector ImpactPoint, FVector ImpactNormal)
 {
+	if (ProjectileData == nullptr) // crash if it doesnt have time to initialize ?
+		return;
+
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ProjectileData->ImpactParticle, ImpactPoint, UKismetMathLibrary::MakeRotFromZ(ImpactNormal), FVector(ProjectileData->ImpactParticleScale), true, EPSCPoolMethod::None, true);
+
+	if (OwnerShip->GetDataManager()->GameSettings.bIsDebugEnabled_Projectile == false)
+		return;
+
+	FString RoleString = "None";
+	FColor Color = FColor::White;
+
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		RoleString = "Authority // ";
+		Color = FColor::Cyan;
+	}
+	if (GetLocalRole() == ROLE_AutonomousProxy)
+	{
+		RoleString = "AutonomousProxy // ";
+		Color = FColor::Yellow;
+	}
+	if (GetLocalRole() == ROLE_SimulatedProxy)
+	{
+		RoleString = "SimulatedProxy // ";
+		Color = FColor::Orange;
+	}
+
+	const FString StringToPrint = RoleString + "ASB_Projectile - Projectile destroyed on : " + HitActor->GetName();
+
+	GEngine->AddOnScreenDebugMessage(-1, 2.0f, Color, StringToPrint);
 }
 
 void ASB_Projectile::Debug(AActor* Actor)

@@ -33,7 +33,7 @@ void USB_BattleHUDWidget::NativeOnInitialized()
 		if (OwnerPC->GetOwnedShip())
 			OnNewOwnedShip(OwnerPC->GetOwnedShip());
 
-		OwnerPC->NewOwnedShipEvent.AddUniqueDynamic(this, &USB_BattleHUDWidget::OnNewOwnedShip);
+		OwnerPC->OnNewOwnedShip.AddUniqueDynamic(this, &USB_BattleHUDWidget::OnNewOwnedShip);
 	}
 }
 

@@ -1,5 +1,4 @@
 ///// SB_Ship.h - RemzDNB
-/////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
@@ -16,6 +15,10 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSelectedWeaponUpdated, uint8, NewSelectedWeaponID);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDestroyed, const APlayerState* const, Instigator);
 
+class ASB_DataManager;
+class USB_ModuleSlot;
+class USB_ShipOTMWidget;
+
 UCLASS()
 class ASB_Ship : public ACharacter
 {
@@ -29,34 +32,31 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
-/////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-public:
+	//
 
 	UFUNCTION()
-	void UpdateOwnerViewData(const FRotator& NewOwnerViewRotation, const FVector& NewOwnerViewLocation, class AActor* const NewOwnerViewActor);
-
-	/*UFUNCTION(Server, Reliable)
-	void UpdateOwnerViewData_Server(const FRotator& NewOwnerViewRotation, const FVector& NewOwnerViewLocation, class AActor* const NewOwnerViewActor);*/
-
-	UFUNCTION()
-	void SelectWeapon(uint8 WeaponID, bool bIsAdditive = false);
+	void UpdateOwnerViewData(const FVector& NewOwnerViewLocation, AActor* NewOwnerViewActor);
 
 	UFUNCTION(Server, Reliable)
-	void SelectWeapon_Server(uint8 WeaponID, bool bIsAdditive = false);
+	void UpdateOwnerViewData_Server(const FVector& NewOwnerViewLocation, AActor* NewOwnerViewActor);
 
 	UFUNCTION()
-	void StartFireSelectedWeapon();
+	void SelectWeapon(uint8 WeaponID, bool bToggleSelection = true, bool bNewIsSelected = true);
 
 	UFUNCTION(Server, Reliable)
-	void StartFireSelectedWeapon_Server();
+	void SelectWeapon_Server(uint8 WeaponID, bool bToggleSelection = true, bool bNewIsSelected = true);
 
 	UFUNCTION()
-	void StopFireSelectedWeapon();
+	void StartFireSelectedWeapons();
 
 	UFUNCTION(Server, Reliable)
-	void StopFireSelectedWeapon_Server();
+	void StartFireSelectedWeapons_Server();
+
+	UFUNCTION()
+	void StopFireAllWeapons();
+
+	UFUNCTION(Server, Reliable)
+	void StopFireAllWeapons_Server();
 
 	UFUNCTION()
 	void StartAutoLockSelectedWeapon();
@@ -73,7 +73,7 @@ public:
 	UFUNCTION()
 	void ToggleOutline(bool bNewIsVisible);
 
-	// Setters / Getters
+	//
 
 	FORCEINLINE UFUNCTION() const class ASB_DataManager* const GetDataManager() const { return DataManager; }
 
@@ -93,6 +93,8 @@ public:
 	FORCEINLINE UFUNCTION() const FVector& GetOwnerViewLocation() const { return OwnerViewLocation; }
 	FORCEINLINE UFUNCTION() uint8 GetSelectedWeaponID() const { return SelectedWeaponID; }
 
+
+	FORCEINLINE UFUNCTION() USB_ShipOTMWidget* const GetOTMWidget() const { return OTMWidget; }
 	//
 
 	FSelectedWeaponUpdated SelectedWeaponUpdatedEvent;
@@ -100,32 +102,27 @@ public:
 
 private:
 
-	class ASB_DataManager* DataManager;
+	const ASB_DataManager* DataManager;
 
-	// Main SceneComponents
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UBoxComponent* CollisionBoxCT;
+	// SceneComponents
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UParticleSystemComponent* CircleParticleCT;
+	USB_ModuleSlot* LeftThrusterSlotCT;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USB_ModuleSlot* BackThrusterSlotCT;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USB_ModuleSlot* RightThrusterSlotCT;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USB_ModuleSlot* ShieldSlot_CT;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	TArray<class USceneComponent*> AutoLockCTs;
 
-	// ModuleSlot SceneComponents
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class USB_ModuleSlot* LeftThrusterSlotCT;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class USB_ModuleSlot* BackThrusterSlotCT;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class USB_ModuleSlot* RightThrusterSlotCT;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class USB_ModuleSlot* ShieldSlot_CT;
+	class UParticleSystemComponent* CircleParticleCT;
 
 	// ActorComponents
 
@@ -158,7 +155,10 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadonly, meta = (AllowPrivateAccess = "true"))
 	class USB_ShieldModule* ShieldModule;
 
-	// 
+	//
+
+	UPROPERTY()
+	USB_ShipOTMWidget* OTMWidget;
 
 	UPROPERTY()
 	ESB_ShipState State;

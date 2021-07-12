@@ -55,16 +55,29 @@ void USB_WeaponModule::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	Debug(DeltaTime);
 }
 
-void USB_WeaponModule::ToggleSelection(bool bNewIsSelected)
+void USB_WeaponModule::SetIsSelected(bool bToggleSelection, bool bNewIsSelected)
 {
-	bIsSelected = bNewIsSelected;
-
-	if (bIsSelected)
-		SetRenderCustomDepth(true);
+	if (bToggleSelection)
+	{
+		bIsSelected = bIsSelected ? false : true;
+		SetRenderCustomDepth(bIsSelected);
+		ModuleSelectionUpdatedEvent.Broadcast(bIsSelected);
+	}
 	else
-		SetRenderCustomDepth(false);
-
-	ModuleSelectionUpdatedEvent.Broadcast(bIsSelected);
+	{
+		if (bIsSelected && !bNewIsSelected)
+		{
+			bIsSelected = false;
+			SetRenderCustomDepth(false);
+			ModuleSelectionUpdatedEvent.Broadcast(false);
+		}
+		else if (!bIsSelected && bNewIsSelected)
+		{
+			bIsSelected = true;
+			SetRenderCustomDepth(true);
+			ModuleSelectionUpdatedEvent.Broadcast(true);
+		}
+	}
 }
 
 void USB_WeaponModule::ToggleSniperView(bool bNewIsSniperView)
@@ -204,7 +217,8 @@ void USB_WeaponModule::FireOnce()
 				EAttachLocation::SnapToTarget
 			);
 
-			MuzzleParticle->SetWorldScale3D(FVector(WeaponModuleData->MuzzleParticleScale));
+			if (MuzzleParticle) // crash on dedicated obv
+				MuzzleParticle->SetWorldScale3D(FVector(WeaponModuleData->MuzzleParticleScale));
 		}
 	}
 }

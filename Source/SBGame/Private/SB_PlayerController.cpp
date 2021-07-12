@@ -5,12 +5,14 @@
 #include "SB_Ship.h"
 #include "SB_ShipMovementComponent.h"
 #include "SB_ShipCameraManager.h"
+#include "SB_ShipOTMWidget.h"
 #include "SB_ShieldModule.h"
 #include "SB_SpectatorPawn.h"
 #include "SB_UIManager.h"
 #include "SB_BattleMenuWidget.h"
 #include "SB_BattleHUDWidget.h"
 #include "SB_DataManager.h"
+#include "RZ_DamageMarkerWidget.h"
 //
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
@@ -56,7 +58,6 @@ void ASB_PlayerController::BeginPlay()
 		UIManager = Cast<ASB_UIManager>(GetHUD());
 		if (UIManager)
 		{
-			UIManager->ToggleHUD(true);
 			UWidgetBlueprintLibrary::SetInputMode_GameOnly(this);
 			bShowMouseCursor = false;
 		}
@@ -68,8 +69,8 @@ void ASB_PlayerController::BeginPlay()
 			UGameplayStatics::FinishSpawningActor(OwnedSpectatorPawn, FTransform(FVector()));
 		}*/
 
-		PState->SetName();
-		PState->SetTeamID(1);
+		//PState->SetName();
+		//PState->SetTeamID(1);
 	}
 
 	// Start player
@@ -126,7 +127,7 @@ void ASB_PlayerController::UpdateViewTarget()
 		{
 			if (OwnedShip)
 			{
-				OwnedShip->UpdateOwnerViewData(GetControlRotation(), Hit.Location, Hit.Actor.Get());
+				OwnedShip->UpdateOwnerViewData(/*GetControlRotation(), */Hit.Location, Hit.Actor.Get());
 
 				//UKismetSystemLibrary::DrawDebugSphere(GetWorld(), Hit.Location, 500.0f, 10, FColor::Green, 0.1f, 20.0f);
 			}
@@ -150,6 +151,21 @@ void ASB_PlayerController::SpawnAndPossessShip(const FTransform& SpawnTransform)
 	}
 }
 
+void ASB_PlayerController::OnDamageDealt(const FVector& HitLocation, float Damage)
+{
+	OnDamageDealt_Client(HitLocation, Damage);
+}
+
+void ASB_PlayerController::OnDamageDealt_Client_Implementation(const FVector& HitLocation, float Damage)
+{
+	URZ_DamageMarkerWidget* const NewDamageMarker = CreateWidget<URZ_DamageMarkerWidget>(GetWorld(), DataManager->UISettings.DamageMarker_WBP);
+	if (NewDamageMarker)
+	{
+		NewDamageMarker->Init(HitLocation, Damage);
+		UIManager->AddHUDWidget(NewDamageMarker);
+	}
+}
+
 void ASB_PlayerController::OnRep_Pawn()
 {
 	Super::OnRep_Pawn();
@@ -158,7 +174,7 @@ void ASB_PlayerController::OnRep_Pawn()
 	if (OwnedShip)
 	{
 		OwnedShip->DestroyedEvent.AddUniqueDynamic(this, &ASB_PlayerController::OnOwnedShipDestroyed);
-		NewOwnedShipEvent.Broadcast(OwnedShip);
+		OnNewOwnedShip.Broadcast(OwnedShip);
 		SetControlRotation(FRotator(-45.0f, OwnedShip->GetActorRotation().Yaw, 0.0f));
 	}
 }
@@ -287,7 +303,7 @@ void ASB_PlayerController::LeftMouseButtonPressed()
 		}
 		else
 		{*/
-			OwnedShip->StartFireSelectedWeapon();
+			OwnedShip->StartFireSelectedWeapons();
 		//}
 	}
 }
@@ -296,7 +312,7 @@ void ASB_PlayerController::LeftMouseButtonReleased()
 {
 	if (OwnedShip)
 	{
-		OwnedShip->StopFireSelectedWeapon();
+		OwnedShip->StopFireAllWeapons();
 	}
 }
 
@@ -395,7 +411,7 @@ void ASB_PlayerController::SelectWeapon1KeyPressed()
 {
 	if (OwnedShip)
 	{
-		OwnedShip->SelectWeapon(1);
+		OwnedShip->SelectWeapon(0, true);
 	}
 }
 
@@ -403,7 +419,7 @@ void ASB_PlayerController::SelectWeapon2KeyPressed()
 {
 	if (OwnedShip)
 	{
-		OwnedShip->SelectWeapon(2);
+		OwnedShip->SelectWeapon(1, true);
 	}
 }
 
@@ -411,7 +427,7 @@ void ASB_PlayerController::SelectWeapon3KeyPressed()
 {
 	if (OwnedShip)
 	{
-		OwnedShip->SelectWeapon(3);
+		OwnedShip->SelectWeapon(2, true);
 	}
 }
 
@@ -419,7 +435,7 @@ void ASB_PlayerController::SelectWeapon4KeyPressed()
 {
 	if (OwnedShip)
 	{
-		OwnedShip->SelectWeapon(4);
+		OwnedShip->SelectWeapon(3, true);
 	}
 }
 
@@ -427,7 +443,7 @@ void ASB_PlayerController::SelectWeapon5KeyPressed()
 {
 	if (OwnedShip)
 	{
-		OwnedShip->SelectWeapon(5);
+		OwnedShip->SelectWeapon(4, true);
 	}
 }
 
@@ -435,11 +451,11 @@ void ASB_PlayerController::SelectAllWeaponsKeyPressed()
 {
 	if (OwnedShip)
 	{
-		OwnedShip->SelectWeapon(1);
-		OwnedShip->SelectWeapon(2, true);
-		OwnedShip->SelectWeapon(3, true);
-		OwnedShip->SelectWeapon(4, true);
-		OwnedShip->SelectWeapon(5, true);
+		OwnedShip->SelectWeapon(0, false, true);
+		OwnedShip->SelectWeapon(1, false, true);
+		OwnedShip->SelectWeapon(2, false, true);
+		OwnedShip->SelectWeapon(3, false, true);
+		OwnedShip->SelectWeapon(4, false, true);
 	}
 }
 
@@ -447,7 +463,11 @@ void ASB_PlayerController::UnselectAllWeaponsKeyPressed()
 {
 	if (OwnedShip)
 	{
-		OwnedShip->SelectWeapon(0);
+		OwnedShip->SelectWeapon(0, false, false);
+		OwnedShip->SelectWeapon(1, false, false);
+		OwnedShip->SelectWeapon(2, false, false);
+		OwnedShip->SelectWeapon(3, false, false);
+		OwnedShip->SelectWeapon(4, false, false);
 	}
 }
 

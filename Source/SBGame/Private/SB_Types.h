@@ -120,6 +120,12 @@ struct FSB_UISettings
 	TSubclassOf<class UUserWidget> Module_WBP;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class UUserWidget> ShipOTM_WBP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class UUserWidget> DamageMarker_WBP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<class UUserWidget> Button_Small_WBP;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)

@@ -4,11 +4,15 @@
 #include "SB_BattleHUDWidget.h"
 #include "SB_DataManager.h"
 //
-#include "EngineUtils.h"
+#include "Components/PanelWidget.h"
+#include "Components/CanvasPanel.h"
+#include "Kismet/GameplayStatics.h"
 #include "Blueprint/UserWidget.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
-#include "Components/PanelWidget.h"
-#include "Kismet/GameplayStatics.h"
+#include "EngineUtils.h"
+
+#include "Components/CanvasPanelSlot.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
 
 ASB_UIManager::ASB_UIManager() :
 	bIsMenuOpen(false),
@@ -34,34 +38,36 @@ void ASB_UIManager::BeginPlay()
 {
 	Super::BeginPlay();
 
-	MenuLayoutWidget = CreateWidget<USB_BattleMenuWidget>(GetWorld(), DataManager->UISettings.BattleMenu_WBP);
-	if (MenuLayoutWidget == nullptr)
+	BattleMenuWidget = CreateWidget<USB_BattleMenuWidget>(GetWorld(), DataManager->UISettings.BattleMenu_WBP);
+	if (BattleMenuWidget == nullptr)
 		return;
 
-	HUDLayoutWidget = CreateWidget<USB_BattleHUDWidget>(GetWorld(), DataManager->UISettings.BattleHUD_WBP);
-	if (HUDLayoutWidget == nullptr)
+	BattleHUDWidget = CreateWidget<USB_BattleHUDWidget>(GetWorld(), DataManager->UISettings.BattleHUD_WBP);
+	if (BattleHUDWidget == nullptr)
 		return;
 
 	for (auto& MapRow : DataManager->UISettings.BattleMenuWidgets)
 	{
-		UUserWidget* const CreatedWidget = MenuLayoutWidget->LoadWidget(MapRow.Value, MapRow.Key);
+		UUserWidget* const CreatedWidget = BattleMenuWidget->LoadWidget(MapRow.Value, MapRow.Key);
 		if (CreatedWidget)
 		{
 			MenuWidgets.Add(MapRow.Key, CreatedWidget);
 		}
 	}
+
+	ToggleHUD(true);
 }
 
 void ASB_UIManager::ToggleMenu(bool bNewIsOpen)
 {
-	if (MenuLayoutWidget == nullptr)
+	if (BattleMenuWidget == nullptr)
 		return;
 
 	if (bNewIsOpen == true)
 	{
 		if (bIsMenuOpen == false)
 		{
-			MenuLayoutWidget->AddToViewport();
+			BattleMenuWidget->AddToViewport();
 			bIsMenuOpen = true;
 		}
 	}
@@ -69,7 +75,7 @@ void ASB_UIManager::ToggleMenu(bool bNewIsOpen)
 	{
 		if (bIsMenuOpen == true)
 		{
-			MenuLayoutWidget->RemoveFromParent();
+			BattleMenuWidget->RemoveFromParent();
 			bIsMenuOpen = false;
 		}
 	}
@@ -77,14 +83,14 @@ void ASB_UIManager::ToggleMenu(bool bNewIsOpen)
 
 void ASB_UIManager::ToggleHUD(bool bNewIsOpen)
 {
-	if (HUDLayoutWidget == nullptr)
+	if (BattleHUDWidget == nullptr)
 		return;
 
 	if (bNewIsOpen == true)
 	{
 		if (bIsHUDOpen == false)
 		{
-			HUDLayoutWidget->AddToViewport();
+			BattleHUDWidget->AddToViewport();
 			bIsHUDOpen = true;
 		}
 	}
@@ -92,17 +98,28 @@ void ASB_UIManager::ToggleHUD(bool bNewIsOpen)
 	{
 		if (bIsHUDOpen == true)
 		{
-			HUDLayoutWidget->RemoveFromParent();
+			BattleHUDWidget->RemoveFromParent();
 			bIsHUDOpen = false;
 		}
 	}
 }
 
+void ASB_UIManager::AddHUDWidget(UUserWidget* NewWidget)
+{
+	BattleHUDWidget->GetMainCanvas()->AddChild(NewWidget);
+
+	UCanvasPanelSlot* const CanvasPanelSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot(NewWidget);
+	CanvasPanelSlot->bAutoSize = true;
+
+	ToggleHUD(false);
+	ToggleHUD(true); // ?? Refresh
+}
+
 void ASB_UIManager::OpenMenuWidgetByName(const FName& WidgetName)
 {
-	if (MenuLayoutWidget && MenuWidgets.FindRef(WidgetName))
+	if (BattleMenuWidget && MenuWidgets.FindRef(WidgetName))
 	{
-		MenuLayoutWidget->SetActiveWidgetByRef(MenuWidgets.FindRef(WidgetName));
+		BattleMenuWidget->SetActiveWidgetByRef(MenuWidgets.FindRef(WidgetName));
 	}
 
 	ToggleHUD(false);
@@ -116,13 +133,13 @@ void ASB_UIManager::UpdateCursor()
 
 void ASB_UIManager::CreateDamagePopup(float Damage, const AActor* const TargetActor)
 {
-	if (DataManager == nullptr || HUDLayoutWidget == nullptr)
+	if (DataManager == nullptr || BattleHUDWidget == nullptr)
 		return;
 
 	/*URZ_DamageDealtNotificationWidget* const DDNotificationWidget = CreateWidget<URZ_DamageDealtNotificationWidget>(GetWorld(), DataManager->RZ_DamageDealtNotification_WB);
 	if (DDNotificationWidget)
 	{
 		DDNotificationWidget->Init(TargetActor, Damage);
-		//HUDLayoutWidget->MainPanel->AddChild(DDNotificationWidget);
+		//BattleHUDWidget->MainPanel->AddChild(DDNotificationWidget);
 	}*/
 }
