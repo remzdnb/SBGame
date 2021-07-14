@@ -28,9 +28,6 @@ public:
 	FSB_UISettings UISettings;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FSB_CameraSettings CameraSettings;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FSB_ShipSettings ShipSettings;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)

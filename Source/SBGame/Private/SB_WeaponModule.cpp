@@ -1,7 +1,6 @@
 #include "SB_WeaponModule.h"
 #include "SB_WeaponModuleAnimInstance.h"
 #include "SB_Ship.h"
-#include "SB_ModuleSlot.h"
 #include "SB_Projectile.h"
 #include "SB_DataManager.h"
 //
@@ -25,11 +24,14 @@ USB_WeaponModule::USB_WeaponModule()
 	LastFireTime = 0.0f;
 }
 
-void USB_WeaponModule::Init(const class ASB_DataManager* const NewDataManager, const FName& NewParentSlotName, const FName& NewDataRowName)
+void USB_WeaponModule::InitializeComponent()
 {
-	Super::Init(NewDataManager, NewParentSlotName, NewDataRowName);
+	Super::InitializeComponent();
 
-	WeaponModuleData = NewDataManager->GetWeaponModuleDataFromRow(NewDataRowName);
+	if (GetWorld()->IsGameWorld() == false)
+		return;
+	
+	WeaponModuleData = DataManager->GetWeaponModuleDataFromRow(ModuleName);
 	WeaponAnimInstance = Cast<USB_WeaponModuleAnimInstance>(GetAnimInstance());
 }
 

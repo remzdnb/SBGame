@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "SB_Types.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "SB_Ship.generated.h"
@@ -16,7 +17,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSelectedWeaponUpdated, uint8, NewSe
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDestroyed, const APlayerState* const, Instigator);
 
 class ASB_DataManager;
-class USB_ModuleSlot;
+class USB_BaseModule;
+class USB_WeaponModule;
+class USB_ShieldModule;
 class USB_ShipOTMWidget;
 
 UCLASS()
@@ -28,6 +31,7 @@ public:
 
 	ASB_Ship(const FObjectInitializer& ObjectInitializer);
 
+	virtual void PreInitializeComponents() override;
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
@@ -81,10 +85,8 @@ public:
 	FORCEINLINE UFUNCTION() class USB_ShipCombatComponent* const GetShipCombatCT() const { return CombatCT; }
 	FORCEINLINE UFUNCTION() class USB_ShipCameraManager* const GetShipCameraManager() const { return ShipCameraManager; }
 
-	FORCEINLINE UFUNCTION() TArray<class USB_BaseModule*> GetModules() const { return BaseModules; }
 	FORCEINLINE UFUNCTION() TArray<class USB_ThrusterModule*> GetThrusterModules() const { return ThrusterModules; }
-	FORCEINLINE UFUNCTION() TArray<class USB_WeaponModule*> GetWeaponModules() const { return WeaponModules; }
-	FORCEINLINE UFUNCTION() TArray<class USB_PowerModule*> GetPowerModules() const { return PowerModules; }
+	FORCEINLINE UFUNCTION() TInlineComponentArray<USB_WeaponModule*> GetWeaponModules() const { return WeaponModules; }
 	FORCEINLINE UFUNCTION() class USB_ShieldModule* const GetShieldModule() const { return ShieldModule; }
 	FORCEINLINE UFUNCTION() TArray<class USceneComponent*> GetAutoLockCTs() const { return AutoLockCTs; }
 
@@ -107,17 +109,26 @@ private:
 	// SceneComponents
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	USB_ModuleSlot* LeftThrusterSlotCT;
+	USB_BaseModule* HullModule_01;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USB_BaseModule* CommandModule;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USB_ThrusterModule* ThrusterModule_Back;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	USB_ModuleSlot* BackThrusterSlotCT;
+	USB_ThrusterModule* ThrusterModule_Front;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	USB_ModuleSlot* RightThrusterSlotCT;
+	USB_ThrusterModule* ThrusterModule_Left;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	USB_ModuleSlot* ShieldSlot_CT;
+	USB_ThrusterModule* ThrusterModule_Right;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USB_ShieldModule* ShieldModule;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	TArray<class USceneComponent*> AutoLockCTs;
 
@@ -141,19 +152,10 @@ private:
 	// Modules lists
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadonly, meta = (AllowPrivateAccess = "true"))
-	TArray<class USB_BaseModule*> BaseModules;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadonly, meta = (AllowPrivateAccess = "true"))
-	TArray<class USB_PowerModule*> PowerModules;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadonly, meta = (AllowPrivateAccess = "true"))
 	TArray<class USB_ThrusterModule*> ThrusterModules;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadonly, meta = (AllowPrivateAccess = "true"))
-	TArray<class USB_WeaponModule*> WeaponModules;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadonly, meta = (AllowPrivateAccess = "true"))
-	class USB_ShieldModule* ShieldModule;
+	//UPROPERTY(VisibleAnywhere, BlueprintReadonly, meta = (AllowPrivateAccess = "true"))
+	TInlineComponentArray<USB_WeaponModule*> WeaponModules;
 
 	//
 
@@ -169,7 +171,7 @@ private:
 	UPROPERTY(Replicated)
 	FVector OwnerViewLocation;
 
-	UPROPERTY(Replicated)
+	UPROPERTY()
 	class AActor* OwnerViewActor;
 
 	UPROPERTY()

@@ -11,11 +11,21 @@ USB_ThrusterModule::USB_ThrusterModule()
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
-void USB_ThrusterModule::Init(const class ASB_DataManager* const NewDataManager, const FName& NewParentSlotName, const FName& NewDataRowName)
+void USB_ThrusterModule::InitializeComponent()
 {
-	Super::Init(NewDataManager, NewParentSlotName, NewDataRowName);
+	Super::InitializeComponent();
 
-	ThrusterModuleData = NewDataManager->GetThrusterModuleDataFromRow(NewDataRowName);
+	if (GetWorld()->IsGameWorld() == false)
+		return;
+
+	ShipMovementCT = Cast<ASB_Ship>(GetOwner())->GetShipMovementCT();
+}
+
+void USB_ThrusterModule::BeginPlay()
+{
+	Super::BeginPlay();
+
+	ThrusterModuleData = DataManager->GetThrusterModuleDataFromRow(ModuleName);
 	if (ThrusterModuleData)
 	{
 		for (auto& ExhaustSocketName : ThrusterModuleData->ExhaustSocketNames)
@@ -37,72 +47,81 @@ void USB_ThrusterModule::Init(const class ASB_DataManager* const NewDataManager,
 			}
 		}
 	}
-
-	ShipMovementCT = Cast<ASB_Ship>(GetOwner())->GetShipMovementCT();
 }
 
 void USB_ThrusterModule::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (ParentSlotName == "LeftThruster")
+	UpdateExhaustParticle();
+	Debug(DeltaTime);
+}
+
+void USB_ThrusterModule::UpdateExhaustParticle()
+{
+	if (ShipMovementCT == nullptr)
+		return;
+
+	if (SlotName == "Left Thruster")
 	{
 		if (ShipMovementCT->GetRightAxisValue() < 0)
 		{
-			SetExhaustParticlesVisibility(false);
+			SetExhaustParticlesVisibility(true);
 		}
 		else
 		{
-			SetExhaustParticlesVisibility(true);
+			SetExhaustParticlesVisibility(false);
 		}
 	}
-	else if (ParentSlotName == "RightThruster")
+	else if (SlotName == "Right Thruster")
 	{
 		if (ShipMovementCT->GetRightAxisValue() > 0)
 		{
-			SetExhaustParticlesVisibility(false);
+			SetExhaustParticlesVisibility(true);
 		}
 		else
 		{
-			SetExhaustParticlesVisibility(true);
+			SetExhaustParticlesVisibility(false);
 		}
 	}
-	else if (ParentSlotName == "BackThruster")
+	else if (SlotName == "Back Thruster")
 	{
-		if (ShipMovementCT->GetForwardAxisValue() != 0)
-		{
-			SetExhaustParticlesVisibility(false);
-		}
-		else
+		if (ShipMovementCT->GetForwardAxisValue() > 0)
 		{
 			SetExhaustParticlesVisibility(true);
 		}
+		else
+		{
+			SetExhaustParticlesVisibility(false);
+		}
 	}
-
-	Debug(DeltaTime);
+	else if (SlotName == "Front Thruster")
+	{
+		if (ShipMovementCT->GetForwardAxisValue() < 0)
+		{
+			SetExhaustParticlesVisibility(true);
+		}
+		else
+		{
+			SetExhaustParticlesVisibility(false);
+		}
+	}
 }
 
 void USB_ThrusterModule::SetExhaustParticlesVisibility(bool bNewIsVisible)
 {
-	if (bNewIsVisible)
+	for (auto& ExhaustParticle : ExhaustParticles)
 	{
-		for (auto& ExhaustParticle : ExhaustParticles)
-		{
-			ExhaustParticle->SetHiddenInGame(true);
-		}
-	}
-	else
-	{
-		for (auto& ExhaustParticle : ExhaustParticles)
-		{
-			ExhaustParticle->SetHiddenInGame(false);
-		}
+		ExhaustParticle->SetHiddenInGame(!bNewIsVisible);
 	}
 }
 
 void USB_ThrusterModule::Debug(float DeltaTime)
 {
-	if (DataManager->GameSettings.bIsDebugEnabled_ThrusterModule == false || OwnerShip == nullptr || ParentSlotName != "BackThruster")
+	if (DataManager == nullptr)
+		return;
+	
+	if (DataManager->GameSettings.bIsDebugEnabled_ThrusterModule == false || OwnerShip == nullptr || ShipMovementCT == nullptr)
 		return;
 
 	FString RoleString = "None";

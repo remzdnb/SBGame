@@ -1,16 +1,18 @@
 #include "SB_BaseModule.h"
 #include "SB_Ship.h"
+#include "SB_GameInstance.h"
 #include "SB_DataManager.h"
 //
 #include "Components/SkeletalMeshComponent.h"
 #include "TimerManager.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
 USB_BaseModule::USB_BaseModule()
 {
-	SetCollisionProfileName("CharacterMesh");
+	UPrimitiveComponent::SetCollisionProfileName("CharacterMesh");
 	SetCustomDepthStencilValue(1);
 	SetGenerateOverlapEvents(true);
 	//SetIsReplicatedByDefault(true);
@@ -19,30 +21,28 @@ USB_BaseModule::USB_BaseModule()
 void USB_BaseModule::InitializeComponent()
 {
 	Super::InitializeComponent();
+	
+	if (GetWorld()->IsGameWorld() == false)
+		return;
 
 	OwnerShip = Cast<ASB_Ship>(GetOwner());
+	DataManager = OwnerShip->GetDataManager();
+	BaseModuleData = DataManager->GetBaseModuleDataFromRow(ModuleName);
+	if (BaseModuleData)
+	{
+		SetSkeletalMesh(BaseModuleData->SkeletalMesh);
+		SetAnimInstanceClass(BaseModuleData->AnimInstance);
+		Durability = BaseModuleData->MaxDurability;
+	}
 }
 
 void USB_BaseModule::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 	if (OwnerShip->GetLocalRole() == ROLE_Authority)
 	{
 		//GetWorld()->GetTimerManager().SetTimer(RepairTimer, this, &USB_BaseModule::RepairOnce, 0.5f, true, 5.0f);
-	}
-}
-
-void USB_BaseModule::Init(const class ASB_DataManager* const NewDataManager, const FName& NewParentSlotName, const FName& NewDataRowName)
-{
-	DataManager = NewDataManager;
-	ParentSlotName = NewParentSlotName;
-
-	BaseModuleData = DataManager->GetBaseModuleDataFromRow(NewDataRowName);
-	if (BaseModuleData)
-	{
-		Durability = BaseModuleData->MaxDurability;
-		SetAnimInstanceClass(BaseModuleData->AnimInstance);
 	}
 }
 

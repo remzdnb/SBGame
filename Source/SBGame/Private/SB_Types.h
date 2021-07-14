@@ -16,6 +16,8 @@ enum class ESB_ShipState : uint8
 UENUM(BlueprintType)
 enum class ESB_ModuleType : uint8
 {
+	Hull,
+	Command,
 	Power,
 	Thruster,
 	Weapon,
@@ -137,25 +139,6 @@ struct FSB_UISettings
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<class UUserWidget> Button_Large_WBP;
-};
-
-USTRUCT(BlueprintType)
-struct FSB_CameraSettings
-{
-	GENERATED_USTRUCT_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float DefaultArmLength;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float MaxArmLength;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FVector DefaultOffset;
-
-	FSB_CameraSettings()
-	{
-	}
 };
 
 USTRUCT(BlueprintType)

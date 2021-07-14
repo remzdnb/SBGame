@@ -12,9 +12,9 @@ class USB_ThrusterModule : public USB_BaseModule
 public:
 
 	USB_ThrusterModule();
-
-	virtual void Init(const class ASB_DataManager* const NewDataManager, const FName& NewParentSlotName, const FName& NewDataRowName) override;
-
+	
+	virtual void InitializeComponent() override;
+	virtual void BeginPlay() override;
 	virtual void TickComponent(float NewDeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 private:
@@ -29,6 +29,9 @@ private:
 
 	//
 
+	UFUNCTION()
+	void UpdateExhaustParticle();
+	
 	UFUNCTION()
 	void SetExhaustParticlesVisibility(bool bNewIsVisible);
 

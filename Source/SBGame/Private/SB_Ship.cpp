@@ -3,11 +3,11 @@
 #include "SB_ShipPowerComponent.h"
 #include "SB_ShipCombatComponent.h"
 #include "SB_ShipOTMWidget.h"
-#include "SB_ModuleSlot.h"
 #include "SB_PowerModule.h"
 #include "SB_ThrusterModule.h"
 #include "SB_WeaponModule.h"
 #include "SB_ShieldModule.h"
+#include "SB_GameInstance.h"
 #include "SB_DataManager.h"
 #include "SB_ShipCameraManager.h"
 //
@@ -28,7 +28,7 @@
 #pragma region +++++ Setup ...
 
 ASB_Ship::ASB_Ship(const FObjectInitializer& ObjectInitializer) :
-	Super(ObjectInitializer.SetDefaultSubobjectClass<USB_ShipMovementComponent>(ACharacter::CharacterMovementComponentName)),
+	Super(ObjectInitializer.SetDefaultSubobjectClass<USB_ShipMovementComponent>(ACharacter::CharacterMovementComponentName).SetDefaultSubobjectClass<USB_BaseModule>(ACharacter::MeshComponentName)),
 	State(ESB_ShipState::Ready)
 {
 	GetCapsuleComponent()->SetCapsuleSize(DEFAULTCAPSULESIZE, DEFAULTCAPSULESIZE, false);
@@ -50,14 +50,22 @@ ASB_Ship::ASB_Ship(const FObjectInitializer& ObjectInitializer) :
 
 	//
 
-	LeftThrusterSlotCT = CreateDefaultSubobject<USB_ModuleSlot>(TEXT("LeftThrusterSlotCT"));
-	LeftThrusterSlotCT->SetupAttachment(GetMesh());
-	BackThrusterSlotCT = CreateDefaultSubobject<USB_ModuleSlot>(TEXT("BackThrusterSlotCT"));
-	BackThrusterSlotCT->SetupAttachment(GetMesh());
-	RightThrusterSlotCT = CreateDefaultSubobject<USB_ModuleSlot>(TEXT("RightThrusterSlotCT"));
-	RightThrusterSlotCT->SetupAttachment(GetMesh());
-	ShieldSlot_CT = CreateDefaultSubobject<USB_ModuleSlot>(TEXT("ShieldSlot_CT"));
-	ShieldSlot_CT->SetupAttachment(GetMesh());
+	CommandModule = CreateDefaultSubobject<USB_BaseModule>(TEXT("CommandModule"));
+	CommandModule->SetupAttachment(GetMesh());
+	ThrusterModule_Back = CreateDefaultSubobject<USB_ThrusterModule>(TEXT("ThrusterModule_Back"));
+	ThrusterModule_Back->SetupAttachment(GetMesh());
+	ThrusterModules.Add(ThrusterModule_Back);
+	ThrusterModule_Front = CreateDefaultSubobject<USB_ThrusterModule>(TEXT("ThrusterModule_Front"));
+	ThrusterModule_Front->SetupAttachment(GetMesh());
+	ThrusterModules.Add(ThrusterModule_Front);
+	ThrusterModule_Left = CreateDefaultSubobject<USB_ThrusterModule>(TEXT("ThrusterModule_Left"));
+	ThrusterModule_Left->SetupAttachment(GetMesh());
+	ThrusterModules.Add(ThrusterModule_Left);
+	ThrusterModule_Right = CreateDefaultSubobject<USB_ThrusterModule>(TEXT("ThrusterModule_Right"));
+	ThrusterModule_Right->SetupAttachment(GetMesh());
+	ThrusterModules.Add(ThrusterModule_Right);
+	ShieldModule = CreateDefaultSubobject<USB_ShieldModule>(TEXT("ShieldModule"));
+	ShieldModule->SetupAttachment(GetMesh());
 
 	//
 
@@ -93,25 +101,42 @@ ASB_Ship::ASB_Ship(const FObjectInitializer& ObjectInitializer) :
 	SelectedWeaponID = 0;
 }
 
+void ASB_Ship::PreInitializeComponents()
+{
+	if (GetWorld()->IsGameWorld() == true)
+	{
+		for (TActorIterator<ASB_DataManager> NewDataManager(GetWorld()); NewDataManager; ++NewDataManager)
+		{
+			DataManager = *NewDataManager;
+			break;
+		}
+	}
+	
+	Super::PreInitializeComponents();
+}
+
 void ASB_Ship::PostInitializeComponents()
 {
+
+	
 	Super::PostInitializeComponents();
 	
-	if (GetWorld()->IsGameWorld() == false)
-		return;
 
-	for (TActorIterator<ASB_DataManager> NewDataManager(GetWorld()); NewDataManager; ++NewDataManager)
-	{
-		DataManager = *NewDataManager;
-		break;
-	}
+	//DataManager = Cast<USB_GameInstance>(UGameplayStatics::GetGameInstance(GetWorld()))->GetDataManager();
+
+
 }
 
 void ASB_Ship::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Spawn and attach modules.
+	// Init modules
+
+	GetComponents(WeaponModules);
+	
+	/*
+	
 	uint8 Index = 0;
 	TInlineComponentArray<USB_ModuleSlot*> ComponentArray;
 	GetComponents(ComponentArray);
@@ -137,7 +162,7 @@ void ASB_Ship::BeginPlay()
 						ThrusterModules.Add(NewThrusterModule);
 					}
 				}
-				else if (ModuleData->ModuleType == ESB_ModuleType::Weapon)
+				if (ModuleData->ModuleType == ESB_ModuleType::Weapon)
 				{
 					const FName ModuleName = *("WeaponModule_" + ModuleSlot->GetModuleName().ToString() + "_" + FString::FromInt(Index));
 					USB_WeaponModule* const NewWeaponModule = NewObject<USB_WeaponModule>(this, ModuleName);
@@ -192,7 +217,7 @@ void ASB_Ship::BeginPlay()
 		}
 
 		Index++;
-	}
+	}*/
 
 	// Create OTM widget
 
@@ -281,7 +306,10 @@ void ASB_Ship::UpdateState_Multicast_Implementation(ESB_ShipState NewState)
 	{
 		GetCapsuleComponent()->SetCollisionProfileName("IgnoreAll");
 		GetMesh()->SetCollisionProfileName("IgnoreAll");
-		//GetMesh()->SetMaterial(0, DataManager->ShipSettings.DestroyedMaterial);
+		for (auto& ThrusterModule : ThrusterModules)
+			ThrusterModule->SetCollisionProfileName("IgnoreAll");
+		for (auto& WeaponModule : WeaponModules)
+			WeaponModule->SetCollisionProfileName("IgnoreAll");
 		SetActorHiddenInGame(true);
 
 		AActor* DestructibleShip = GetWorld()->SpawnActorDeferred<AActor>(DataManager->GameSettings.DestructibleShipClass, GetMesh()->GetComponentTransform(), this, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);

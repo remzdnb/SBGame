@@ -22,10 +22,10 @@ void USB_ShipPowerComponent::Init(const ASB_DataManager* const NewDataManager)
 	DataManager = NewDataManager;
 	OwnerShip = Cast<ASB_Ship>(GetOwner());
 
-	for (auto& Module : OwnerShip->GetPowerModules())
+	/*for (auto& Module : OwnerShip->GetPowerModules())
 	{
 		MaxPower += 3;
-	}
+	}*/
 
 	StoredPower = MaxPower;
 

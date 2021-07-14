@@ -12,7 +12,7 @@
 class ASB_Ship;
 class ASB_DataManager;
 
-UCLASS()
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class USB_WeaponModule : public USB_BaseModule
 {
 	GENERATED_BODY()
@@ -21,7 +21,7 @@ public:
 
 	USB_WeaponModule();
 
-	virtual void Init(const ASB_DataManager* const NewDataManager, const FName& NewParentSlotName, const FName& NewDataRowName) override;
+	virtual void InitializeComponent() override;
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	//

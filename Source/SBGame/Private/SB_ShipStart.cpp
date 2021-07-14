@@ -8,7 +8,7 @@ ASB_ShipStart::ASB_ShipStart()
 {
 	CapsuleCT = CreateDefaultSubobject<UCapsuleComponent>(FName("CapsuleCT"));
 	CapsuleCT->SetCollisionProfileName("OverlapOnlyPawn");
-	CapsuleCT->InitCapsuleSize(7000.f, 7000.0f);
+	CapsuleCT->InitCapsuleSize(15000.f, 15000.0f);
 	RootComponent = CapsuleCT;
 
 	ArrowCT = CreateDefaultSubobject<UArrowComponent>(FName("ArrowCT"));

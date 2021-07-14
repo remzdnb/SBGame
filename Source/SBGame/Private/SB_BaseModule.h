@@ -9,7 +9,7 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FModuleSelectionUpdated, bool, bNewIsSelected);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FModuleDurabilityUpdated, float, bNewDurability);
 
-UCLASS()
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class USB_BaseModule : public USkeletalMeshComponent
 {
 	GENERATED_BODY()
@@ -29,14 +29,12 @@ public:
 	//
 
 	UFUNCTION()
-	virtual void Init(const class ASB_DataManager* const NewDataManager, const FName& NewParentSlotName, const FName& NewDataRowName);
-
-	UFUNCTION()
 	void ApplyDamage(float Damage);
 
 	//
 
-	FORCEINLINE UFUNCTION() const FName& GetParentSlotName() const { return ParentSlotName; }
+	FORCEINLINE UFUNCTION() FName GetSlotName() const { return SlotName; }
+	FORCEINLINE UFUNCTION() FName GetModuleName() const { return ModuleName; }
 	FORCEINLINE UFUNCTION() const FSB_BaseModuleData* const GetBaseModuleData() const { return BaseModuleData; }
 
 protected:
@@ -44,10 +42,15 @@ protected:
 	const class ASB_DataManager* DataManager;
 	const struct FSB_BaseModuleData* BaseModuleData;
 
-	//
-	
-	FName ParentSlotName;
 	FTimerHandle RepairTimer;
+
+	//
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	FName SlotName;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	FName ModuleName;
 
 	//
 
