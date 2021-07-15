@@ -26,16 +26,38 @@ public:
 	void StopSetup();
 
 	UFUNCTION()
-	void Deploy();
+	void StartDeploy();
+	
+	UFUNCTION()
+	void Deploy(const float NewDeployedRotationYaw);
+
+	UFUNCTION(Server, Reliable)
+	void Deploy_Server(const float NewDeployedRotationYaw);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Deploy_Multicast(const float NewDeployedRotationYaw);
+
+	UFUNCTION()
+	void Undeploy();
+
+	UFUNCTION(Server, Reliable)
+	void Undeploy_Server();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Undeploy_Multicast();
 
 	//
 
-	FORCEINLINE UFUNCTION() bool GetIsSetupMode() const { return bIsSetupMode; }
+	FORCEINLINE UFUNCTION() uint8 GetIsSetupMode() const { return bIsSetupMode; }
+	FORCEINLINE UFUNCTION() uint8 GetIsDeployed() const { return bIsDeployed; }
 	
 private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class USpringArmComponent* ShieldArmCT;
+	class USpringArmComponent* ShieldArm;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	class UStaticMeshComponent* SetupMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class ASB_Shield* ShieldActor;
@@ -43,13 +65,19 @@ private:
 	//
 
 	UPROPERTY()
-	bool bIsSetupMode;
+	uint8 bIsSetupMode : 1;
 
 	UPROPERTY()
-	bool bIsDeployed;
+	uint8 bIsDeployed : 1;
 
 	UPROPERTY()
-	FRotator DeployedRotation;
+	float DeployedRotationYaw;
 
+	UPROPERTY(ReplicatedUsing=OnRep_ShieldDurability)
+	float ShieldDurability;
 
+	//
+
+	UFUNCTION()
+	void OnRep_ShieldDurability() const;
 };

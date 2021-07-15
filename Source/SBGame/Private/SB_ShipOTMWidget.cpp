@@ -1,6 +1,5 @@
 #include "SB_ShipOTMWidget.h"
 #include "SB_Ship.h"
-#include "SB_ShipCombatComponent.h"
 #include "SB_UIManager.h"
 #include "SB_PlayerController.h"
 #include "SB_DataManager.h"
@@ -22,7 +21,7 @@ void USB_ShipOTMWidget::Init(const ASB_DataManager* const NewDataManager, ASB_Sh
 	}
 
 	ShipRef = NewShipRef;
-	ShipRef->GetShipCombatCT()->DurabilityUpdatedEvent.AddUniqueDynamic(this, &USB_ShipOTMWidget::Update);
+	ShipRef->OnDurabilityUpdated.AddUniqueDynamic(this, &USB_ShipOTMWidget::Update);
 }
 
 void USB_ShipOTMWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)

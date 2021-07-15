@@ -8,6 +8,8 @@
 
 USB_ThrusterModule::USB_ThrusterModule()
 {
+	//UPrimitiveComponent::SetCollisionProfileName("CharacterMesh");
+	
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
@@ -55,6 +57,20 @@ void USB_ThrusterModule::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 
 	UpdateExhaustParticle();
 	Debug(DeltaTime);
+}
+
+void USB_ThrusterModule::UpdateState(const ESB_ModuleState NewState)
+{
+	Super::UpdateState(NewState);
+
+	if (State == ESB_ModuleState::Repairing)
+	{
+		
+	}
+	else
+	{
+		
+	}
 }
 
 void USB_ThrusterModule::UpdateExhaustParticle()
@@ -121,23 +137,23 @@ void USB_ThrusterModule::Debug(float DeltaTime)
 	if (DataManager == nullptr)
 		return;
 	
-	if (DataManager->GameSettings.bIsDebugEnabled_ThrusterModule == false || OwnerShip == nullptr || ShipMovementCT == nullptr)
+	if (DataManager->GameSettings.bIsDebugEnabled_ThrusterModule == false || OwningShip == nullptr || ShipMovementCT == nullptr)
 		return;
 
 	FString RoleString = "None";
 	FColor Color = FColor::White;
 
-	if (OwnerShip->GetLocalRole() == ROLE_Authority)
+	if (OwningShip->GetLocalRole() == ROLE_Authority)
 	{
 		RoleString = "Authority // ";
 		Color = FColor::Cyan;
 	}
-	if (OwnerShip->GetLocalRole() == ROLE_AutonomousProxy)
+	if (OwningShip->GetLocalRole() == ROLE_AutonomousProxy)
 	{
 		RoleString = "AutonomousProxy // ";
 		Color = FColor::Yellow;
 	}
-	if (OwnerShip->GetLocalRole() == ROLE_SimulatedProxy)
+	if (OwningShip->GetLocalRole() == ROLE_SimulatedProxy)
 	{
 		RoleString = "SimulatedProxy // ";
 		Color = FColor::Orange;

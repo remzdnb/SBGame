@@ -17,6 +17,10 @@ public:
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float NewDeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+protected:
+
+	virtual void UpdateState(const ESB_ModuleState NewState) override;
+
 private:
 
 	const FSB_ThrusterModuleData* ThrusterModuleData;

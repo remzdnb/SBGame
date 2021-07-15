@@ -3,7 +3,6 @@
 #include "SB_SpectatorWidget.h"
 #include "SB_Ship.h"
 #include "SB_ShipMovementComponent.h"
-#include "SB_ShipCombatComponent.h"
 #include "SB_ThrusterModule.h"
 #include "SB_ShieldModule.h"
 #include "SB_WeaponModule.h"
@@ -42,8 +41,8 @@ void USB_BattleHUDWidget::OnNewOwnedShip(ASB_Ship* const NewOwnedShip)
 	if (NewOwnedShip == nullptr)
 		return;
 
-	NewOwnedShip->DestroyedEvent.AddUniqueDynamic(this, &USB_BattleHUDWidget::OnShipDestroyedBPI);
-	NewOwnedShip->GetShipCombatCT()->DurabilityUpdatedEvent.AddUniqueDynamic(this, &USB_BattleHUDWidget::OnShipDurabilityUpdated);
+	NewOwnedShip->OnDurabilityUpdated.AddUniqueDynamic(this, &USB_BattleHUDWidget::OnShipDurabilityUpdated);
+	NewOwnedShip->OnDestroyed.AddUniqueDynamic(this, &USB_BattleHUDWidget::OnShipDestroyedBPI);
 
 	//
 

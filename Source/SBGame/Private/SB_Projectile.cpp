@@ -1,5 +1,6 @@
 #include "SB_Projectile.h"
 #include "SB_Ship.h"
+#include "SB_BaseModule.h"
 #include "SB_DataManager.h"
 //
 #include "Components/SphereComponent.h"
@@ -11,25 +12,27 @@
 
 ASB_Projectile::ASB_Projectile()
 {
-	CollisionSphereCT = CreateDefaultSubobject<USphereComponent>(FName("CollisionSphereCT"));
-	CollisionSphereCT->InitSphereRadius(1.0f);
-	CollisionSphereCT->SetCollisionProfileName("Projectile");
-	CollisionSphereCT->bTraceComplexOnMove = true;
-	CollisionSphereCT->SetGenerateOverlapEvents(true);
-	CollisionSphereCT->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
-	RootComponent = CollisionSphereCT;
+	CollisionSphere = CreateDefaultSubobject<USphereComponent>(FName("CollisionSphere"));
+	CollisionSphere->InitSphereRadius(1.0f);
+	CollisionSphere->SetCollisionProfileName("Projectile");
+	CollisionSphere->bTraceComplexOnMove = true;
+	CollisionSphere->SetGenerateOverlapEvents(false);
+	CollisionSphere->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
+	RootComponent = CollisionSphere;
 
-	MeshCT = CreateDefaultSubobject<UStaticMeshComponent>(FName("MeshCT"));
-	MeshCT->SetCollisionProfileName("IgnoreAll");
-	MeshCT->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
-	MeshCT->SetupAttachment(RootComponent);
+	VisualMesh = CreateDefaultSubobject<UStaticMeshComponent>(FName("VisualMesh"));
+	VisualMesh->SetCollisionProfileName("IgnoreAll");
+	VisualMesh->bTraceComplexOnMove = false;
+	VisualMesh->SetGenerateOverlapEvents(false);
+	VisualMesh->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
+	VisualMesh->SetupAttachment(RootComponent);
 
-	ParticleCT = CreateDefaultSubobject<UParticleSystemComponent>(FName("ParticleCT"));
-	ParticleCT->SetupAttachment(RootComponent);
+	VisualParticle = CreateDefaultSubobject<UParticleSystemComponent>(FName("VisualParticle"));
+	VisualParticle->SetupAttachment(RootComponent);
 
-	ProjectileMovementCT = CreateDefaultSubobject<UProjectileMovementComponent>(FName("ProjectileMovementCT"));
-	ProjectileMovementCT->ProjectileGravityScale = 0.0f;
-	ProjectileMovementCT->bRotationFollowsVelocity = true;
+	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(FName("ProjectileMovement"));
+	ProjectileMovement->ProjectileGravityScale = 0.0f;
+	ProjectileMovement->bRotationFollowsVelocity = true;
 
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
@@ -43,22 +46,24 @@ void ASB_Projectile::PostInitializeComponents()
 	if (GetWorld()->IsGameWorld() == false)
 		return;
 
-	SetLifeSpan(5.0f);
-
 	if (GetLocalRole() == ROLE_Authority)
 	{
-		CollisionSphereCT->OnComponentBeginOverlap.AddDynamic(this, &ASB_Projectile::OnOverlap);
+		CollisionSphere->OnComponentHit.AddDynamic(this, &ASB_Projectile::OnHit);
 	}
+	
+	SetLifeSpan(5.0f);
 }
 
 void ASB_Projectile::BeginPlay()
 {
 	Super::BeginPlay();
 
-	OwnerShip = Cast<ASB_Ship>(GetOwner());
-	if (OwnerShip)
+	OwningShip = Cast<ASB_Ship>(GetOwner());
+	if (OwningShip.IsValid())
 	{
-		ProjectileData = OwnerShip->GetDataManager()->GetProjectileDataFromRow(DataRowName);
+		OwningController = Cast<AController>(OwningShip->GetOwner());
+		CollisionSphere->IgnoreActorWhenMoving(OwningShip.Get(), true);
+		ProjectileData = OwningShip->GetDataManager()->GetProjectileDataFromRow(DataRowName);
 		if (ProjectileData == nullptr)
 		{
 			Destroy();
@@ -76,13 +81,22 @@ void ASB_Projectile::Destroyed()
 	Super::Destroyed();
 }
 
-void ASB_Projectile::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void ASB_Projectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	if (OtherActor != GetOwner())
 	{
-		UGameplayStatics::ApplyPointDamage(OtherActor, ProjectileData->Damage, FVector::ZeroVector, SweepResult, Cast<AController>(OwnerShip->GetOwner()), nullptr, nullptr); // ToDo : is ship always owner, even if not possessed ?
-		SpawnImpactFX_Multicast(OtherActor, SweepResult.ImpactPoint, SweepResult.ImpactNormal);
+		//UGameplayStatics::ApplyPointDamage(OtherActor, ProjectileData->Damage, FVector::ZeroVector, Hit, Cast<AController>(OwnerShip->GetOwner()), nullptr, nullptr); // ToDo : is ship always owner, even if not possessed ?
+		USB_BaseModule* DamagedModule = Cast<USB_BaseModule>(OtherComp);
+		if (DamagedModule)
+		{
+			DamagedModule->ApplyDamage(ProjectileData->Damage, Hit.Location, OwningController.Get());
+		}
+
+		SpawnImpactFX_Multicast(OtherActor, Hit.ImpactPoint, Hit.ImpactNormal);
 		//Debug(OtherActor);
+		const FString StringToPrint = "ASB_Projectile HIT - Projectile destroyed on Actor : " + OtherActor->GetName() + "// Component : " + OtherComp->GetName();
+
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Purple, StringToPrint);
 		Destroy();
 	}
 }
@@ -94,7 +108,7 @@ void ASB_Projectile::SpawnImpactFX_Multicast_Implementation(AActor* HitActor, FV
 
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ProjectileData->ImpactParticle, ImpactPoint, UKismetMathLibrary::MakeRotFromZ(ImpactNormal), FVector(ProjectileData->ImpactParticleScale), true, EPSCPoolMethod::None, true);
 
-	if (OwnerShip->GetDataManager()->GameSettings.bIsDebugEnabled_Projectile == false)
+	if (OwningShip->GetDataManager()->GameSettings.bIsDebugEnabled_Projectile == false)
 		return;
 
 	FString RoleString = "None";
@@ -115,15 +129,11 @@ void ASB_Projectile::SpawnImpactFX_Multicast_Implementation(AActor* HitActor, FV
 		RoleString = "SimulatedProxy // ";
 		Color = FColor::Orange;
 	}
-
-	const FString StringToPrint = RoleString + "ASB_Projectile - Projectile destroyed on : " + HitActor->GetName();
-
-	GEngine->AddOnScreenDebugMessage(-1, 2.0f, Color, StringToPrint);
 }
 
 void ASB_Projectile::Debug(AActor* Actor)
 {
-	if (OwnerShip->GetDataManager()->GameSettings.bIsDebugEnabled_Projectile == false)
+	if (OwningShip->GetDataManager()->GameSettings.bIsDebugEnabled_Projectile == false)
 		return;
 
 	FString RoleString = "None";

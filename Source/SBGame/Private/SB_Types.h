@@ -14,6 +14,13 @@ enum class ESB_ShipState : uint8
 };
 
 UENUM(BlueprintType)
+enum class ESB_ModuleState : uint8
+{
+	Ready,
+	Repairing
+};
+
+UENUM(BlueprintType)
 enum class ESB_ModuleType : uint8
 {
 	Hull,
@@ -47,6 +54,9 @@ struct FSB_GameSettings
 	bool bIsDebugEnabled_GameMode;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool bIsDebugEnabled_PlayerController;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	bool bIsDebugEnabled_AI;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -73,6 +83,7 @@ struct FSB_GameSettings
 		AIControllerClass = nullptr;
 		bAutoSpawnPlayers = false;
 		bIsDebugEnabled_GameMode = false;
+		bIsDebugEnabled_PlayerController = false;
 		bIsDebugEnabled_AI = false;
 		bIsDebugEnabled_Ship = false;
 		bIsDebugEnabled_ShipCamera = false;
@@ -150,7 +161,7 @@ struct FSB_ShipSettings
 	float MoveSpeed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float TurnSpeed;
+	float TurnRate;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	float TurnInertia;
@@ -170,7 +181,7 @@ struct FSB_ShipSettings
 	FSB_ShipSettings()
 	{
 		MoveSpeed = 5000.0f;
-		TurnSpeed = 2.0f;
+		TurnRate = 2.0f;
 		TurnInertia = 0.1f;
 		MaxDurability = 10000.0f;
 		DestroyedMaterial = nullptr;
@@ -184,8 +195,20 @@ struct FSB_ShieldSettings
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Game")
-	TSubclassOf<class ASB_Shield> ShieldClass;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class ASB_Shield> ShieldBP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	class UStaticMesh* ShieldMesh;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FVector ShieldMeshDefaultSize;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FVector ShieldMeshScale;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float MaxDurability;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	class UMaterialInterface* SetupMaterial;
@@ -195,7 +218,11 @@ struct FSB_ShieldSettings
 
 	FSB_ShieldSettings()
 	{
-		ShieldClass = nullptr;
+		ShieldBP = nullptr;
+		ShieldMesh = nullptr;
+		ShieldMeshDefaultSize = FVector(200.0f, 200.0f, 100.0f);
+		ShieldMeshScale = FVector(90.0f, 90.0f, 50.0f);
+		MaxDurability = 1000.0f;
 		SetupMaterial = nullptr;
 		DeployedMaterial = nullptr;
 	}
@@ -224,15 +251,15 @@ struct FSB_BaseModuleData : public FTableRowBase
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TSubclassOf<class UAnimInstance> AnimInstance;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float MaxDurability;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	uint8 MaxPower;
+	float RepairAmount;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	int32 MaxDurability;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	int32 RepairAmount;
+	float ShipDamageModifier;
 
 	FSB_BaseModuleData()
 	{
@@ -241,9 +268,9 @@ struct FSB_BaseModuleData : public FTableRowBase
 		ModuleType = ESB_ModuleType::Weapon;
 		SkeletalMesh = nullptr;
 		AnimInstance = nullptr;
-		MaxPower = 0;
 		MaxDurability = 1000;
 		RepairAmount = 10;
+		ShipDamageModifier = 0.0f;
 	}
 };
 

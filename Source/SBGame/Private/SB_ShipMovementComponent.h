@@ -10,6 +10,9 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "SB_ShipMovementComponent.generated.h"
 
+class ASB_DataManager;
+class USB_ThrusterModule;
+
 UCLASS()
 class USB_ShipMovementComponent : public UCharacterMovementComponent
 {
@@ -21,21 +24,21 @@ public:
 
 	virtual void InitializeComponent() override;
 	virtual void BeginPlay() override;
-	virtual void TickComponent(float NewDeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	//
 
 	UFUNCTION()
-	void MoveForward(float AxisValue);
+	void MoveForward(const float AxisValue);
 
 	UFUNCTION(Server, Reliable) //unreliable ?
-	void MoveForward_Server(float AxisValue);
+	void MoveForward_Server(const float AxisValue);
 
 	UFUNCTION()
-	void TurnRight(float AxisValue);
+	void TurnRight(const float AxisValue);
 
 	UFUNCTION(Server, Reliable)
-	void TurnRight_Server(float AxisValue);
+	void TurnRight_Server(const float AxisValue);
 
 	//
 
@@ -45,13 +48,10 @@ public:
 
 private:
 
-	const class ASB_DataManager* DataManager;
-
-	//
-
-	UPROPERTY()
-	class ASB_Ship* OwnerShip;
-
+	const ASB_DataManager* DataManager;
+	TWeakObjectPtr<ASB_Ship> OwningShip;
+	TWeakObjectPtr<APlayerController> OwningPlayerController;
+	
 	//
 
 	UPROPERTY(Replicated)
@@ -63,6 +63,8 @@ private:
 	UPROPERTY(Replicated)
 	float TargetRotationYaw;
 
+	float DeltaLol;
+	
 	//
 
 	UFUNCTION()

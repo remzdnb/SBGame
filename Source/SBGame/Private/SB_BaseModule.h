@@ -6,8 +6,11 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "SB_BaseModule.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FModuleSelectionUpdated, bool, bNewIsSelected);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FModuleDurabilityUpdated, float, bNewDurability);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FModuleSelectionUpdatedDelegate, bool, bNewIsSelected);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FModuleStateUpdatedDelegate, ESB_ModuleState, NewState);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FModuleDurabilityUpdatedDelegate, float, NewDurability);
+
+class ASB_DataManager;
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class USB_BaseModule : public USkeletalMeshComponent
@@ -22,26 +25,28 @@ public:
 	virtual void BeginPlay() override;
 
 	//
-
-	FModuleSelectionUpdated ModuleSelectionUpdatedEvent;
-	FModuleDurabilityUpdated ModuleDurabilityUpdatedEvent;
 	
-	//
-
 	UFUNCTION()
-	void ApplyDamage(float Damage);
+	void ApplyDamage(const float Damage, const FVector& HitLocation, AController* const InstigatorController);
 
 	//
 
-	FORCEINLINE UFUNCTION() FName GetSlotName() const { return SlotName; }
-	FORCEINLINE UFUNCTION() FName GetModuleName() const { return ModuleName; }
+	UFUNCTION() FName GetSlotName() const { return SlotName; }
+	UFUNCTION() FName GetModuleName() const { return ModuleName; }
 	FORCEINLINE UFUNCTION() const FSB_BaseModuleData* const GetBaseModuleData() const { return BaseModuleData; }
+	UFUNCTION() ESB_ModuleState GetState() const { return State; }
+
+	//
+
+	FModuleSelectionUpdatedDelegate OnSelectionUpdated;
+	FModuleStateUpdatedDelegate OnStateUpdated;
+	FModuleDurabilityUpdatedDelegate OnDurabilityUpdated;
 
 protected:
 
-	const class ASB_DataManager* DataManager;
-	const struct FSB_BaseModuleData* BaseModuleData;
-
+	const ASB_DataManager* DataManager;
+	const FSB_BaseModuleData* BaseModuleData;
+	TWeakObjectPtr<ASB_Ship> OwningShip;
 	FTimerHandle RepairTimer;
 
 	//
@@ -54,9 +59,9 @@ protected:
 
 	//
 
-	UPROPERTY()
-	class ASB_Ship* OwnerShip;
-
+	UPROPERTY(ReplicatedUsing=OnRep_State)
+	ESB_ModuleState State;
+	
 	UPROPERTY(ReplicatedUsing=OnRep_Durability)
 	float Durability;
 
@@ -66,8 +71,10 @@ protected:
 	void RepairOnce();
 
 	UFUNCTION()
-	void OnModuleDestroyed();
+	virtual void UpdateState(const ESB_ModuleState NewState);
 
-	UFUNCTION()
-	void OnRep_Durability();
+	//
+
+	UFUNCTION() void OnRep_State();
+	UFUNCTION() void OnRep_Durability();
 };

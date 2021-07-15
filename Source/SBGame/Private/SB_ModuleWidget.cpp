@@ -11,7 +11,7 @@
 #include "Components/ProgressBar.h"
 #include "Components/Image.h"
 
-void USB_ModuleWidget::Init(const class ASB_DataManager* const NewDataManager, class ASB_Ship* const NewShipRef, class USB_BaseModule* const NewBaseModuleRef)
+void USB_ModuleWidget::Init(const ASB_DataManager* const NewDataManager, ASB_Ship* const NewShipRef, USB_BaseModule* const NewBaseModuleRef)
 {
 	DataManager = NewDataManager;
 	ShipRef = NewShipRef;
@@ -23,8 +23,9 @@ void USB_ModuleWidget::Init(const class ASB_DataManager* const NewDataManager, c
 
 	//
 
-	BaseModuleRef->ModuleSelectionUpdatedEvent.AddUniqueDynamic(this, &USB_ModuleWidget::OnSelectionUpdatedBPI);
-	BaseModuleRef->ModuleDurabilityUpdatedEvent.AddUniqueDynamic(this, &USB_ModuleWidget::OnDurabilityUpdated);
+	BaseModuleRef->OnSelectionUpdated.AddUniqueDynamic(this, &USB_ModuleWidget::OnSelectionUpdatedBPI);
+	BaseModuleRef->OnStateUpdated.AddUniqueDynamic(this, &USB_ModuleWidget::OnStateUpdatedBPI);
+	BaseModuleRef->OnDurabilityUpdated.AddUniqueDynamic(this, &USB_ModuleWidget::OnDurabilityUpdated);
 }
 
 void USB_ModuleWidget::OnDurabilityUpdated(float NewDurability)

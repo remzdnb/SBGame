@@ -2,54 +2,61 @@
 #include "SB_DataManager.h"
 //
 #include "Components/StaticMeshComponent.h"
+#include "Net/UnrealNetwork.h"
+#include "EngineUtils.h"
 
 ASB_Shield::ASB_Shield()
 {
-	SceneCT = CreateDefaultSubobject<USceneComponent>(FName("SceneCT"));
-	RootComponent = SceneCT;
+	RootScene = CreateDefaultSubobject<USceneComponent>(FName("RootScene"));
+	RootComponent = RootScene;
 
-	MeshCT = CreateDefaultSubobject<UStaticMeshComponent>(FName("MeshCT"));
-	MeshCT->SetupAttachment(SceneCT);
-	MeshCT->SetCollisionProfileName("IgnoreAll");
-	MeshCT->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
+	ShieldMesh = CreateDefaultSubobject<UStaticMeshComponent>(FName("ShieldMesh"));
+	ShieldMesh->SetupAttachment(RootScene);
+	ShieldMesh->SetCollisionProfileName("NoCollision");
+	ShieldMesh->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
 	//MeshCT->SetRelativeLocation(FVector(DEFAULTCAPSULESIZE * -1, 0.0f, 0.0f));
-	MeshCT->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
+	//MeshCT->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
 	//MeshCT->SetWorldScale3D(FVector(DEFAULTCAPSULESIZE / 40.0f));
 
 	PrimaryActorTick.bCanEverTick = false;
-}
-
-void ASB_Shield::Init(const class ASB_DataManager* const NewDataManager)
-{
-	DataManager = NewDataManager;
+	//bReplicates = true;
+	bAlwaysRelevant = true;
 }
 
 void ASB_Shield::BeginPlay()
 {
 	Super::BeginPlay();
 
-	MeshCT->SetMaterial(0, DataManager->ShieldSettings.SetupMaterial);
-	SetActorHiddenInGame(true);
-}
+	for (TActorIterator<ASB_DataManager> NewDataManager(GetWorld()); NewDataManager; ++NewDataManager)
+	{
+		DataManager = *NewDataManager;
+		break;
+	}
 
-void ASB_Shield::OnSetupStart()
-{
-	//MeshCT->SetMaterial(0, DataManager->ShieldSettings.SetupMaterial);
-	SetActorHiddenInGame(false);
-}
+	ShieldMesh->IgnoreActorWhenMoving(GetOwner()->GetOwner(), true);
+	ShieldMesh->SetRelativeScale3D(DataManager->ShieldSettings.ShieldMeshScale);
 
-void ASB_Shield::OnSetupStop()
-{
-	SetActorHiddenInGame(true);
+	//SetActorHiddenInGame(true);
 }
 
 void ASB_Shield::OnDeployedBPN_Implementation()
 {
-	MeshCT->SetMaterial(0, DataManager->ShieldSettings.DeployedMaterial);
-	MeshCT->SetCollisionProfileName("CharacterMesh");
+	//MeshCT->SetCollisionProfileName("CharacterMesh");
 }
 
 void ASB_Shield::OnDestroyedBPN_Implementation()
 {
-	MeshCT->SetCollisionProfileName("IgnoreAll");
+	ShieldMesh->SetCollisionProfileName("NoCollision");
+}
+
+void ASB_Shield::ApplyDamage(const float Damage, const FVector& HitLocation, AController* const InstigatorController)
+{
+	/*if (Durability - Damage <= 0)
+	{
+		Durability = 0.0f;
+	}
+	else
+	{
+		Durability -= Damage;
+	}*/
 }

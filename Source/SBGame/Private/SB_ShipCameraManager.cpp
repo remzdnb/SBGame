@@ -1,4 +1,6 @@
 #include "SB_ShipCameraManager.h"
+#include "SB_Ship.h"
+#include "SB_WeaponModule.h"
 //
 #include "GameFramework/Actor.h"
 #include "GameFramework/SpringArmComponent.h" 
@@ -12,11 +14,14 @@ USB_ShipCameraManager::USB_ShipCameraManager()
 	//
 
 	bIsSniperMode = false;
+	ActiveSniperCameraID = 0;
 }
 
 void USB_ShipCameraManager::BeginPlay()
 {
 	Super::BeginPlay();
+
+	OwningShip = Cast<ASB_Ship>(GetOwner());
 
 	MainCameraArm = NewObject<USpringArmComponent>(GetOwner(), FName("MainCameraArm"));
 	if (MainCameraArm)
@@ -92,13 +97,15 @@ void USB_ShipCameraManager::AddYawInput(float AxisValue)
 
 void USB_ShipCameraManager::Zoom(bool bZoomIn)
 {
-	if (bZoomIn)
+	if (bIsSniperMode)
 	{
-		TargetArmLength = FMath::Clamp(TargetArmLength - ARMLENGTHSTEP, MINARMLENGTH, MAXARMLENGTH);
+		
 	}
 	else
 	{
-		TargetArmLength = FMath::Clamp(TargetArmLength + ARMLENGTHSTEP, MINARMLENGTH, MAXARMLENGTH);
+		TargetArmLength = bZoomIn
+			? FMath::Clamp(TargetArmLength - ARMLENGTHSTEP, MINARMLENGTH, MAXARMLENGTH)
+			: FMath::Clamp(TargetArmLength + ARMLENGTHSTEP, MINARMLENGTH, MAXARMLENGTH);
 	}
 }
 
@@ -124,12 +131,16 @@ void USB_ShipCameraManager::ToggleSniperMode()
 	{
 		SniperCameras[ActiveSniperCameraID]->SetActive(false);
 		MainCamera->SetActive(true);
+		//if (OwningShip->GetWeaponModules()[ActiveSniperCameraID])
+			//OwningShip->GetWeaponModules()[ActiveSniperCameraID]->SetHiddenInGame(true);
 		bIsSniperMode = false;
 	}
 	else
 	{
 		MainCamera->SetActive(false);
 		SniperCameras[ActiveSniperCameraID]->SetActive(true);
+		//if (OwningShip->GetWeaponModules()[ActiveSniperCameraID])
+			OwningShip->GetWeaponModules()[ActiveSniperCameraID]->SetHiddenInGame(true);
 		bIsSniperMode = true;
 	}
 }

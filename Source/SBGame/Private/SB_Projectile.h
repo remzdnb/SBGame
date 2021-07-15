@@ -21,23 +21,23 @@ public:
 
 	//
 
-	FORCEINLINE UFUNCTION() class UProjectileMovementComponent* const GetProjectileMovementCT() const { return ProjectileMovementCT; }
+	FORCEINLINE UFUNCTION() class UProjectileMovementComponent* const GetProjectileMovementCT() const { return ProjectileMovement; }
 
 private:
 
 	// Components
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class USphereComponent* CollisionSphereCT;
+	class USphereComponent* CollisionSphere;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UStaticMeshComponent* MeshCT;
+	class UStaticMeshComponent* VisualMesh;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UParticleSystemComponent* ParticleCT;
+	class UParticleSystemComponent* VisualParticle;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UProjectileMovementComponent* ProjectileMovementCT;
+	class UProjectileMovementComponent* ProjectileMovement;
 
 	// Data
 
@@ -48,13 +48,13 @@ private:
 
 	//
 
-	UPROPERTY()
-	class ASB_Ship* OwnerShip;
+	TWeakObjectPtr<AController> OwningController;
+	TWeakObjectPtr<ASB_Ship> OwningShip;
 
 	//
 
 	UFUNCTION()
-	void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 	UFUNCTION(NetMulticast, Reliable)
 	void SpawnImpactFX_Multicast(AActor* HitActor, FVector ImpactPoint, FVector ImpactNormal);

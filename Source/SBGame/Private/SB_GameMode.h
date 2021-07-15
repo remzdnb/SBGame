@@ -56,4 +56,5 @@ private:
 
 	UFUNCTION(Exec)
 	void RemoveAIController(uint8 TeamID);
+
 };

@@ -34,7 +34,7 @@ public:
 	void SpawnAndPossessShip(const FTransform& SpawnTransform);
 
 	UFUNCTION()
-	void OnDamageDealt(const FVector& HitLocation, float Damage);
+	void OnDamageDealt(const float Damage, const FVector& HitLocation);
 
 	UFUNCTION(Client, Reliable)
 	void OnDamageDealt_Client(const FVector& HitLocation, float Damage);
@@ -68,7 +68,7 @@ private:
 	//
 
 	UFUNCTION()
-	void UpdateViewTarget();
+	void UpdateViewTarget(const float DeltaTime) const;
 
 	UFUNCTION()
 	void OnOwnedShipDestroyed(const class APlayerState* const InstigatorPS);

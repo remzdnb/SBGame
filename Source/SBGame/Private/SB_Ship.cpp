@@ -1,13 +1,12 @@
 #include "SB_Ship.h"
 #include "SB_ShipMovementComponent.h"
 #include "SB_ShipPowerComponent.h"
-#include "SB_ShipCombatComponent.h"
 #include "SB_ShipOTMWidget.h"
 #include "SB_PowerModule.h"
 #include "SB_ThrusterModule.h"
 #include "SB_WeaponModule.h"
 #include "SB_ShieldModule.h"
-#include "SB_GameInstance.h"
+#include "SB_PlayerController.h"
 #include "SB_DataManager.h"
 #include "SB_ShipCameraManager.h"
 //
@@ -80,8 +79,7 @@ ASB_Ship::ASB_Ship(const FObjectInitializer& ObjectInitializer) :
 
 	ShipCameraManager = CreateDefaultSubobject<USB_ShipCameraManager>(FName("ShipCameraManager"));
 	PowerCT = CreateDefaultSubobject<USB_ShipPowerComponent>(FName("PowerCT"));
-	MovementCT = Cast<USB_ShipMovementComponent>(GetMovementComponent());
-	CombatCT = CreateDefaultSubobject<USB_ShipCombatComponent>(FName("CombatCT"));
+	MovementCT = Cast<USB_ShipMovementComponent>(ACharacter::GetMovementComponent());
 
 	//
 
@@ -117,107 +115,32 @@ void ASB_Ship::PreInitializeComponents()
 
 void ASB_Ship::PostInitializeComponents()
 {
-
-	
 	Super::PostInitializeComponents();
-	
-
-	//DataManager = Cast<USB_GameInstance>(UGameplayStatics::GetGameInstance(GetWorld()))->GetDataManager();
-
-
 }
 
 void ASB_Ship::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Init modules
-
 	GetComponents(WeaponModules);
-	
-	/*
-	
-	uint8 Index = 0;
-	TInlineComponentArray<USB_ModuleSlot*> ComponentArray;
-	GetComponents(ComponentArray);
-	for (auto& Component : ComponentArray)
-	{
-		USB_ModuleSlot* ModuleSlot = Cast<USB_ModuleSlot>(Component);
-		if (ModuleSlot)
-		{
-			const FSB_BaseModuleData* const ModuleData = DataManager->GetBaseModuleDataFromRow(ModuleSlot->GetModuleName());
-			if (ModuleData)
-			{
-				if (ModuleData->ModuleType == ESB_ModuleType::Thruster)
-				{
-					const FName ModuleName = *("ThrusterModule_" + ModuleSlot->GetModuleName().ToString() + "_" + FString::FromInt(Index));
-					USB_ThrusterModule* const NewThrusterModule = NewObject<USB_ThrusterModule>(this, ModuleName);
-					if (NewThrusterModule)
-					{
-						NewThrusterModule->SetupAttachment(ModuleSlot);
-						NewThrusterModule->RegisterComponent();
-						NewThrusterModule->SetSkeletalMesh(ModuleData->SkeletalMesh);
-						NewThrusterModule->Init(DataManager, ModuleSlot->GetSlotName(), ModuleSlot->GetModuleName());
-						BaseModules.Add(NewThrusterModule);
-						ThrusterModules.Add(NewThrusterModule);
-					}
-				}
-				if (ModuleData->ModuleType == ESB_ModuleType::Weapon)
-				{
-					const FName ModuleName = *("WeaponModule_" + ModuleSlot->GetModuleName().ToString() + "_" + FString::FromInt(Index));
-					USB_WeaponModule* const NewWeaponModule = NewObject<USB_WeaponModule>(this, ModuleName);
-					if (NewWeaponModule)
-					{
-						NewWeaponModule->SetupAttachment(ModuleSlot);
-						NewWeaponModule->RegisterComponent();
-						NewWeaponModule->SetSkeletalMesh(ModuleData->SkeletalMesh);
-						NewWeaponModule->Init(DataManager, ModuleSlot->GetSlotName(), ModuleSlot->GetModuleName());
-						BaseModules.Add(NewWeaponModule);
-						WeaponModules.Add(NewWeaponModule);
 
-						const FName CameraName = *("WeaponCamera_" + FString::FromInt(Index));
-						UCameraComponent* const NewWeaponCamera = NewObject<UCameraComponent>(this, CameraName);
-						if (NewWeaponCamera)
-						{
-							NewWeaponCamera->SetupAttachment(NewWeaponModule, "ViewSocket");
-							NewWeaponCamera->RegisterComponent();
-							ShipCameraManager->AddSniperCamera(NewWeaponCamera);
-						}
-					}
-				}
-				else if (ModuleData->ModuleType == ESB_ModuleType::Shield)
-				{
-					const FName ModuleName = *("ShieldModule_" + ModuleSlot->GetModuleName().ToString() + "_" + FString::FromInt(Index));
-					USB_ShieldModule* const NewShieldModule = NewObject<USB_ShieldModule>(this, ModuleName);
-					if (NewShieldModule)
-					{
-						NewShieldModule->SetupAttachment(ModuleSlot);
-						NewShieldModule->RegisterComponent();
-						NewShieldModule->SetSkeletalMesh(ModuleData->SkeletalMesh);
-						NewShieldModule->Init(DataManager, ModuleSlot->GetSlotName(), ModuleSlot->GetModuleName());
-						BaseModules.Add(NewShieldModule);
-						ShieldModule = NewShieldModule;
-					}
-				}
-				else if (ModuleData->ModuleType == ESB_ModuleType::Power)
-				{
-					const FName ModuleName = *("PowerModule_" + ModuleSlot->GetModuleName().ToString() + "_" + FString::FromInt(Index));
-					USB_PowerModule* const NewPowerModule = NewObject<USB_PowerModule>(this, ModuleName);
-					if (NewPowerModule)
-					{
-						NewPowerModule->SetupAttachment(ModuleSlot);
-						NewPowerModule->RegisterComponent();
-						NewPowerModule->SetSkeletalMesh(ModuleData->SkeletalMesh);
-						NewPowerModule->Init(DataManager, ModuleSlot->GetSlotName(), ModuleSlot->GetModuleName());
-						BaseModules.Add(NewPowerModule);
-						PowerModules.Add(NewPowerModule);
-					}
-				}
-			}
+	// Create sniper cameras
+
+	uint8 Index = 0;
+	for (auto& WeaponModule : WeaponModules)
+	{
+		const FName CameraName = *("WeaponCamera_" + FString::FromInt(Index));
+		UCameraComponent* const NewWeaponCamera = NewObject<UCameraComponent>(this, CameraName);
+		if (NewWeaponCamera)
+		{
+			NewWeaponCamera->SetupAttachment(GetMesh());
+			NewWeaponCamera->SetRelativeLocation(WeaponModule->GetRelativeLocation());
+			NewWeaponCamera->RegisterComponent();
+			ShipCameraManager->AddSniperCamera(NewWeaponCamera);
 		}
 
 		Index++;
-	}*/
+	}
 
 	// Create OTM widget
 
@@ -248,6 +171,10 @@ void ASB_Ship::BeginPlay()
 			}
 		}
 	}
+
+	//
+
+	Durability = DataManager->ShipSettings.MaxDurability;
 }
 
 #pragma endregion
@@ -285,58 +212,6 @@ void ASB_Ship::UpdateOwnerViewData(const FVector& NewOwnerViewLocation, AActor* 
 void ASB_Ship::UpdateOwnerViewData_Server_Implementation(const FVector& NewOwnerViewLocation, AActor* NewOwnerViewActor)
 {
 	UpdateOwnerViewData(NewOwnerViewLocation, NewOwnerViewActor);
-}
-
-void ASB_Ship::UpdateState(ESB_ShipState NewState)
-{
-	if (GetLocalRole() != ROLE_Authority)
-		return;
-
-	if (NewState == ESB_ShipState::Destroyed)
-	{
-		//StopFireWeapons();
-	}
-
-	UpdateState_Multicast(NewState);
-}
-
-void ASB_Ship::UpdateState_Multicast_Implementation(ESB_ShipState NewState)
-{
-	if (NewState == ESB_ShipState::Destroyed)
-	{
-		GetCapsuleComponent()->SetCollisionProfileName("IgnoreAll");
-		GetMesh()->SetCollisionProfileName("IgnoreAll");
-		for (auto& ThrusterModule : ThrusterModules)
-			ThrusterModule->SetCollisionProfileName("IgnoreAll");
-		for (auto& WeaponModule : WeaponModules)
-			WeaponModule->SetCollisionProfileName("IgnoreAll");
-		SetActorHiddenInGame(true);
-
-		AActor* DestructibleShip = GetWorld()->SpawnActorDeferred<AActor>(DataManager->GameSettings.DestructibleShipClass, GetMesh()->GetComponentTransform(), this, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
-		if (DestructibleShip)
-		{
-			UGameplayStatics::FinishSpawningActor(DestructibleShip, GetMesh()->GetComponentTransform());
-		}
-
-		if (OTMWidget)
-		{
-			OTMWidget->RemoveFromViewport();
-		}
-
-		UGameplayStatics::SpawnEmitterAtLocation(
-			GetWorld(),
-			DataManager->ShipSettings.DestroyedParticle,
-			GetActorLocation(),
-			GetActorRotation(),
-			FVector(DataManager->ShipSettings.DestroyedParticleScale),
-			true,
-			EPSCPoolMethod::None,
-			true);
-
-		DestroyedEvent.Broadcast(nullptr);
-	}
-
-	State = NewState;
 }
 
 #pragma endregion
@@ -446,6 +321,86 @@ void ASB_Ship::StopAutoLockSelectedWeapon()
 
 #pragma endregion
 
+#pragma region +++++ Combat ...
+
+void ASB_Ship::ApplyDamage(const float Damage, const FVector& HitLocation, AController* const InstigatorController)
+{
+	if (State == ESB_ShipState::Destroyed)
+		return;
+
+	if (Durability - Damage <= 0)
+	{
+		Durability = 0.0f;
+		UpdateState(ESB_ShipState::Destroyed);
+	}
+	else
+	{
+		Durability -= Damage;
+	}
+
+	ASB_PlayerController* const InstigatorPlayerController = Cast<ASB_PlayerController>(InstigatorController);
+	if (InstigatorPlayerController)
+	{
+		InstigatorPlayerController->OnDamageDealt(Damage, HitLocation);
+	}
+
+	OnRep_Durability();
+}
+
+void ASB_Ship::UpdateState(ESB_ShipState NewState)
+{
+	if (GetLocalRole() != ROLE_Authority)
+		return;
+
+	if (NewState == ESB_ShipState::Destroyed)
+	{
+		//StopFireWeapons();
+	}
+
+	UpdateState_Multicast(NewState);
+}
+
+void ASB_Ship::UpdateState_Multicast_Implementation(ESB_ShipState NewState)
+{
+	if (NewState == ESB_ShipState::Destroyed)
+	{
+		GetCapsuleComponent()->SetCollisionProfileName("IgnoreAll");
+		GetMesh()->SetCollisionProfileName("IgnoreAll");
+		for (auto& ThrusterModule : ThrusterModules)
+			ThrusterModule->SetCollisionProfileName("IgnoreAll");
+		for (auto& WeaponModule : WeaponModules)
+			WeaponModule->SetCollisionProfileName("IgnoreAll");
+		SetActorHiddenInGame(true);
+
+		AActor* DestructibleShip = GetWorld()->SpawnActorDeferred<AActor>(DataManager->GameSettings.DestructibleShipClass, GetMesh()->GetComponentTransform(), this, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+		if (DestructibleShip)
+		{
+			UGameplayStatics::FinishSpawningActor(DestructibleShip, GetMesh()->GetComponentTransform());
+		}
+
+		if (OTMWidget)
+		{
+			OTMWidget->RemoveFromViewport();
+		}
+
+		UGameplayStatics::SpawnEmitterAtLocation(
+			GetWorld(),
+			DataManager->ShipSettings.DestroyedParticle,
+			GetActorLocation(),
+			GetActorRotation(),
+			FVector(DataManager->ShipSettings.DestroyedParticleScale),
+			true,
+			EPSCPoolMethod::None,
+			true);
+
+		OnDestroyed.Broadcast(nullptr);
+	}
+
+	State = NewState;
+}
+
+#pragma endregion
+
 #pragma region +++++ Mesh ...
 
 void ASB_Ship::ToggleOutline(bool bNewIsVisible)
@@ -464,6 +419,12 @@ void ASB_Ship::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetime
 
 	DOREPLIFETIME(ASB_Ship, OwnerViewRotation);
 	DOREPLIFETIME(ASB_Ship, OwnerViewLocation);
+	DOREPLIFETIME(ASB_Ship, Durability);
+}
+
+void ASB_Ship::OnRep_Durability()
+{
+	OnDurabilityUpdated.Broadcast(Durability);
 }
 
 void ASB_Ship::Debug(float DeltaTime)

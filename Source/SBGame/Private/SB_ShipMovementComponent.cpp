@@ -1,14 +1,16 @@
 #include "SB_ShipMovementComponent.h"
 #include "SB_Ship.h"
+#include "SB_ThrusterModule.h"
 #include "SB_DataManager.h"
 #include "SB_UtilityLibrary.h"
 //
-#include "GameFramework/PlayerController.h"
 #include "EngineUtils.h"
 #include "Net/UnrealNetwork.h"
 
 USB_ShipMovementComponent::USB_ShipMovementComponent()
 {
+	GroundFriction = 0.1f;
+
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
@@ -24,12 +26,19 @@ void USB_ShipMovementComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	OwnerShip = Cast<ASB_Ship>(GetOwner());
-	if (OwnerShip)
+	OwningShip = Cast<ASB_Ship>(GetOwner());
+	if (OwningShip.IsValid())
 	{
-		DataManager = OwnerShip->GetDataManager();
-		TargetRotationYaw = OwnerShip->GetActorRotation().Yaw;
+		DataManager = OwningShip->GetDataManager();
+		TargetRotationYaw = OwningShip->GetActorRotation().Yaw;
 		MaxWalkSpeed = DataManager->ShipSettings.MoveSpeed;
+		//OwningShip->GetReplicatedMovement()->
+	}
+
+	OwningPlayerController = Cast<APlayerController>(OwningShip->GetOwner());
+	if (OwningPlayerController.IsValid())
+	{
+		//OwningPlayerController->InputYawScale = DataManager->ShipSettings.TurnSpeed;
 	}
 }
 
@@ -37,75 +46,92 @@ void USB_ShipMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	DeltaLol = DeltaTime;
+	
 	TickMovement(DeltaTime);
 
 	Debug(DeltaTime);
 }
 
-void USB_ShipMovementComponent::MoveForward(float AxisValue)
+void USB_ShipMovementComponent::MoveForward(const float AxisValue)
 {
-	if (DataManager == nullptr || OwnerShip == nullptr)
+	if (DataManager == nullptr || OwningShip == nullptr)
 		return;
 
-	if (OwnerShip->GetState() == ESB_ShipState::Destroyed)
+	if (OwningShip->GetState() == ESB_ShipState::Destroyed)
 		return;
 
-	if (OwnerShip->GetLocalRole() < ROLE_Authority)
+	if (OwningShip->GetLocalRole() < ROLE_Authority)
 		MoveForward_Server(AxisValue);
 
-	ForwardAxisValue = AxisValue;
-
-	if (AxisValue > 0)
+	if (AxisValue > 0 && OwningShip->ThrusterModule_Back->GetState() == ESB_ModuleState::Ready)
 	{
-		const FRotator Rotation = OwnerShip->GetActorRotation();
+		const FRotator Rotation = OwningShip->GetActorRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		OwnerShip->AddMovementInput(Direction);
+		OwningShip->AddMovementInput(Direction);
+		ForwardAxisValue = AxisValue;
 	}
-	else if (AxisValue < 0)
+	else if (AxisValue < 0 && OwningShip->ThrusterModule_Front->GetState() == ESB_ModuleState::Ready)
 	{
-		const FRotator Rotation = OwnerShip->GetActorRotation();
+		const FRotator Rotation = OwningShip->GetActorRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X) * -1;
-		OwnerShip->AddMovementInput(Direction);
+		OwningShip->AddMovementInput(Direction);
+		ForwardAxisValue = AxisValue;
 	}
-
+	else
+	{
+		ForwardAxisValue = 0.0f;
+	}
 }
 
-void USB_ShipMovementComponent::MoveForward_Server_Implementation(float AxisValue)
+void USB_ShipMovementComponent::MoveForward_Server_Implementation(const float AxisValue)
 {
 	MoveForward(AxisValue);
 }
 
-void USB_ShipMovementComponent::TurnRight(float AxisValue)
+void USB_ShipMovementComponent::TurnRight(const float AxisValue)
 {
-	if (DataManager == nullptr || OwnerShip == nullptr)
+	if (DataManager == nullptr || OwningShip == nullptr)
 		return;
 
-	if (OwnerShip->GetState() == ESB_ShipState::Destroyed)
+	if (OwningShip->GetState() == ESB_ShipState::Destroyed)
 		return;
 
-	if (OwnerShip->GetLocalRole() < ROLE_Authority)
+	if (OwningShip->GetLocalRole() < ROLE_Authority)
 	{
 		TurnRight_Server(AxisValue);
-		return;
 	}
 
-	RightAxisValue = AxisValue;
-	TargetRotationYaw = TargetRotationYaw + AxisValue * DataManager->ShipSettings.TurnSpeed * GetWorld()->GetDeltaSeconds();
+	if ((AxisValue > 0 && OwningShip->ThrusterModule_Right->GetState() == ESB_ModuleState::Ready) ||
+		(AxisValue < 0 && OwningShip->ThrusterModule_Left->GetState() == ESB_ModuleState::Ready))
+	{
+		RightAxisValue = AxisValue;
+
+		if (OwningPlayerController.IsValid())
+		{
+			OwningPlayerController->AddYawInput(AxisValue * DataManager->ShipSettings.TurnRate * GetWorld()->GetDeltaSeconds());
+			//TargetRotationYaw = TargetRotationYaw + AxisValue * DataManager->ShipSettings.TurnSpeed;// * DeltaLol;//GetWorld()->GetDeltaSeconds();
+		}
+	}
+	else
+	{
+		RightAxisValue = 0.0f;
+	}
 }
 
-void USB_ShipMovementComponent::TurnRight_Server_Implementation(float AxisValue)
+void USB_ShipMovementComponent::TurnRight_Server_Implementation(const float AxisValue)
 {
 	TurnRight(AxisValue);
 }
 
 void USB_ShipMovementComponent::TickMovement(float DeltaTime)
 {
-	if (OwnerShip == nullptr)
+	if (OwningShip == nullptr)
 		return;
 
-	if (OwnerShip->GetState() == ESB_ShipState::Destroyed)
+	if (OwningShip->GetState() == ESB_ShipState::Destroyed)
 		return;
 
 }
@@ -123,23 +149,23 @@ void USB_ShipMovementComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 
 void USB_ShipMovementComponent::Debug(float DeltaTime)
 {
-	if (OwnerShip == nullptr || DataManager->GameSettings.bIsDebugEnabled_ShipMovement == false)
+	if (OwningShip == nullptr || DataManager->GameSettings.bIsDebugEnabled_ShipMovement == false)
 		return;
 
 	FString RoleString = "None";
 	FColor Color = FColor::White;
 
-	if (OwnerShip->GetLocalRole() == ROLE_Authority)
+	if (OwningShip->GetLocalRole() == ROLE_Authority)
 	{
 		RoleString = "Authority // ";
 		Color = FColor::Cyan;
 	}
-	if (OwnerShip->GetLocalRole() == ROLE_AutonomousProxy)
+	if (OwningShip->GetLocalRole() == ROLE_AutonomousProxy)
 	{
 		RoleString = "AutonomousProxy // ";
 		Color = FColor::Yellow;
 	}
-	if (OwnerShip->GetLocalRole() == ROLE_SimulatedProxy)
+	if (OwningShip->GetLocalRole() == ROLE_SimulatedProxy)
 	{
 		RoleString = "SimulatedProxy // ";
 		Color = FColor::Orange;

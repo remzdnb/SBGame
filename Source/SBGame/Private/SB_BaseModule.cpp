@@ -13,9 +13,9 @@
 USB_BaseModule::USB_BaseModule()
 {
 	UPrimitiveComponent::SetCollisionProfileName("CharacterMesh");
-	SetCustomDepthStencilValue(1);
 	SetGenerateOverlapEvents(true);
-	//SetIsReplicatedByDefault(true);
+	SetCustomDepthStencilValue(1);
+	SetIsReplicatedByDefault(true);
 }
 
 void USB_BaseModule::InitializeComponent()
@@ -25,12 +25,13 @@ void USB_BaseModule::InitializeComponent()
 	if (GetWorld()->IsGameWorld() == false)
 		return;
 
-	OwnerShip = Cast<ASB_Ship>(GetOwner());
-	DataManager = OwnerShip->GetDataManager();
+	OwningShip = Cast<ASB_Ship>(GetOwner());
+	DataManager = OwningShip->GetDataManager();
 	BaseModuleData = DataManager->GetBaseModuleDataFromRow(ModuleName);
 	if (BaseModuleData)
 	{
 		SetSkeletalMesh(BaseModuleData->SkeletalMesh);
+		SkeletalMesh->bEnablePerPolyCollision = true;
 		SetAnimInstanceClass(BaseModuleData->AnimInstance);
 		Durability = BaseModuleData->MaxDurability;
 	}
@@ -39,24 +40,17 @@ void USB_BaseModule::InitializeComponent()
 void USB_BaseModule::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	if (OwnerShip->GetLocalRole() == ROLE_Authority)
-	{
-		//GetWorld()->GetTimerManager().SetTimer(RepairTimer, this, &USB_BaseModule::RepairOnce, 0.5f, true, 5.0f);
-	}
 }
 
-void USB_BaseModule::ApplyDamage(float Damage)
+void USB_BaseModule::ApplyDamage(const float Damage, const FVector& HitLocation, AController* const InstigatorController)
 {
-	if (OwnerShip->GetLocalRole() < ROLE_Authority)
-		return;
-
+	// Apply module damage.
 	if (Durability > 0)
 	{
 		if (Durability - Damage <= 0)
 		{
 			Durability = 0;
-			OnModuleDestroyed();
+			UpdateState(ESB_ModuleState::Repairing);
 		}
 		else
 		{
@@ -64,14 +58,24 @@ void USB_BaseModule::ApplyDamage(float Damage)
 		}
 	}
 
-	ModuleDurabilityUpdatedEvent.Broadcast(Durability);
+	// Auto start repair.
+	if (Durability < BaseModuleData->MaxDurability && RepairTimer.IsValid() == false)
+	{
+		RepairTimer.Invalidate();
+		GetWorld()->GetTimerManager().SetTimer(RepairTimer, this, &USB_BaseModule::RepairOnce, 0.5f, true, 2.0f);
+	}
+
+	// Apply ship damage.
+	OwningShip->ApplyDamage(Damage * BaseModuleData->ShipDamageModifier, HitLocation, InstigatorController);
+
+	//
+	OnDurabilityUpdated.Broadcast(Durability);
+	
+	//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, *("USB_BaseModule::ApplyDamage // New Durability : " + FString::FromInt(Durability))); 
 }
 
 void USB_BaseModule::RepairOnce()
 {
-	if (OwnerShip->GetLocalRole() < ROLE_Authority)
-		return;
-
 	if (Durability + BaseModuleData->RepairAmount >= BaseModuleData->MaxDurability)
 	{
 		Durability = BaseModuleData->MaxDurability;
@@ -81,21 +85,36 @@ void USB_BaseModule::RepairOnce()
 		Durability += BaseModuleData->RepairAmount;
 	}
 
-	ModuleDurabilityUpdatedEvent.Broadcast(Durability);
+	if (Durability == BaseModuleData->MaxDurability)
+	{
+		UpdateState(ESB_ModuleState::Ready);
+		RepairTimer.Invalidate();
+	}
+
+	OnDurabilityUpdated.Broadcast(Durability);
 }
 
-void USB_BaseModule::OnRep_Durability()
+void USB_BaseModule::UpdateState(const ESB_ModuleState NewState)
 {
-	ModuleDurabilityUpdatedEvent.Broadcast(Durability);
-}
+	State = NewState;
 
-void USB_BaseModule::OnModuleDestroyed()
-{
+	OnRep_State();
 }
 
 void USB_BaseModule::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
+	DOREPLIFETIME(USB_BaseModule, State);
 	DOREPLIFETIME(USB_BaseModule, Durability);
+}
+
+void USB_BaseModule::OnRep_State()
+{
+	OnStateUpdated.Broadcast(State);
+}
+
+void USB_BaseModule::OnRep_Durability()
+{
+	OnDurabilityUpdated.Broadcast(Durability);
 }

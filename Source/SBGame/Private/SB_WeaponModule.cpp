@@ -43,7 +43,7 @@ void USB_WeaponModule::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (OwnerShip == nullptr || WeaponModuleData == nullptr)
+	if (OwningShip == nullptr || WeaponModuleData == nullptr)
 		return;
 
 	SelectAutoLockCT();
@@ -51,7 +51,7 @@ void USB_WeaponModule::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 	if (WeaponAnimInstance)
 	{
-		WeaponAnimInstance->UpdateInstance(GetComponentLocation(), OwnerShip->GetOwnerViewLocation());
+		WeaponAnimInstance->UpdateInstance(GetComponentLocation(), OwningShip->GetOwnerViewLocation());
 	}
 
 	Debug(DeltaTime);
@@ -63,7 +63,7 @@ void USB_WeaponModule::SetIsSelected(bool bToggleSelection, bool bNewIsSelected)
 	{
 		bIsSelected = bIsSelected ? false : true;
 		SetRenderCustomDepth(bIsSelected);
-		ModuleSelectionUpdatedEvent.Broadcast(bIsSelected);
+		OnSelectionUpdated.Broadcast(bIsSelected);
 	}
 	else
 	{
@@ -71,13 +71,13 @@ void USB_WeaponModule::SetIsSelected(bool bToggleSelection, bool bNewIsSelected)
 		{
 			bIsSelected = false;
 			SetRenderCustomDepth(false);
-			ModuleSelectionUpdatedEvent.Broadcast(false);
+			OnSelectionUpdated.Broadcast(false);
 		}
 		else if (!bIsSelected && bNewIsSelected)
 		{
 			bIsSelected = true;
 			SetRenderCustomDepth(true);
-			ModuleSelectionUpdatedEvent.Broadcast(true);
+			OnSelectionUpdated.Broadcast(true);
 		}
 	}
 }
@@ -106,13 +106,13 @@ void USB_WeaponModule::SetTargetShip(ASB_Ship* const NewTargetShip)
 
 void USB_WeaponModule::SelectAutoLockCT()
 {
-	if (OwnerShip == nullptr)
+	if (OwningShip == nullptr)
 		return;
 
 	if (TargetShip == nullptr)
 		return;
 
-	if (OwnerShip->GetLocalRole() < ROLE_Authority)
+	if (OwningShip->GetLocalRole() < ROLE_Authority)
 		return;
 
 	TargetAutoLockCT = nullptr;
@@ -164,7 +164,7 @@ void USB_WeaponModule::SetWantsToFire(bool bNewWantsToFire)
 
 void USB_WeaponModule::FireTick()
 {
-	if (OwnerShip->GetLocalRole() < ROLE_Authority)
+	if (OwningShip->GetLocalRole() < ROLE_Authority)
 		return;
 
 	const float CurrentTime = GetWorld()->GetTimeSeconds();
@@ -191,7 +191,7 @@ void USB_WeaponModule::FireOnce()
 	{
 		const FName MuzzleSocketName = *("MuzzleSocket_0" + FString::FromInt(MuzzleIndex));
 		const FVector StartLocation = GetSocketLocation(MuzzleSocketName);
-		const FVector TargetLocation = TargetAutoLockCT ? TargetAutoLockCT->GetComponentLocation() : OwnerShip->GetOwnerViewLocation();
+		const FVector TargetLocation = TargetAutoLockCT ? TargetAutoLockCT->GetComponentLocation() : OwningShip->GetOwnerViewLocation();
 		const FRotator SpawnRotation = UKismetMathLibrary::FindLookAtRotation(StartLocation, TargetLocation);
 		const FTransform SpawnTransform(SpawnRotation, StartLocation, FVector(1.0f));
 		const FActorSpawnParameters SpawnParameters;
@@ -208,7 +208,7 @@ void USB_WeaponModule::FireOnce()
 				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, "USB_WeaponModule::FireOnce : Projectile spawned");
 		}
 
-		if (WeaponModuleData->MuzzleParticle)
+		if (WeaponModuleData->MuzzleParticle && bHiddenInGame == false)
 		{
 			MuzzleParticle = UGameplayStatics::SpawnEmitterAttached(
 				WeaponModuleData->MuzzleParticle,
@@ -231,7 +231,7 @@ void USB_WeaponModule::FireOnce()
 
 void USB_WeaponModule::Debug(float DeltaTime)
 {
-	if (OwnerShip == nullptr)
+	if (OwningShip == nullptr)
 		return;
 
 	if (DataManager == nullptr)
@@ -243,17 +243,17 @@ void USB_WeaponModule::Debug(float DeltaTime)
 	FString RoleString = "None";
 	FColor Color = FColor::White;
 
-	if (OwnerShip->GetLocalRole() == ROLE_Authority)
+	if (OwningShip->GetLocalRole() == ROLE_Authority)
 	{
 		RoleString = "Authority :: ";
 		Color = FColor::Cyan;
 	}
-	if (OwnerShip->GetLocalRole() == ROLE_AutonomousProxy)
+	if (OwningShip->GetLocalRole() == ROLE_AutonomousProxy)
 	{
 		RoleString = "AutonomousProxy :: ";
 		Color = FColor::Yellow;
 	}
-	if (OwnerShip->GetLocalRole() == ROLE_SimulatedProxy)
+	if (OwningShip->GetLocalRole() == ROLE_SimulatedProxy)
 	{
 		RoleString = "SimulatedProxy :: ";
 		Color = FColor::Orange;

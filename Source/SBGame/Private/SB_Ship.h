@@ -14,7 +14,8 @@
 #define MAXAUTOLOCKCOMPONENTS 4
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSelectedWeaponUpdated, uint8, NewSelectedWeaponID);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDestroyed, const APlayerState* const, Instigator);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDurabilityUpdatedDelegate, float, NewDurability);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDestroyedDelegate, const APlayerState* const, Instigator);
 
 class ASB_DataManager;
 class USB_BaseModule;
@@ -36,13 +37,15 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
-	//
+	// View
 
 	UFUNCTION()
 	void UpdateOwnerViewData(const FVector& NewOwnerViewLocation, AActor* NewOwnerViewActor);
 
 	UFUNCTION(Server, Reliable)
 	void UpdateOwnerViewData_Server(const FVector& NewOwnerViewLocation, AActor* NewOwnerViewActor);
+
+	// Weapons
 
 	UFUNCTION()
 	void SelectWeapon(uint8 WeaponID, bool bToggleSelection = true, bool bNewIsSelected = true);
@@ -68,21 +71,27 @@ public:
 	UFUNCTION()
 	void StopAutoLockSelectedWeapon();
 
+	// Combat
+
+	UFUNCTION()
+	void ApplyDamage(const float Damage, const FVector& HitLocation, AController* const InstigatorController);
+	
 	UFUNCTION()
 	void UpdateState(ESB_ShipState NewState);
 
 	UFUNCTION(NetMulticast, Reliable)
 	void UpdateState_Multicast(ESB_ShipState NewState);
 
+	// Cosmetic
+
 	UFUNCTION()
 	void ToggleOutline(bool bNewIsVisible);
 
-	//
+	// Getters
 
 	FORCEINLINE UFUNCTION() const class ASB_DataManager* const GetDataManager() const { return DataManager; }
 
 	FORCEINLINE UFUNCTION() class USB_ShipMovementComponent* const GetShipMovementCT() const { return MovementCT; }
-	FORCEINLINE UFUNCTION() class USB_ShipCombatComponent* const GetShipCombatCT() const { return CombatCT; }
 	FORCEINLINE UFUNCTION() class USB_ShipCameraManager* const GetShipCameraManager() const { return ShipCameraManager; }
 
 	FORCEINLINE UFUNCTION() TArray<class USB_ThrusterModule*> GetThrusterModules() const { return ThrusterModules; }
@@ -95,12 +104,27 @@ public:
 	FORCEINLINE UFUNCTION() const FVector& GetOwnerViewLocation() const { return OwnerViewLocation; }
 	FORCEINLINE UFUNCTION() uint8 GetSelectedWeaponID() const { return SelectedWeaponID; }
 
-
 	FORCEINLINE UFUNCTION() USB_ShipOTMWidget* const GetOTMWidget() const { return OTMWidget; }
-	//
+	
+	// Delegates
 
 	FSelectedWeaponUpdated SelectedWeaponUpdatedEvent;
-	FDestroyed DestroyedEvent;
+	FDurabilityUpdatedDelegate OnDurabilityUpdated;
+	FDestroyedDelegate OnDestroyed;
+
+	// SceneComponents
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USB_ThrusterModule* ThrusterModule_Back;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USB_ThrusterModule* ThrusterModule_Front;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USB_ThrusterModule* ThrusterModule_Left;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USB_ThrusterModule* ThrusterModule_Right;
 
 private:
 
@@ -114,18 +138,6 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	USB_BaseModule* CommandModule;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	USB_ThrusterModule* ThrusterModule_Back;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	USB_ThrusterModule* ThrusterModule_Front;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	USB_ThrusterModule* ThrusterModule_Left;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	USB_ThrusterModule* ThrusterModule_Right;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	USB_ShieldModule* ShieldModule;
 	
@@ -146,9 +158,6 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class USB_ShipMovementComponent* MovementCT;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class USB_ShipCombatComponent* CombatCT;
-
 	// Modules lists
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadonly, meta = (AllowPrivateAccess = "true"))
@@ -166,7 +175,7 @@ private:
 	ESB_ShipState State;
 
 	UPROPERTY(Replicated)
-	FRotator OwnerViewRotation; // ToDo : Delete, useless, did it for shield setup.
+	FRotator OwnerViewRotation; // ToDo : Delete, useless, did it for shield setup. // Lol
 
 	UPROPERTY(Replicated)
 	FVector OwnerViewLocation;
@@ -177,9 +186,12 @@ private:
 	UPROPERTY()
 	uint8 SelectedWeaponID;
 
+	UPROPERTY(ReplicatedUsing = OnRep_Durability)
+	float Durability;
+
 	//
 
-	UFUNCTION()
-	void Debug(float DeltaTime);
+	UFUNCTION() void OnRep_Durability();
+	UFUNCTION() void Debug(float DeltaTime);
 
 };

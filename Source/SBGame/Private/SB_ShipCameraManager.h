@@ -18,6 +18,8 @@
 
 //DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FShipCameraModeUpdated, bool, bIsSniperMode);
 
+class ASB_Ship;
+
 UCLASS()
 class USB_ShipCameraManager : public UActorComponent
 {
@@ -50,9 +52,11 @@ public:
 
 private:
 
-	class USpringArmComponent* MainCameraArm;
-	class UCameraComponent* MainCamera;
-	TArray<UCameraComponent*> SniperCameras;
+	TWeakObjectPtr<ASB_Ship> OwningShip;
+
+	UPROPERTY() USpringArmComponent* MainCameraArm;
+	UPROPERTY() UCameraComponent* MainCamera;
+	UPROPERTY() TArray<UCameraComponent*> SniperCameras;
 
 	//
 

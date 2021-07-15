@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SB_Types.h"
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "SB_ModuleWidget.generated.h"
@@ -24,6 +25,9 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnSelectionUpdatedBPI(bool bNewIsSelected);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnStateUpdatedBPI(ESB_ModuleState NewState);
 
 	UFUNCTION()
 	void OnDurabilityUpdated(float NewDurability);

@@ -102,37 +102,38 @@ void ASB_PlayerController::Tick(float DeltaTime)
 		if (OwnedShip->GetShipMovementCT())
 		{
 			float LerpedYaw = FMath::Lerp(GetControlRotation().Yaw, OwnedShip->GetShipMovementCT()->GetTargetRotationYaw(), DataManager->ShipSettings.TurnInertia);
-			SetControlRotation(FRotator(0.0f, LerpedYaw, 0.0f));
+			//SetControlRotation(FRotator(0.0f, LerpedYaw, 0.0f));
 		}
 	}
 
-	UpdateViewTarget();
+	UpdateViewTarget(DeltaTime);
 }
 
-void ASB_PlayerController::UpdateViewTarget()
+void ASB_PlayerController::UpdateViewTarget(const float DeltaTime) const
 {
 	if (IsLocalPlayerController() == false)
 		return;
 
 	const FVector Start = PlayerCameraManager->GetCameraLocation();
-	const FVector End = Start + (PlayerCameraManager->GetCameraRotation().Vector() * 10000000.0f);
+	const FVector End = Start + (PlayerCameraManager->GetCameraRotation().Vector() * 9999999999.0f);
 	FCollisionQueryParams TraceParams;
+	TraceParams.bTraceComplex = true;
+	TraceParams.bIgnoreTouches = true;
 	TraceParams.AddIgnoredActor(OwnedShip);
-	TArray<FHitResult> Hits;
+	FHitResult Hit;
 
-	GetWorld()->LineTraceMultiByChannel(Hits, Start, End, ECC_Visibility, TraceParams);
-	for (FHitResult& Hit : Hits)
+	GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, TraceParams);
+	if (Hit.Actor.IsValid())
 	{
-		if (Hit.Actor.IsValid() && Hit.Actor != GetPawn())
+		if (OwnedShip)
 		{
-			if (OwnedShip)
-			{
-				OwnedShip->UpdateOwnerViewData(/*GetControlRotation(), */Hit.Location, Hit.Actor.Get());
+			OwnedShip->UpdateOwnerViewData(/*GetControlRotation(), */Hit.Location, Hit.Actor.Get());
+		}
 
-				//UKismetSystemLibrary::DrawDebugSphere(GetWorld(), Hit.Location, 500.0f, 10, FColor::Green, 0.1f, 20.0f);
-			}
-
-			break;
+		if (DataManager->GameSettings.bIsDebugEnabled_PlayerController)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::White, *("ASB_PlayerController::UpdateViewTarget // Actor : " + Hit.Actor->GetName() + " // Component : " + Hit.Component->GetName()));
+			UKismetSystemLibrary::DrawDebugSphere(GetWorld(), Hit.Location, 500.0f, 10, FColor::Green, DeltaTime + 0.01f, 20.0f);
 		}
 	}
 }
@@ -172,7 +173,7 @@ void ASB_PlayerController::OnRep_Pawn()
 	OwnedShip = Cast<ASB_Ship>(GetPawn());
 	if (OwnedShip)
 	{
-		OwnedShip->DestroyedEvent.AddUniqueDynamic(this, &ASB_PlayerController::OnOwnedShipDestroyed);
+		OwnedShip->OnDestroyed.AddUniqueDynamic(this, &ASB_PlayerController::OnOwnedShipDestroyed);
 		OnNewOwnedShip.Broadcast(OwnedShip);
 		SetControlRotation(FRotator(-45.0f, OwnedShip->GetActorRotation().Yaw, 0.0f));
 	}
@@ -183,7 +184,7 @@ void ASB_PlayerController::OnOwnedShipDestroyed(const APlayerState* const Instig
 	
 }
 
-void ASB_PlayerController::OnDamageDealt(const FVector& HitLocation, float Damage)
+void ASB_PlayerController::OnDamageDealt(const float Damage, const FVector& HitLocation)
 {
 	OnDamageDealt_Client(HitLocation, Damage);
 }
@@ -289,17 +290,17 @@ void ASB_PlayerController::LeftMouseButtonPressed()
 {
 	if (OwnedShip)
 	{
-		/*if (OwnedShip->GetShieldModule())
+		if (OwnedShip->GetShieldModule())
 		{
-			if (OwnedShip->GetShieldModule()->GetIsSetupMode() == true)
+			if (OwnedShip->GetShieldModule()->GetIsSetupMode() == 1)
 			{
-				OwnedShip->GetShieldModule()->Deploy();
+				OwnedShip->GetShieldModule()->StartDeploy();
 			}
 		}
 		else
-		{*/
+		{
 			OwnedShip->StartFireSelectedWeapons();
-		//}
+		}
 	}
 }
 
@@ -352,14 +353,16 @@ void ASB_PlayerController::ShiftKeyPressed()
 	{
 		if (OwnedShip->GetShieldModule())
 		{
-			OwnedShip->GetShieldModule()->StartSetup();
+			if (OwnedShip->GetShieldModule()->GetIsDeployed() == false)
+			{
+				OwnedShip->GetShieldModule()->StartSetup();
+			}
+			else
+			{
+				OwnedShip->GetShieldModule()->Undeploy();
+			}
 		}
 	}
-
-	/*if (GetPawn() == Cast<APawn>(GetSpectatorPawn()))
-	{
-		//RTSCameraPawn->ToggleQuickMovement(true);
-	}*/
 }
 
 void ASB_PlayerController::ShiftKeyReleased()
@@ -371,11 +374,6 @@ void ASB_PlayerController::ShiftKeyReleased()
 			OwnedShip->GetShieldModule()->StopSetup();
 		}
 	}
-
-	/*if (GetPawn() == Cast<APawn>(GetSpectatorPawn()))
-	{
-		//RTSCameraPawn->ToggleQuickMovement(false);
-	}*/
 }
 
 void ASB_PlayerController::SpaceBarKeyPressed()
