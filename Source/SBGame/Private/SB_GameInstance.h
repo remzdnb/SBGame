@@ -1,4 +1,5 @@
-///// SB_Ship.h - RemzDNB
+///// SB_GameInstance.h - RemzDNB
+/////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
@@ -8,6 +9,7 @@
 #include "SB_GameInstance.generated.h"
 
 class ASB_DataManager;
+class USB_PlayerSaveGame;
 
 UCLASS()
 class USB_GameInstance : public UGameInstance
@@ -20,9 +22,32 @@ public:
 	virtual void OnStart() override;
 	virtual void Init() override;
 
-	FORCEINLINE UFUNCTION() const class ASB_DataManager* const GetDataManager() const { return DataManager; }
+	//
+
+	UFUNCTION()
+	void CreateNewSaveGame();
+
+	UFUNCTION()
+	void ApplySaveGame();
+
+	UFUNCTION()
+	void SetNewShipConfig(const TArray<FName>& NewShipConfig);
+	
+	//
+
+	FORCEINLINE UFUNCTION() ASB_DataManager* const GetDataManager() const { return DataManager; }
+	FORCEINLINE UFUNCTION() USB_PlayerSaveGame* const GetSaveGame() const { return SaveGame; }
 
 private:
+	
+	UPROPERTY()
+	ASB_DataManager* DataManager;
 
-	const ASB_DataManager* DataManager;
+	UPROPERTY()
+	USB_PlayerSaveGame* SaveGame;
+
+	//
+
+	UFUNCTION()
+	void Debug();
 };

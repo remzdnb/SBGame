@@ -1,5 +1,6 @@
 #include "RZ_ProgressBarWidget.h"
 //
+#include "Components/TextBlock.h"
 #include "Components/ProgressBar.h"
 
 void URZ_ProgressBarWidget::NativeOnInitialized()
@@ -16,8 +17,9 @@ void URZ_ProgressBarWidget::NativeTick(const FGeometry& MyGeometry, float InDelt
 	LerpedProgressBar->SetPercent(FMath::Lerp(LerpedProgressBar->Percent, TargetPercent, PROGRESSBAR_LERPSPEED));
 }
 
-void URZ_ProgressBarWidget::UpdatePercent(float NewPercent)
+void URZ_ProgressBarWidget::Update(float Value, float MaxValue)
 {
-	TargetPercent = NewPercent;
-	BaseProgressBar->SetPercent(TargetPercent);
+	ValueText->SetText(FText::FromString(FString::FromInt(Value)));
+	TargetPercent = Value / MaxValue;
+	BaseProgressBar->SetPercent(Value / MaxValue);
 }

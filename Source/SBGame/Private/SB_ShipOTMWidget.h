@@ -7,13 +7,7 @@
 #include "Blueprint/UserWidget.h"
 #include "SB_ShipOTMWidget.generated.h"
 
-#define OTM_ZOFFSET 5000.0f
-
-class ASB_DataManager;
-class ASB_Ship;
-class URZ_ProgressBarWidget;
-class UPanelWidget;
-class UTextBlock;
+#define OTM_ZOFFSET 7500.0f
 
 UCLASS()
 class USB_ShipOTMWidget : public UUserWidget
@@ -24,16 +18,23 @@ public:
 
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
-	UFUNCTION() void Init(const ASB_DataManager* const NewDataManager, ASB_Ship* const NewShipRef);
-	UFUNCTION() void Update(float NewDurability);
+	UFUNCTION()
+	void Init(const class ASB_DataManager* const NewDataManager, class ASB_Ship* const NewOwnedShip);
+
+	UFUNCTION()
+	void OnShipDurabilityUpdated(float NewDurability, float MaxDurability);
+
+	UFUNCTION()
+	void OnShieldDurabilityUpdated(float NewDurability, float MaxDurability);
 
 private:
 
-	const ASB_DataManager* DataManager;
+	const class ASB_DataManager* DataManager;
 
-	TWeakObjectPtr<ASB_Ship> ShipRef;
+	TWeakObjectPtr<ASB_Ship> OwnedShip;
 
-	UPROPERTY(meta = (BindWidget)) UPanelWidget* MainPanel;
-	UPROPERTY(meta = (BindWidget)) UTextBlock* PlayerNameText;
-	UPROPERTY(meta = (BindWidget)) URZ_ProgressBarWidget* DurabilityProgressBar;
+	UPROPERTY(meta = (BindWidget)) class UPanelWidget* MainPanel;
+	UPROPERTY(meta = (BindWidget)) class UTextBlock* PlayerNameText;
+	UPROPERTY(meta = (BindWidget)) class URZ_ProgressBarWidget* ShipDurabilityProgressBar;
+	UPROPERTY(meta = (BindWidget)) class URZ_ProgressBarWidget* ShieldDurabilityProgressBar;
 };

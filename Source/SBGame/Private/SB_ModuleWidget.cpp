@@ -11,14 +11,13 @@
 #include "Components/ProgressBar.h"
 #include "Components/Image.h"
 
-void USB_ModuleWidget::Init(const ASB_DataManager* const NewDataManager, ASB_Ship* const NewShipRef, USB_BaseModule* const NewBaseModuleRef)
+void USB_ModuleWidget::Update(USB_BaseModule* const NewBaseModuleRef)
 {
-	DataManager = NewDataManager;
-	ShipRef = NewShipRef;
 	BaseModuleRef = NewBaseModuleRef;
 
-	ModuleSlotText->SetText(FText::FromString(NewBaseModuleRef->GetSlotName().ToString()));
-	ModuleClassText->SetText(FText::FromString(NewBaseModuleRef->GetBaseModuleData()->DisplayName.ToString()));
+	ModuleSlotIDText->SetText(FText::FromString(FString::FromInt(BaseModuleRef->ModuleID)));
+	ModuleSlotTypeText->SetText(FText::FromString(SB_UtilityLibrary::GetEnumAsString("ESB_ModuleType", BaseModuleRef->GetBaseModuleData()->ModuleType)));
+	ModuleRowNameText->SetText(FText::FromString(NewBaseModuleRef->GetBaseModuleData()->DisplayName.ToString()));
 	ModuleImage->SetBrushFromTexture(NewBaseModuleRef->GetBaseModuleData()->DisplayTexture);
 
 	//

@@ -53,7 +53,7 @@ void USB_ShipMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	Debug(DeltaTime);
 }
 
-void USB_ShipMovementComponent::MoveForward(const float AxisValue)
+void USB_ShipMovementComponent::MoveForward(float AxisValue)
 {
 	if (DataManager == nullptr || OwningShip == nullptr)
 		return;
@@ -86,12 +86,12 @@ void USB_ShipMovementComponent::MoveForward(const float AxisValue)
 	}
 }
 
-void USB_ShipMovementComponent::MoveForward_Server_Implementation(const float AxisValue)
+void USB_ShipMovementComponent::MoveForward_Server_Implementation(float AxisValue)
 {
 	MoveForward(AxisValue);
 }
 
-void USB_ShipMovementComponent::TurnRight(const float AxisValue)
+void USB_ShipMovementComponent::TurnRight(float AxisValue)
 {
 	if (DataManager == nullptr || OwningShip == nullptr)
 		return;
@@ -121,7 +121,7 @@ void USB_ShipMovementComponent::TurnRight(const float AxisValue)
 	}
 }
 
-void USB_ShipMovementComponent::TurnRight_Server_Implementation(const float AxisValue)
+void USB_ShipMovementComponent::TurnRight_Server_Implementation(float AxisValue)
 {
 	TurnRight(AxisValue);
 }

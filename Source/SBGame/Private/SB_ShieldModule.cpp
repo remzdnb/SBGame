@@ -2,6 +2,7 @@
 #include "SB_Shield.h"
 #include "SB_Ship.h"
 #include "SB_ShipCameraManager.h"
+#include "SB_PlayerController.h"
 #include "SB_DataManager.h"
 //
 #include "GameFramework/SpringArmComponent.h"
@@ -15,7 +16,18 @@ USB_ShieldModule::USB_ShieldModule()
 	PrimaryComponentTick.bCanEverTick = true;
 
 	bIsSetupMode = false;
-	bIsDeployed = false;
+	ShieldState = ESB_ShieldState::Ready;
+	LastUndeployTime = 0.0f;
+}
+
+void USB_ShieldModule::InitializeComponent()
+{
+	Super::InitializeComponent();
+
+	if (GetWorld()->IsGameWorld() == false)
+		return;
+	
+	ShieldDurability = DataManager->ShieldSettings.MaxDurability;
 }
 
 void USB_ShieldModule::BeginPlay()
@@ -77,59 +89,77 @@ void USB_ShieldModule::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 		ShieldArm->SetWorldRotation(FRotator(0.0f, OwningShip->GetShipCameraManager()->GetCameraArmCT()->GetComponentRotation().Yaw - 180.0f, 0.0f)); // ToDo : Dirty af :x
 	}
 
-	if (bIsDeployed)
+	if (ShieldState == ESB_ShieldState::Deployed)
 	{
 		ShieldArm->SetWorldRotation(FRotator(0.0f, DeployedRotationYaw, 0.0f));
+	}
+
+	if (ShieldState == ESB_ShieldState::Cooldown)
+	{
+		const float CurrentTime = GetWorld()->GetTimeSeconds();
+		if ((CurrentTime - LastUndeployTime) >= DataManager->ShieldSettings.DeployCooldown)
+		{
+			ShieldState = ESB_ShieldState::Ready;
+		}
+
+		OnShieldCooldownUpdated.Broadcast(CurrentTime - LastUndeployTime, DataManager->ShieldSettings.DeployCooldown); //
 	}
 }
 
 void USB_ShieldModule::StartSetup()
 {
-	bIsSetupMode = true;
-	SetupMesh->SetHiddenInGame(false);
+	if (bIsSetupMode == false && ShieldState == ESB_ShieldState::Ready)
+	{
+		bIsSetupMode = true;
+		SetupMesh->SetHiddenInGame(false);
+	}
 }
 
 void USB_ShieldModule::StopSetup()
 {
-	bIsSetupMode = false;
-	SetupMesh->SetHiddenInGame(true);
+	if (bIsSetupMode == true)
+	{
+		bIsSetupMode = false;
+		SetupMesh->SetHiddenInGame(true);
+	}
 }
 
-void USB_ShieldModule::StartDeploy()
+void USB_ShieldModule::Deploy()
 {
-	if (OwningShip->IsLocallyControlled() == false)
+	if (ShieldState != ESB_ShieldState::Ready)
 		return;
-	
-	Deploy(ShieldArm->GetComponentRotation().Yaw);
-}
 
-void USB_ShieldModule::Deploy(const float NewDeployedRotationYaw)
-{
 	if (OwningShip->GetLocalRole() < ROLE_Authority)
-		Deploy_Server(NewDeployedRotationYaw);
+		Deploy_Server(ShieldArm->GetComponentRotation().Yaw);
 	else
-		Deploy_Multicast(NewDeployedRotationYaw);
+		Deploy_Multicast(ShieldArm->GetComponentRotation().Yaw);
 }
 
-void USB_ShieldModule::Deploy_Server_Implementation(const float NewDeployedRotationYaw)
+void USB_ShieldModule::Deploy_Server_Implementation(float NewDeployedRotationYaw)
 {
+	if (ShieldState != ESB_ShieldState::Ready)
+		return;
+
 	Deploy_Multicast(NewDeployedRotationYaw);
 }
 
-void USB_ShieldModule::Deploy_Multicast_Implementation(const float NewDeployedRotationYaw)
+void USB_ShieldModule::Deploy_Multicast_Implementation(float NewDeployedRotationYaw)
 {
 	if (SetupMesh)
 		SetupMesh->SetHiddenInGame(true);
 	
 	bIsSetupMode = false;
-	bIsDeployed = true;
 	DeployedRotationYaw = NewDeployedRotationYaw;
 	ShieldActor->SetActorHiddenInGame(false);
 	ShieldActor->OnDeployedBPN();
+	ShieldState = ESB_ShieldState::Deployed;
 }
 
 void USB_ShieldModule::Undeploy()
 {
+	if (ShieldState != ESB_ShieldState::Deployed)
+		return;
+	
 	if (OwningShip->GetLocalRole() < ROLE_Authority)
 		Undeploy_Server();
 	else
@@ -138,14 +168,51 @@ void USB_ShieldModule::Undeploy()
 
 void USB_ShieldModule::Undeploy_Server_Implementation()
 {
+	if (ShieldState != ESB_ShieldState::Deployed)
+		return;
+	
 	Undeploy_Multicast();
 }
 
 void USB_ShieldModule::Undeploy_Multicast_Implementation()
 {
 	ShieldActor->SetActorHiddenInGame(true);
-	ShieldActor->OnDestroyedBPN(); // eh
-	bIsDeployed = false;
+	ShieldActor->OnDestroyedBPN();
+	ShieldState = ESB_ShieldState::Cooldown;
+	LastUndeployTime = GetWorld()->GetTimeSeconds();
+}
+
+void USB_ShieldModule::ApplyShieldDamage(float Damage, const FVector& HitLocation,  AController* const InstigatorController)
+{
+	ShieldDurability = FMath::Clamp(ShieldDurability - Damage, 0.0f, DataManager->ShieldSettings.MaxDurability);
+	GetWorld()->GetTimerManager().ClearTimer(ShieldRegenTimer);
+	GetWorld()->GetTimerManager().SetTimer(ShieldRegenTimer, this, &USB_ShieldModule::RegenOnce, DataManager->ShieldSettings.RegenRate, true, DataManager->ShieldSettings.RegenRate);
+
+	if (ShieldDurability == 0)
+		Undeploy();
+	
+	ASB_PlayerController* const InstigatorPlayerController = Cast<ASB_PlayerController>(InstigatorController);
+	if (InstigatorPlayerController)
+	{
+		InstigatorPlayerController->OnDamageDealt(Damage, 0.0f, HitLocation, ESB_PrimaryDamageType::Shield);
+	}
+	
+	OnShieldDurabilityUpdated.Broadcast(ShieldDurability, DataManager->ShieldSettings.MaxDurability);
+}
+
+void USB_ShieldModule::RegenOnce()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Green, "USB_ShieldModule::RegenOnce");
+	
+	ShieldDurability = FMath::Clamp(ShieldDurability + DataManager->ShieldSettings.RegenAmount, 0.0f, DataManager->ShieldSettings.MaxDurability);
+
+	if (ShieldDurability == DataManager->ShieldSettings.MaxDurability)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Green, "USB_ShieldModule::RegenOnce - Invalidate");
+		GetWorld()->GetTimerManager().ClearTimer(ShieldRegenTimer);
+	}
+
+	OnShieldDurabilityUpdated.Broadcast(ShieldDurability, DataManager->ShieldSettings.MaxDurability);
 }
 
 void USB_ShieldModule::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -153,11 +220,10 @@ void USB_ShieldModule::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(USB_ShieldModule, ShieldDurability);
-	//DOREPLIFETIME(USB_ShieldModule, DeployedRotationYaw);
 }
 
 void USB_ShieldModule::OnRep_ShieldDurability() const
 {
-	//OnDurabilityUpdated.Broadcast(Durability, DataManager->ShieldSettings.MaxDurability);
+	OnShieldDurabilityUpdated.Broadcast(ShieldDurability, DataManager->ShieldSettings.MaxDurability);
 }
 

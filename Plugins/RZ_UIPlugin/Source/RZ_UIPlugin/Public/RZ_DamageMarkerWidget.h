@@ -24,7 +24,7 @@ public:
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 	UFUNCTION() 
-	void Init(const FVector& NewHitLocation, float Damage);
+	void Init(float PrimaryDamage, float SecondaryDamage, const FVector& NewHitLocation, const FLinearColor& Color);
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void PlayAnimationBPI(float Delay);
@@ -38,5 +38,6 @@ private:
 	//
 
 	UPROPERTY(meta = (BindWidget)) UPanelWidget* MainPanel;
-	UPROPERTY(meta = (BindWidget)) UTextBlock* DamageText;
+	UPROPERTY(meta = (BindWidget)) UTextBlock* PrimaryDamageText;
+	UPROPERTY(meta = (BindWidget)) UTextBlock* SecondaryDamageText;
 };

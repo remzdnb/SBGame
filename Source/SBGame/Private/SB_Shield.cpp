@@ -1,4 +1,6 @@
 #include "SB_Shield.h"
+#include "SB_ShieldModule.h"
+#include "SB_Ship.h"
 #include "SB_DataManager.h"
 //
 #include "Components/StaticMeshComponent.h"
@@ -13,13 +15,10 @@ ASB_Shield::ASB_Shield()
 	ShieldMesh = CreateDefaultSubobject<UStaticMeshComponent>(FName("ShieldMesh"));
 	ShieldMesh->SetupAttachment(RootScene);
 	ShieldMesh->SetCollisionProfileName("NoCollision");
+	ShieldMesh->SetGenerateOverlapEvents(false);
 	ShieldMesh->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
-	//MeshCT->SetRelativeLocation(FVector(DEFAULTCAPSULESIZE * -1, 0.0f, 0.0f));
-	//MeshCT->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
-	//MeshCT->SetWorldScale3D(FVector(DEFAULTCAPSULESIZE / 40.0f));
 
 	PrimaryActorTick.bCanEverTick = false;
-	//bReplicates = true;
 	bAlwaysRelevant = true;
 }
 
@@ -33,15 +32,16 @@ void ASB_Shield::BeginPlay()
 		break;
 	}
 
+	OwningShip = Cast<ASB_Ship>(GetOwner());
+	OwningShieldModule = OwningShip->ShieldModule;
+
 	ShieldMesh->IgnoreActorWhenMoving(GetOwner()->GetOwner(), true);
 	ShieldMesh->SetRelativeScale3D(DataManager->ShieldSettings.ShieldMeshScale);
-
-	//SetActorHiddenInGame(true);
 }
 
 void ASB_Shield::OnDeployedBPN_Implementation()
 {
-	//MeshCT->SetCollisionProfileName("CharacterMesh");
+	ShieldMesh->SetCollisionProfileName("Shield");
 }
 
 void ASB_Shield::OnDestroyedBPN_Implementation()
@@ -49,14 +49,10 @@ void ASB_Shield::OnDestroyedBPN_Implementation()
 	ShieldMesh->SetCollisionProfileName("NoCollision");
 }
 
-void ASB_Shield::ApplyDamage(const float Damage, const FVector& HitLocation, AController* const InstigatorController)
+void ASB_Shield::ApplyDamageFromProjectile(float Damage, const FVector& HitLocation, AController* const InstigatorController)
 {
-	/*if (Durability - Damage <= 0)
+	if (OwningShieldModule.IsValid())
 	{
-		Durability = 0.0f;
+		OwningShieldModule->ApplyShieldDamage(Damage, HitLocation, InstigatorController);
 	}
-	else
-	{
-		Durability -= Damage;
-	}*/
 }

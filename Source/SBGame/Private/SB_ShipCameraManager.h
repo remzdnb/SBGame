@@ -8,7 +8,7 @@
 #include "Components/ActorComponent.h"
 #include "SB_ShipCameraManager.generated.h"
 
-#define MINARMLENGTH 2000.0f
+#define MINARMLENGTH 10000.0f
 #define MAXARMLENGTH 60000.0f
 #define DEFAULTARMLENGTH 25000.0f
 #define ARMLENGTHSTEP 5000.0f
@@ -34,13 +34,22 @@ public:
 
 	//
 
-	void AddPitchInput(float AxisValue);
-	void AddYawInput(float AxisValue);
-	void Zoom(bool bZoomIn);
-	void AddSniperCamera(class UCameraComponent* const NewActiveSniperCameraID);
-	void SetActiveSniperCamera(uint8 WeaponCameraID);
-	void ToggleSniperMode();
+	UFUNCTION() void SetArmRotation(const FRotator& NewRotation, bool bShouldLerp = false);
+	UFUNCTION() void AddPitchInput(float AxisValue);
+	UFUNCTION() void AddYawInput(float AxisValue);
 
+	UFUNCTION() void Zoom(bool bZoomIn);
+	UFUNCTION() void SetArmRelativeLocation(const FVector& RelativeLocation);
+	UFUNCTION() void AddSniperCamera(class UCameraComponent* const NewActiveSniperCameraID);
+	UFUNCTION() void SetActiveSniperCamera(uint8 WeaponCameraID);
+	UFUNCTION() void ToggleSniperMode();
+
+	//
+
+	FORCEINLINE void SetMinTargetArmLength() { TargetArmLength = 20000.0f; }
+	FORCEINLINE void SetMaxTargetArmLength() { TargetArmLength = MAXARMLENGTH; }
+	FORCEINLINE void SetTargetArmLength(float NewArmLength) { TargetArmLength = NewArmLength; }
+	
 	//
 
 	class USpringArmComponent* const GetCameraArmCT() { return MainCameraArm; } // meh
@@ -48,6 +57,8 @@ public:
 
 	//
 
+	bool bLerpRotation;
+	
 	//FShipCameraModeUpdated ShipCameraModeUpdatedEvent;
 
 private:
@@ -63,5 +74,6 @@ private:
 	bool bIsSniperMode;
 	uint8 ActiveSniperCameraID;
 	float TargetArmLength;
+	FVector TargetArmLocation;
 	FRotator TargetArmRotation;
 };

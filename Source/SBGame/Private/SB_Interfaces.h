@@ -16,5 +16,5 @@ class ISB_CombatInterface
 
 public:
 
-	virtual void ApplyDamage(const float Damage, const FVector& HitLocation, AController* const InstigatorController) = 0;
+	virtual void ApplyDamageFromProjectile(float Damage, const FVector& HitLocation, AController* const InstigatorController) = 0;
 };

@@ -20,12 +20,13 @@ public:
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 	UFUNCTION() 
-	void UpdatePercent(float NewPercent);
+	void Update(float Value, float MaxValue);
 
 private:
 
 	float TargetPercent;
 
+	UPROPERTY(meta = (BindWidget)) class UTextBlock* ValueText;
 	UPROPERTY(meta = (BindWidget)) class UProgressBar* BaseProgressBar;
 	UPROPERTY(meta = (BindWidget)) class UProgressBar* LerpedProgressBar;
 };

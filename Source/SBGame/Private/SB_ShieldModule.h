@@ -5,6 +5,9 @@
 #include "CoreMinimal.h"
 #include "SB_ShieldModule.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FShieldDurabilityUpdatedDelegate, float, NewDurability, float, MaxDurability);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FShieldCooldownUpdatedDelegate, float, RemainingTime, float, MaxTime);
+
 UCLASS()
 class USB_ShieldModule : public USB_BaseModule
 {
@@ -14,6 +17,7 @@ public:
 
 	USB_ShieldModule();
 
+	virtual void InitializeComponent() override;
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
@@ -24,18 +28,15 @@ public:
 
 	UFUNCTION()
 	void StopSetup();
-
-	UFUNCTION()
-	void StartDeploy();
 	
 	UFUNCTION()
-	void Deploy(const float NewDeployedRotationYaw);
+	void Deploy();
 
 	UFUNCTION(Server, Reliable)
-	void Deploy_Server(const float NewDeployedRotationYaw);
+	void Deploy_Server(float NewDeployedRotationYaw);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void Deploy_Multicast(const float NewDeployedRotationYaw);
+	void Deploy_Multicast(float NewDeployedRotationYaw);
 
 	UFUNCTION()
 	void Undeploy();
@@ -48,8 +49,22 @@ public:
 
 	//
 
+	UFUNCTION()
+	void ApplyShieldDamage(float Damage, const FVector& HitLocation, AController* const InstigatorController);
+
+	UFUNCTION()
+	void RegenOnce();
+
+	//
+
 	FORCEINLINE UFUNCTION() uint8 GetIsSetupMode() const { return bIsSetupMode; }
-	FORCEINLINE UFUNCTION() uint8 GetIsDeployed() const { return bIsDeployed; }
+	FORCEINLINE UFUNCTION() ESB_ShieldState GetShieldState() const { return ShieldState; }
+	FORCEINLINE UFUNCTION() float GetShieldDurability() const { return ShieldDurability; }
+
+	//
+
+	FShieldDurabilityUpdatedDelegate OnShieldDurabilityUpdated;
+	FShieldCooldownUpdatedDelegate OnShieldCooldownUpdated;
 	
 private:
 
@@ -64,11 +79,16 @@ private:
 
 	//
 
+	FTimerHandle ShieldRegenTimer;
+
 	UPROPERTY()
 	uint8 bIsSetupMode : 1;
 
 	UPROPERTY()
-	uint8 bIsDeployed : 1;
+	ESB_ShieldState ShieldState;
+
+	UPROPERTY()
+	float LastUndeployTime;
 
 	UPROPERTY()
 	float DeployedRotationYaw;

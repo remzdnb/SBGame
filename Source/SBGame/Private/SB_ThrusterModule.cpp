@@ -78,7 +78,7 @@ void USB_ThrusterModule::UpdateExhaustParticle()
 	if (ShipMovementCT == nullptr)
 		return;
 
-	if (SlotName == "Left Thruster")
+	if (SlotType == ESB_SlotType::Thruster_Left)
 	{
 		if (ShipMovementCT->GetRightAxisValue() < 0)
 		{
@@ -89,7 +89,7 @@ void USB_ThrusterModule::UpdateExhaustParticle()
 			SetExhaustParticlesVisibility(false);
 		}
 	}
-	else if (SlotName == "Right Thruster")
+	else if (SlotType == ESB_SlotType::Thruster_Right)
 	{
 		if (ShipMovementCT->GetRightAxisValue() > 0)
 		{
@@ -100,7 +100,7 @@ void USB_ThrusterModule::UpdateExhaustParticle()
 			SetExhaustParticlesVisibility(false);
 		}
 	}
-	else if (SlotName == "Back Thruster")
+	else if (SlotType == ESB_SlotType::Thruster_Back)
 	{
 		if (ShipMovementCT->GetForwardAxisValue() > 0)
 		{
@@ -111,7 +111,7 @@ void USB_ThrusterModule::UpdateExhaustParticle()
 			SetExhaustParticlesVisibility(false);
 		}
 	}
-	else if (SlotName == "Front Thruster")
+	else if (SlotType == ESB_SlotType::Thruster_Front)
 	{
 		if (ShipMovementCT->GetForwardAxisValue() < 0)
 		{

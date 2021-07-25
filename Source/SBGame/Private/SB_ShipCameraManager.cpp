@@ -14,6 +14,7 @@ USB_ShipCameraManager::USB_ShipCameraManager()
 	//
 
 	bIsSniperMode = false;
+	bLerpRotation = false;
 	ActiveSniperCameraID = 0;
 }
 
@@ -26,7 +27,7 @@ void USB_ShipCameraManager::BeginPlay()
 	MainCameraArm = NewObject<USpringArmComponent>(GetOwner(), FName("MainCameraArm"));
 	if (MainCameraArm)
 	{
-		MainCameraArm->SetupAttachment(GetOwner()->GetRootComponent());
+		MainCameraArm->SetupAttachment(OwningShip->GetMesh());
 		MainCameraArm->RegisterComponent();
 		MainCameraArm->bDoCollisionTest = true;
 		MainCameraArm->ProbeChannel = ECC_Camera;
@@ -42,7 +43,8 @@ void USB_ShipCameraManager::BeginPlay()
 	}
 
 	TargetArmLength = DEFAULTARMLENGTH;
-	TargetArmRotation = FRotator(-10.0f, GetOwner()->GetActorRotation().Yaw, 0.0f);
+	TargetArmLocation = FVector::ZeroVector;
+	//TargetArmRotation = FRotator(-10.0f, GetOwner()->GetActorRotation().Yaw, 0.0f);
 }
 
 void USB_ShipCameraManager::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -60,9 +62,14 @@ void USB_ShipCameraManager::TickComponent(float DeltaTime, ELevelTick TickType, 
 			MainCameraArm->TargetArmLength = FMath::Lerp(MainCameraArm->TargetArmLength, TargetArmLength, ARMLENGTHLERPSPEED * DeltaTime);
 		}
 
+		if (MainCameraArm->GetRelativeLocation() != TargetArmLocation)
+		{
+			MainCameraArm->SetRelativeLocation(FMath::Lerp(MainCameraArm->GetRelativeLocation(), TargetArmLocation, ARMLENGTHLERPSPEED * DeltaTime));
+		}
+
 		if (MainCameraArm->GetComponentRotation() != TargetArmRotation)
 		{
-			MainCameraArm->SetWorldRotation(TargetArmRotation);
+			MainCameraArm->SetWorldRotation(FMath::Lerp(MainCameraArm->GetComponentRotation(), TargetArmRotation, ARMLENGTHLERPSPEED * DeltaTime));
 		}
 	}
 }
@@ -91,6 +98,7 @@ void USB_ShipCameraManager::AddYawInput(float AxisValue)
 	if (MainCameraArm)
 	{
 		const float YawValueToAdd = AxisValue * GetWorld()->GetDeltaSeconds() * 50.0f;
+		
 		TargetArmRotation.Add(0.0f, YawValueToAdd, 0.0f);
 	}
 }
@@ -107,6 +115,11 @@ void USB_ShipCameraManager::Zoom(bool bZoomIn)
 			? FMath::Clamp(TargetArmLength - ARMLENGTHSTEP, MINARMLENGTH, MAXARMLENGTH)
 			: FMath::Clamp(TargetArmLength + ARMLENGTHSTEP, MINARMLENGTH, MAXARMLENGTH);
 	}
+}
+
+void USB_ShipCameraManager::SetArmRelativeLocation(const FVector& RelativeLocation)
+{
+	TargetArmLocation = RelativeLocation;
 }
 
 void USB_ShipCameraManager::AddSniperCamera(UCameraComponent* const NewWeaponCamera)
@@ -143,4 +156,12 @@ void USB_ShipCameraManager::ToggleSniperMode()
 			OwningShip->GetWeaponModules()[ActiveSniperCameraID]->SetHiddenInGame(true);
 		bIsSniperMode = true;
 	}
+}
+
+void USB_ShipCameraManager::SetArmRotation(const FRotator& NewRotation, bool bShouldLerp)
+{
+	TargetArmRotation = NewRotation;
+
+	if (bShouldLerp == false)
+		MainCameraArm->SetWorldRotation(NewRotation);
 }

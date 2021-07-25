@@ -29,16 +29,16 @@ public:
 	//
 
 	UFUNCTION()
-	void MoveForward(const float AxisValue);
+	void MoveForward(float AxisValue);
 
 	UFUNCTION(Server, Reliable) //unreliable ?
-	void MoveForward_Server(const float AxisValue);
+	void MoveForward_Server(float AxisValue);
 
 	UFUNCTION()
-	void TurnRight(const float AxisValue);
+	void TurnRight(float AxisValue);
 
 	UFUNCTION(Server, Reliable)
-	void TurnRight_Server(const float AxisValue);
+	void TurnRight_Server(float AxisValue);
 
 	//
 

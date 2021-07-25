@@ -1,6 +1,7 @@
 #include "SB_Projectile.h"
 #include "SB_Ship.h"
 #include "SB_BaseModule.h"
+#include "SB_Interfaces.h"
 #include "SB_DataManager.h"
 //
 #include "Components/SphereComponent.h"
@@ -85,12 +86,23 @@ void ASB_Projectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPr
 {
 	if (OtherActor != GetOwner())
 	{
-		//UGameplayStatics::ApplyPointDamage(OtherActor, ProjectileData->Damage, FVector::ZeroVector, Hit, Cast<AController>(OwnerShip->GetOwner()), nullptr, nullptr); // ToDo : is ship always owner, even if not possessed ?
-		USB_BaseModule* DamagedModule = Cast<USB_BaseModule>(OtherComp);
-		if (DamagedModule)
+		// Combat interface is implemented both on shields/drones (actors) and on ship modules (components).
+		ISB_CombatInterface* CombatInterface = Cast<ISB_CombatInterface>(OtherActor);
+		if (CombatInterface)
 		{
-			DamagedModule->ApplyDamage(ProjectileData->Damage, Hit.Location, OwningController.Get());
+			CombatInterface->ApplyDamageFromProjectile(ProjectileData->Damage, Hit.Location, OwningController.Get());
 		}
+		else
+		{
+			CombatInterface = Cast<ISB_CombatInterface>(OtherComp);
+			if (CombatInterface)
+			{
+				CombatInterface->ApplyDamageFromProjectile(ProjectileData->Damage, Hit.Location, OwningController.Get());
+			}
+		}
+		
+		//UGameplayStatics::ApplyPointDamage(OtherActor, ProjectileData->Damage, FVector::ZeroVector, Hit, Cast<AController>(OwnerShip->GetOwner()), nullptr, nullptr); // ToDo : is ship always owner, even if not possessed ?
+
 
 		SpawnImpactFX_Multicast(OtherActor, Hit.ImpactPoint, Hit.ImpactNormal);
 		//Debug(OtherActor);

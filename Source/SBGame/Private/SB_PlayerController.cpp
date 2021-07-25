@@ -8,9 +8,10 @@
 #include "SB_ShipOTMWidget.h"
 #include "SB_ShieldModule.h"
 #include "SB_SpectatorPawn.h"
-#include "SB_UIManager.h"
+#include "RZ_UIManager.h"
 #include "SB_BattleMenuWidget.h"
 #include "SB_BattleHUDWidget.h"
+#include "SB_CursorWidget.h"
 #include "SB_DataManager.h"
 #include "RZ_DamageMarkerWidget.h"
 //
@@ -44,24 +45,49 @@ void ASB_PlayerController::PostInitializeComponents()
 
 	GMode = Cast<ASB_GameMode>(GetWorld()->GetAuthGameMode());
 	PState = Cast<ASB_PlayerState>(PlayerState);
-
-	//PState->SetName();
 }
 
 void ASB_PlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
+	UIManager = Cast<ARZ_UIManager>(GetHUD());
+	
 	if (IsLocalController())
 	{
-		// UI setup
-		UIManager = Cast<ASB_UIManager>(GetHUD());
-		if (UIManager)
+		CursorWidget = CreateWidget<USB_CursorWidget>(GetWorld(), DataManager->UISettings.Cursor_WBP);
+		if (CursorWidget)
 		{
-			UWidgetBlueprintLibrary::SetInputMode_GameOnly(this);
-			bShowMouseCursor = false;
+			SetMouseCursorWidget(EMouseCursor::Default, Cast<UUserWidget>(CursorWidget));
 		}
+		
+		// Battle player start.
+		if (DataManager->GameSettings.GameType == ESB_GameType::Battle)
+		{
+			if (DataManager->GameSettings.bAutoSpawnPlayers)
+			{
+				if (GetLocalRole() == ROLE_Authority)
+				{
+					GMode->QueryRespawn(this);
+				}
+			}
+			else
+			{
+				if (IsLocalPlayerController())
+				{
+					SetViewTargetWithBlend(OwnedSpectatorPawn);
+					//Possess(OwnedSpectatorPawn);
+				}
+			}
 
+			/*if (UIManager)
+			{
+				UIManager->ToggleHUD(true);
+				UWidgetBlueprintLibrary::SetInputMode_GameAndUIEx(this);
+				bShowMouseCursor = false;
+			}*/
+		}
+		
 		// Spectator setup
 		/*OwnedSpectatorPawn = GetWorld()->SpawnActorDeferred<ASB_SpectatorPawn>(ASB_SpectatorPawn::StaticClass(), FTransform(FVector()), this, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
 		if (OwnedSpectatorPawn)
@@ -71,23 +97,6 @@ void ASB_PlayerController::BeginPlay()
 
 		//PState->SetName();
 		//PState->SetTeamID(1);
-	}
-
-	// Start player
-	if (DataManager->GameSettings.bAutoSpawnPlayers)
-	{
-		if (GetLocalRole() == ROLE_Authority)
-		{
-			GMode->QueryRespawn(this);
-		}
-	}
-	else
-	{
-		if (IsLocalPlayerController())
-		{
-			SetViewTargetWithBlend(OwnedSpectatorPawn);
-			//Possess(OwnedSpectatorPawn);
-		}
 	}
 
 	//SetControlRotation(FRotator(0.0f, OwnedShip->GetShipMovementCT()->GetTargetRotationYaw(), 0.0f));
@@ -103,37 +112,6 @@ void ASB_PlayerController::Tick(float DeltaTime)
 		{
 			float LerpedYaw = FMath::Lerp(GetControlRotation().Yaw, OwnedShip->GetShipMovementCT()->GetTargetRotationYaw(), DataManager->ShipSettings.TurnInertia);
 			//SetControlRotation(FRotator(0.0f, LerpedYaw, 0.0f));
-		}
-	}
-
-	UpdateViewTarget(DeltaTime);
-}
-
-void ASB_PlayerController::UpdateViewTarget(const float DeltaTime) const
-{
-	if (IsLocalPlayerController() == false)
-		return;
-
-	const FVector Start = PlayerCameraManager->GetCameraLocation();
-	const FVector End = Start + (PlayerCameraManager->GetCameraRotation().Vector() * 9999999999.0f);
-	FCollisionQueryParams TraceParams;
-	TraceParams.bTraceComplex = true;
-	TraceParams.bIgnoreTouches = true;
-	TraceParams.AddIgnoredActor(OwnedShip);
-	FHitResult Hit;
-
-	GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, TraceParams);
-	if (Hit.Actor.IsValid())
-	{
-		if (OwnedShip)
-		{
-			OwnedShip->UpdateOwnerViewData(/*GetControlRotation(), */Hit.Location, Hit.Actor.Get());
-		}
-
-		if (DataManager->GameSettings.bIsDebugEnabled_PlayerController)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::White, *("ASB_PlayerController::UpdateViewTarget // Actor : " + Hit.Actor->GetName() + " // Component : " + Hit.Component->GetName()));
-			UKismetSystemLibrary::DrawDebugSphere(GetWorld(), Hit.Location, 500.0f, 10, FColor::Green, DeltaTime + 0.01f, 20.0f);
 		}
 	}
 }
@@ -184,17 +162,23 @@ void ASB_PlayerController::OnOwnedShipDestroyed(const APlayerState* const Instig
 	
 }
 
-void ASB_PlayerController::OnDamageDealt(const float Damage, const FVector& HitLocation)
+void ASB_PlayerController::OnDamageDealt(float PrimaryDamage, float SecondaryDamage, const FVector& HitLocation, ESB_PrimaryDamageType PrimaryDamageType)
 {
-	OnDamageDealt_Client(HitLocation, Damage);
+	OnDamageDealt_Client(PrimaryDamage, SecondaryDamage, HitLocation, PrimaryDamageType);
 }
 
-void ASB_PlayerController::OnDamageDealt_Client_Implementation(const FVector& HitLocation, float Damage)
+void ASB_PlayerController::OnDamageDealt_Client_Implementation(float PrimaryDamage, float SecondaryDamage, const FVector& HitLocation, ESB_PrimaryDamageType PrimaryDamageType)
 {
+	FLinearColor NewColor = FLinearColor::White;
+	if (PrimaryDamageType == ESB_PrimaryDamageType::Ship)
+		NewColor = FLinearColor::Red;
+	if (PrimaryDamageType == ESB_PrimaryDamageType::Shield)
+		NewColor = FLinearColor::Blue;
+	
 	URZ_DamageMarkerWidget* const NewDamageMarker = CreateWidget<URZ_DamageMarkerWidget>(GetWorld(), DataManager->UISettings.DamageMarker_WBP);
 	if (NewDamageMarker)
 	{
-		NewDamageMarker->Init(HitLocation, Damage);
+		NewDamageMarker->Init(PrimaryDamage, SecondaryDamage, HitLocation, NewColor);
 		UIManager->AddHUDWidget(NewDamageMarker);
 	}
 }
@@ -212,8 +196,7 @@ void ASB_PlayerController::SetupInputComponent()
 	InputComponent->BindAxis("MoveForward", this, &ASB_PlayerController::MoveForwardAxis).bConsumeInput = false;
 	InputComponent->BindAxis("MoveRight", this, &ASB_PlayerController::MoveRightAxis).bConsumeInput = false;
 	InputComponent->BindAxis("MouseWheel", this, &ASB_PlayerController::MouseWheelAxis).bConsumeInput = false;
-	InputComponent->BindAction("LeftMouseButton", IE_Pressed, this, &ASB_PlayerController::LeftMouseButtonPressed).bConsumeInput = false;
-	InputComponent->BindAction("LeftMouseButton", IE_Released, this, &ASB_PlayerController::LeftMouseButtonReleased).bConsumeInput = false;
+
 	InputComponent->BindAction("RightMouseButton", IE_Pressed, this, &ASB_PlayerController::RightMouseButtonPressed).bConsumeInput = false;
 	InputComponent->BindAction("RightMouseButton", IE_Released, this, &ASB_PlayerController::RightMouseButtonReleased).bConsumeInput = false;
 	InputComponent->BindAction("Tab", IE_Pressed, this, &ASB_PlayerController::TabKeyPressed).bConsumeInput = false;
@@ -253,19 +236,32 @@ void ASB_PlayerController::LookRightAxis(float AxisValue)
 
 void ASB_PlayerController::MoveForwardAxis(float AxisValue)
 {
-	if (OwnedShip && OwnedShip == GetPawn())
+	if (DataManager == nullptr)
+		return;
+
+	if (OwnedShip && OwnedShip == GetPawn() && DataManager->GameSettings.GameType == ESB_GameType::Battle)
 	{
-		OwnedShip->GetShipMovementCT()->MoveForward(AxisValue);
+		if (OwnedShip->GetShipMovementCT())
+		{
+			OwnedShip->GetShipMovementCT()->MoveForward(AxisValue);
+		}
 	}
 }
 
 void ASB_PlayerController::MoveRightAxis(float AxisValue)
 {
-	if (OwnedShip && OwnedShip == GetPawn())
+	if (DataManager == nullptr)
+		return;
+
+	if (OwnedShip && OwnedShip == GetPawn() && DataManager->GameSettings.GameType == ESB_GameType::Battle)
 	{
-		OwnedShip->GetShipMovementCT()->TurnRight(AxisValue);
+		if (OwnedShip->GetShipMovementCT())
+		{
+			OwnedShip->GetShipMovementCT()->TurnRight(AxisValue);
+		}
 	}
 }
+
 
 void ASB_PlayerController::MouseWheelAxis(float AxisValue)
 {
@@ -283,32 +279,6 @@ void ASB_PlayerController::MouseWheelAxis(float AxisValue)
 				OwnedShip->GetShipCameraManager()->Zoom(false);
 			}
 		}
-	}
-}
-
-void ASB_PlayerController::LeftMouseButtonPressed()
-{
-	if (OwnedShip)
-	{
-		if (OwnedShip->GetShieldModule())
-		{
-			if (OwnedShip->GetShieldModule()->GetIsSetupMode() == 1)
-			{
-				OwnedShip->GetShieldModule()->StartDeploy();
-			}
-		}
-		else
-		{
-			OwnedShip->StartFireSelectedWeapons();
-		}
-	}
-}
-
-void ASB_PlayerController::LeftMouseButtonReleased()
-{
-	if (OwnedShip)
-	{
-		OwnedShip->StopFireAllWeapons();
 	}
 }
 
@@ -351,15 +321,15 @@ void ASB_PlayerController::ShiftKeyPressed()
 {
 	if (OwnedShip)
 	{
-		if (OwnedShip->GetShieldModule())
+		if (OwnedShip->ShieldModule)
 		{
-			if (OwnedShip->GetShieldModule()->GetIsDeployed() == false)
+			if (OwnedShip->ShieldModule->GetShieldState() == ESB_ShieldState::Ready)
 			{
-				OwnedShip->GetShieldModule()->StartSetup();
+				OwnedShip->ShieldModule->StartSetup();
 			}
 			else
 			{
-				OwnedShip->GetShieldModule()->Undeploy();
+				OwnedShip->ShieldModule->Undeploy();
 			}
 		}
 	}
@@ -369,9 +339,9 @@ void ASB_PlayerController::ShiftKeyReleased()
 {
 	if (OwnedShip)
 	{
-		if (OwnedShip->GetShieldModule())
+		if (OwnedShip->ShieldModule)
 		{
-			OwnedShip->GetShieldModule()->StopSetup();
+			OwnedShip->ShieldModule->StopSetup();
 		}
 	}
 }

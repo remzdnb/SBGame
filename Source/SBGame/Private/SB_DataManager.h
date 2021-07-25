@@ -13,6 +13,8 @@ class ASB_DataManager : public AInfo
 
 public:
 
+	FORCEINLINE UFUNCTION() class UDataTable* GetBaseModuleDT() { return BaseModuleDT; }
+	
 	FSB_BaseModuleData* const GetBaseModuleDataFromRow(FName RowName) const;
 	const FSB_ThrusterModuleData* const GetThrusterModuleDataFromRow(const FName& RowName) const;
 	const FSB_WeaponModuleData* const GetWeaponModuleDataFromRow(const FName& RowName) const;

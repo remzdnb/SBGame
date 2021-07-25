@@ -7,6 +7,55 @@
 #define TRACE_OVERLAP ECC_GameTraceChannel2
 
 UENUM(BlueprintType)
+enum class ESB_GameType : uint8
+{
+	Campaign,
+	Battle
+};
+
+UENUM(BlueprintType)
+enum class ESB_SlotType : uint8
+{
+	Hull,
+	Command,
+	Thruster_Back,
+	Thruster_Front,
+	Thruster_Left,
+	Thruster_Right,
+	Weapon_Primary,
+	Weapon_Auxiliary,
+	Shield
+};
+
+UENUM(BlueprintType)
+enum class ESB_ModuleType : uint8
+{
+	Hull,
+	Command,
+	Thruster,
+	Weapon,
+	Shield
+};
+
+UENUM(BlueprintType)
+enum class ESB_WeaponType : uint8
+{
+	Trace,
+	Projectile,
+	Laser
+};
+
+UENUM(BlueprintType)
+enum class ESB_PrimaryDamageType : uint8
+{
+	Ship,
+	Shield,
+	Drone
+};
+
+//
+
+UENUM(BlueprintType)
 enum class ESB_ShipState : uint8
 {
 	Ready,
@@ -21,14 +70,11 @@ enum class ESB_ModuleState : uint8
 };
 
 UENUM(BlueprintType)
-enum class ESB_ModuleType : uint8
+enum class ESB_ShieldState : uint8
 {
-	Hull,
-	Command,
-	Power,
-	Thruster,
-	Weapon,
-	Shield
+	Ready,
+	Deployed,
+	Cooldown
 };
 
 #pragma region +++++ Game Data ...
@@ -37,6 +83,9 @@ USTRUCT(BlueprintType)
 struct FSB_GameSettings
 {
 	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	ESB_GameType GameType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<class ASB_Ship> ShipClass;
@@ -79,6 +128,7 @@ struct FSB_GameSettings
 
 	FSB_GameSettings()
 	{
+		GameType = ESB_GameType::Battle;
 		ShipClass = nullptr;
 		AIControllerClass = nullptr;
 		bAutoSpawnPlayers = false;
@@ -124,6 +174,12 @@ struct FSB_UISettings
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TMap<FName, TSubclassOf<class UUserWidget>> BattleMenuWidgets;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TMap<FName, TSubclassOf<class UUserWidget>> CampaignMenuWidgets;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class UUserWidget> Cursor_WBP;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<class UUserWidget> BattleMenu_WBP;
 
@@ -211,6 +267,15 @@ struct FSB_ShieldSettings
 	float MaxDurability;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float RegenRate;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float RegenAmount;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float DeployCooldown;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	class UMaterialInterface* SetupMaterial;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -222,7 +287,10 @@ struct FSB_ShieldSettings
 		ShieldMesh = nullptr;
 		ShieldMeshDefaultSize = FVector(200.0f, 200.0f, 100.0f);
 		ShieldMeshScale = FVector(90.0f, 90.0f, 50.0f);
-		MaxDurability = 1000.0f;
+		MaxDurability = 2000.0f;
+		RegenRate = 2.0f;
+		RegenAmount = 100.0f;
+		DeployCooldown = 5.0f;
 		SetupMaterial = nullptr;
 		DeployedMaterial = nullptr;
 	}
@@ -231,6 +299,32 @@ struct FSB_ShieldSettings
 #pragma endregion
 
 #pragma region +++++ Module Data ...
+
+USTRUCT(BlueprintType)
+struct FSB_ModuleSlotData : public FTableRowBase
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FName SlotName;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	ESB_ModuleType SlotType;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FVector RelativeLocation;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FName ModuleDataRowName;
+
+	FSB_ModuleSlotData()
+	{
+		SlotName = "SlotName";
+		SlotType = ESB_ModuleType::Hull;
+		RelativeLocation = FVector(0.0f);
+		ModuleDataRowName = "ModuleDataRowName";
+	}
+};
 
 USTRUCT(BlueprintType)
 struct FSB_BaseModuleData : public FTableRowBase
@@ -247,7 +341,13 @@ struct FSB_BaseModuleData : public FTableRowBase
 	ESB_ModuleType ModuleType;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	bool bIsSelectable;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	class USkeletalMesh* SkeletalMesh;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FVector WorldScale;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TSubclassOf<class UAnimInstance> AnimInstance;
@@ -266,7 +366,9 @@ struct FSB_BaseModuleData : public FTableRowBase
 		DisplayName = "Default";
 		DisplayTexture = nullptr;
 		ModuleType = ESB_ModuleType::Weapon;
+		bIsSelectable = false;
 		SkeletalMesh = nullptr;
+		WorldScale = FVector(1.0f);
 		AnimInstance = nullptr;
 		MaxDurability = 1000;
 		RepairAmount = 10;
@@ -301,6 +403,9 @@ struct FSB_WeaponModuleData : public FTableRowBase
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	ESB_WeaponType Type;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float RotationRate;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -323,6 +428,7 @@ struct FSB_WeaponModuleData : public FTableRowBase
 
 	FSB_WeaponModuleData()
 	{
+		Type = ESB_WeaponType::Projectile;
 		RotationRate = 1.0f;
 		FireRate = 0.5f;
 		ProjectileBP = nullptr;

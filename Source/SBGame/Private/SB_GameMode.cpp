@@ -4,7 +4,7 @@
 #include "SB_PlayerController.h"
 #include "SB_AIController.h"
 #include "SB_ShipStart.h"
-#include "SB_UIManager.h"
+#include "RZ_UIManager.h"
 #include "SB_DataManager.h"
 //
 #include "Kismet/GameplayStatics.h"
@@ -16,7 +16,7 @@ ASB_GameMode::ASB_GameMode()
 	PlayerControllerClass = ASB_PlayerController::StaticClass();
 	GameStateClass = ASB_GameState::StaticClass();
 	PlayerStateClass = ASB_PlayerState::StaticClass();
-	HUDClass = ASB_UIManager::StaticClass();
+	HUDClass = ARZ_UIManager::StaticClass();
 	DefaultPawnClass = nullptr;
 	SpectatorClass = nullptr;
 

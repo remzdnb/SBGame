@@ -1,6 +1,8 @@
 #include "SB_PlayerState.h"
+#include "SB_PlayerSaveGame.h"
 #include "SB_GameState.h"
 //
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
 ASB_PlayerState::ASB_PlayerState() :
@@ -18,6 +20,20 @@ void ASB_PlayerState::PostInitializeComponents()
 		return;
 
 	GState = Cast<ASB_GameState>(GetWorld()->GetGameState());
+
+	PSaveGame = Cast<USB_PlayerSaveGame>(UGameplayStatics::LoadGameFromSlot("PlayerSaveGame", 0));
+	if (PSaveGame)
+	{
+		
+	}
+	else
+	{
+		PSaveGame = Cast<USB_PlayerSaveGame>(UGameplayStatics::CreateSaveGameObject(USB_PlayerSaveGame::StaticClass()));
+		if (PSaveGame)
+		{
+			UGameplayStatics::SaveGameToSlot(PSaveGame, "PlayerSaveGame", 0);
+		}
+	}
 }
 
 void ASB_PlayerState::SetName(bool bIsPlayer)

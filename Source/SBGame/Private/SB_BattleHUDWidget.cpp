@@ -8,6 +8,7 @@
 #include "SB_WeaponModule.h"
 #include "SB_PlayerController.h"
 #include "SB_DataManager.h"
+#include "RZ_ProgressBarWidget.h"
 //
 #include "Components/PanelWidget.h"
 #include "Components/ProgressBar.h"
@@ -41,7 +42,15 @@ void USB_BattleHUDWidget::OnNewOwnedShip(ASB_Ship* const NewOwnedShip)
 	if (NewOwnedShip == nullptr)
 		return;
 
+	OnShipDurabilityUpdated(NewOwnedShip->GetDurability(), DataManager->ShipSettings.MaxDurability);
 	NewOwnedShip->OnDurabilityUpdated.AddUniqueDynamic(this, &USB_BattleHUDWidget::OnShipDurabilityUpdated);
+
+	OnShieldDurabilityUpdated(NewOwnedShip->ShieldModule->GetShieldDurability(), DataManager->ShieldSettings.MaxDurability);
+	NewOwnedShip->ShieldModule->OnShieldDurabilityUpdated.AddUniqueDynamic(this, &USB_BattleHUDWidget::OnShieldDurabilityUpdated);
+
+	OnShieldCooldownUpdated(1.0f, 1.0f);
+	NewOwnedShip->ShieldModule->OnShieldCooldownUpdated.AddUniqueDynamic(this, &USB_BattleHUDWidget::OnShieldCooldownUpdated);
+	
 	NewOwnedShip->OnDestroyed.AddUniqueDynamic(this, &USB_BattleHUDWidget::OnShipDestroyedBPI);
 
 	//
@@ -52,7 +61,7 @@ void USB_BattleHUDWidget::OnNewOwnedShip(ASB_Ship* const NewOwnedShip)
 		USB_ModuleWidget* ModuleWidget = CreateWidget<USB_ModuleWidget>(GetWorld(), DataManager->UISettings.Module_WBP);
 		if (ModuleWidget)
 		{
-			ModuleWidget->Init(DataManager, NewOwnedShip, Cast<USB_BaseModule>(ThrusterModule));
+			ModuleWidget->Update(Cast<USB_BaseModule>(ThrusterModule));
 			ThrusterModulesContainer->AddChild(ModuleWidget);
 		}
 	}
@@ -63,22 +72,30 @@ void USB_BattleHUDWidget::OnNewOwnedShip(ASB_Ship* const NewOwnedShip)
 		USB_ModuleWidget* ModuleWidget = CreateWidget<USB_ModuleWidget>(GetWorld(), DataManager->UISettings.Module_WBP);
 		if (ModuleWidget)
 		{
-			ModuleWidget->Init(DataManager, NewOwnedShip, Cast<USB_BaseModule>(WeaponModule));
+			ModuleWidget->Update(Cast<USB_BaseModule>(WeaponModule));
 			WeaponModulesContainer->AddChild(ModuleWidget);
 		}
 	}
 
-	if (NewOwnedShip->GetShieldModule())
+	if (NewOwnedShip->ShieldModule)
 	{
-		ShieldModuleWidget->Init(DataManager, NewOwnedShip, Cast<USB_BaseModule>(NewOwnedShip->GetShieldModule()));
+		ShieldModuleWidget->Update(Cast<USB_BaseModule>(NewOwnedShip->ShieldModule));
 	}
 
 	OnShipSpawnedBPI();
 }
 
-void USB_BattleHUDWidget::OnShipDurabilityUpdated(float NewDurability)
+void USB_BattleHUDWidget::OnShipDurabilityUpdated(float NewDurability, float MaxDurability)
 {
-	//UE_LOG(LogTemp, Display, TEXT("USB_BattleHUDWidget::OnShipDurabilityUpdated %s"), FString::FromInt(NewDurability));
+	ShipDurabilityProgressBar->Update(NewDurability, DataManager->ShipSettings.MaxDurability);
+}
 
-	ShipDurabilityProgressBar->SetPercent(NewDurability / DataManager->ShipSettings.MaxDurability);
+void USB_BattleHUDWidget::OnShieldDurabilityUpdated(float NewDurability, float MaxDurability)
+{
+	ShieldDurabilityProgressBar->Update(NewDurability, MaxDurability);
+}
+
+void USB_BattleHUDWidget::OnShieldCooldownUpdated(float RemainingTime, float MaxTime)
+{
+	ShieldCooldownProgressBar->Update(RemainingTime, MaxTime);
 }

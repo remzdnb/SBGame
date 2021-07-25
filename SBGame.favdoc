@@ -75,14 +75,14 @@
           <folders />
           <favorites>
             <Favorite>
-              <name>SB_UIManager.cpp</name>
-              <path>Source\SBGame\Private\SB_UIManager.cpp</path>
-              <absolutePath>D:\UE\Projects\Launcher_4.24.3\SBGame\Source\SBGame\Private\SB_UIManager.cpp</absolutePath>
+              <name>RZ_UIManager.cpp</name>
+              <path>Source\SBGame\Private\RZ_UIManager.cpp</path>
+              <absolutePath>D:\UE\Projects\Launcher_4.24.3\SBGame\Source\SBGame\Private\RZ_UIManager.cpp</absolutePath>
             </Favorite>
             <Favorite>
-              <name>SB_UIManager.h</name>
-              <path>Source\SBGame\Private\SB_UIManager.h</path>
-              <absolutePath>D:\UE\Projects\Launcher_4.24.3\SBGame\Source\SBGame\Private\SB_UIManager.h</absolutePath>
+              <name>RZ_UIManager.h</name>
+              <path>Source\SBGame\Private\RZ_UIManager.h</path>
+              <absolutePath>D:\UE\Projects\Launcher_4.24.3\SBGame\Source\SBGame\Private\RZ_UIManager.h</absolutePath>
             </Favorite>
             <Favorite>
               <name>SB_BattleMenuWidget.cpp</name>

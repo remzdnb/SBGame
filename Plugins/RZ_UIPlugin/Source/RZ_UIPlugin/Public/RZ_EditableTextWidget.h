@@ -13,8 +13,8 @@ class RZ_UIPLUGIN_API URZ_EditableTextWidget : public UUserWidget
 
 public:
 
-	void NativeOnInitialized() override;
-	FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual void NativeOnInitialized() override;
+	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 
 	UFUNCTION() const FText GetText();
 	UFUNCTION() void SetText(const FText& Text);

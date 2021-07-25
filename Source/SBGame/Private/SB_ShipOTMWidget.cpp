@@ -1,6 +1,7 @@
 #include "SB_ShipOTMWidget.h"
 #include "SB_Ship.h"
-#include "SB_UIManager.h"
+#include "SB_ShieldModule.h"
+#include "RZ_UIManager.h"
 #include "SB_PlayerController.h"
 #include "SB_DataManager.h"
 #include "RZ_ProgressBarWidget.h"
@@ -10,7 +11,7 @@
 #include "Components/CanvasPanelSlot.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 
-void USB_ShipOTMWidget::Init(const ASB_DataManager* const NewDataManager, ASB_Ship* const NewShipRef)
+void USB_ShipOTMWidget::Init(const ASB_DataManager* const NewDataManager, ASB_Ship* const NewOwnedShip)
 {
 	DataManager = NewDataManager;
 
@@ -20,26 +21,32 @@ void USB_ShipOTMWidget::Init(const ASB_DataManager* const NewDataManager, ASB_Sh
 		OwningPC->GetUIManager()->AddHUDWidget(this);
 	}
 
-	ShipRef = NewShipRef;
-	ShipRef->OnDurabilityUpdated.AddUniqueDynamic(this, &USB_ShipOTMWidget::Update);
+	OwnedShip = NewOwnedShip;
+	OwnedShip->OnDurabilityUpdated.AddUniqueDynamic(this, &USB_ShipOTMWidget::OnShipDurabilityUpdated);
+	OwnedShip->ShieldModule->OnShieldDurabilityUpdated.AddUniqueDynamic(this, &USB_ShipOTMWidget::OnShieldDurabilityUpdated);
 }
 
 void USB_ShipOTMWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
 
-	if (ShipRef.IsValid() == false)
+	if (OwnedShip.IsValid() == false)
 		return;
 
 	FVector2D TargetScreenPosition;
-	UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(GetOwningPlayer(), ShipRef->GetActorLocation() + FVector(0.0f, 0.0f, OTM_ZOFFSET), TargetScreenPosition, false);
+	UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(GetOwningPlayer(), OwnedShip->GetActorLocation() + FVector(0.0f, 0.0f, OTM_ZOFFSET), TargetScreenPosition, false);
 	TargetScreenPosition.X = TargetScreenPosition.X - MainPanel->GetDesiredSize().X / 2;
 	TargetScreenPosition.Y = TargetScreenPosition.Y - MainPanel->GetDesiredSize().Y / 2;
 
 	MainPanel->SetRenderTranslation(TargetScreenPosition);
 }
 
-void USB_ShipOTMWidget::Update(float NewDurability)
+void USB_ShipOTMWidget::OnShipDurabilityUpdated(float NewDurability, float MaxDurability)
 {
-	DurabilityProgressBar->UpdatePercent(NewDurability / DataManager->ShipSettings.MaxDurability);
+	ShipDurabilityProgressBar->Update(NewDurability, MaxDurability);
+}
+
+void USB_ShipOTMWidget::OnShieldDurabilityUpdated(float NewDurability, float MaxDurability)
+{
+	ShieldDurabilityProgressBar->Update(NewDurability, MaxDurability);
 }

@@ -27,7 +27,7 @@ public:
 	//
 
 	UFUNCTION()
-	void SetIsSelected(bool bToggleSelection, bool bNewIsSelected);
+	void SetIsWeaponSelected(bool bToggleSelection, bool bNewIsSelected);
 
 	UFUNCTION()
 	void SetWantsToFire(bool bNewWantsToFire);
@@ -50,14 +50,13 @@ private:
 	//
 
 	UPROPERTY()
-	ASB_Ship* TargetShip;
+	class ASB_Ship* TargetShip;
 
 	UPROPERTY()
 	const class USceneComponent* TargetAutoLockCT;
 
 	UParticleSystemComponent* MuzzleParticle;
 
-	UPROPERTY() bool bIsSelected;
 	UPROPERTY() bool bIsSniperView;
 	UPROPERTY() bool bWantsToFire;
 	UPROPERTY() bool bIsFiring;

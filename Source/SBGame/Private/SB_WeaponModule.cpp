@@ -51,19 +51,18 @@ void USB_WeaponModule::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 	if (WeaponAnimInstance)
 	{
-		WeaponAnimInstance->UpdateInstance(GetComponentLocation(), OwningShip->GetOwnerViewLocation());
+		//WeaponAnimInstance->UpdateInstance(GetComponentLocation(), OwningShip->GetOwnerViewLocation());
 	}
 
 	Debug(DeltaTime);
 }
 
-void USB_WeaponModule::SetIsSelected(bool bToggleSelection, bool bNewIsSelected)
+void USB_WeaponModule::SetIsWeaponSelected(bool bToggleSelection, bool bNewIsSelected)
 {
 	if (bToggleSelection)
 	{
 		bIsSelected = bIsSelected ? false : true;
 		SetRenderCustomDepth(bIsSelected);
-		OnSelectionUpdated.Broadcast(bIsSelected);
 	}
 	else
 	{
@@ -71,13 +70,11 @@ void USB_WeaponModule::SetIsSelected(bool bToggleSelection, bool bNewIsSelected)
 		{
 			bIsSelected = false;
 			SetRenderCustomDepth(false);
-			OnSelectionUpdated.Broadcast(false);
 		}
 		else if (!bIsSelected && bNewIsSelected)
 		{
 			bIsSelected = true;
 			SetRenderCustomDepth(true);
-			OnSelectionUpdated.Broadcast(true);
 		}
 	}
 }
@@ -167,7 +164,7 @@ void USB_WeaponModule::FireTick()
 	if (OwningShip->GetLocalRole() < ROLE_Authority)
 		return;
 
-	const float CurrentTime = GetWorld()->GetTimeSeconds();
+	float CurrentTime = GetWorld()->GetTimeSeconds();
 
 	if ((CurrentTime - LastFireTime) >= WeaponModuleData->FireRate)
 	{

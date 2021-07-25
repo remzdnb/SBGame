@@ -1,3 +1,4 @@
+
 #pragma once
 
 #include "CoreMinimal.h"
@@ -25,12 +26,18 @@ public:
 
 	//
 
+	FORCEINLINE UFUNCTION() class USB_PlayerSaveGame* GetPlayerSaveGame() const {return PSaveGame;}
 	FORCEINLINE UFUNCTION() const FString& GetDisplayName() const { return DisplayName; }
 	FORCEINLINE UFUNCTION() uint8 GetTeam() const { return TeamID; }
 
 private:
 
 	class ASB_GameState* GState;
+
+	//
+	
+	UPROPERTY()
+	class USB_PlayerSaveGame* PSaveGame;
 
 	//
 

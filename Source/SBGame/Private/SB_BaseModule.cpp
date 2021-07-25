@@ -16,6 +16,10 @@ USB_BaseModule::USB_BaseModule()
 	SetGenerateOverlapEvents(true);
 	SetCustomDepthStencilValue(1);
 	SetIsReplicatedByDefault(true);
+
+	bIsHovered = false;
+	bIsSelected = false;
+	State = ESB_ModuleState::Ready;
 }
 
 void USB_BaseModule::InitializeComponent()
@@ -34,6 +38,8 @@ void USB_BaseModule::InitializeComponent()
 		SkeletalMesh->bEnablePerPolyCollision = true;
 		SetAnimInstanceClass(BaseModuleData->AnimInstance);
 		Durability = BaseModuleData->MaxDurability;
+
+		SetWorldScale3D(BaseModuleData->WorldScale);
 	}
 }
 
@@ -42,7 +48,48 @@ void USB_BaseModule::BeginPlay()
 	Super::BeginPlay();
 }
 
-void USB_BaseModule::ApplyDamage(const float Damage, const FVector& HitLocation, AController* const InstigatorController)
+void USB_BaseModule::OnHoverStart()
+{
+	if (bIsSelected == false)
+	{
+		if (BaseModuleData->bIsSelectable)
+		{
+			SetCustomDepthStencilValue(2);
+		}
+		else
+		{
+			SetCustomDepthStencilValue(1);
+		}
+		
+		SetRenderCustomDepth(true);
+		bIsHovered = true;
+	}
+}
+
+void USB_BaseModule::OnHoverStop()
+{
+	SetRenderCustomDepth(false);
+	bIsHovered = false;
+}
+
+void USB_BaseModule::OnSelect()
+{
+	SetCustomDepthStencilValue(2);
+	SetRenderCustomDepth(true);
+	bIsSelected = true;
+	bIsHovered = false;
+	OnSelectionUpdated.Broadcast(true);
+}
+
+void USB_BaseModule::OnUnselect()
+{
+	SetRenderCustomDepth(false);
+	bIsSelected = false;
+	bIsHovered = false;
+	OnSelectionUpdated.Broadcast(false);
+}
+
+void USB_BaseModule::ApplyDamageFromProjectile(float Damage, const FVector& HitLocation, AController* const InstigatorController)
 {
 	// Apply module damage.
 	if (Durability > 0)
@@ -66,13 +113,14 @@ void USB_BaseModule::ApplyDamage(const float Damage, const FVector& HitLocation,
 	}
 
 	// Apply ship damage.
-	OwningShip->ApplyDamage(Damage * BaseModuleData->ShipDamageModifier, HitLocation, InstigatorController);
+	OwningShip->ApplyShipDamage(Damage * BaseModuleData->ShipDamageModifier, HitLocation, InstigatorController, Damage);
 
 	//
 	OnDurabilityUpdated.Broadcast(Durability);
 	
 	//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, *("USB_BaseModule::ApplyDamage // New Durability : " + FString::FromInt(Durability))); 
 }
+
 
 void USB_BaseModule::RepairOnce()
 {

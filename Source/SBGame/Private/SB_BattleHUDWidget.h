@@ -8,11 +8,12 @@
 #include "Blueprint/UserWidget.h"
 #include "SB_BattleHUDWidget.generated.h"
 
-class ASB_DataManager;
-class USB_ModuleWidget;
 class UCanvasPanel;
 class UPanelWidget;
-
+class UProgressBar;
+class ASB_DataManager;
+class USB_ModuleWidget;
+class URZ_ProgressBarWidget;
 
 UCLASS()
 class USB_BattleHUDWidget : public UUserWidget
@@ -32,7 +33,13 @@ public:
 	void OnShipMovementUpdatedBPI(int32 ForwardInput, int32 RightInput);
 
 	UFUNCTION()
-	void OnShipDurabilityUpdated(float NewDurability);
+	void OnShipDurabilityUpdated(float NewDurability, float MaxDurability);
+
+	UFUNCTION()
+	void OnShieldDurabilityUpdated(float NewDurability, float MaxDurability);
+
+	UFUNCTION()
+	void OnShieldCooldownUpdated(float RemainingTime, float MaxTime);
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnShipSpawnedBPI();
@@ -52,8 +59,10 @@ private:
 	//
 
 	UPROPERTY(meta = (BindWidget)) UCanvasPanel* MainCanvas;
-	UPROPERTY(meta = (BindWidget)) class UProgressBar* ShipDurabilityProgressBar;
 	UPROPERTY(meta = (BindWidget)) UPanelWidget* WeaponModulesContainer;
 	UPROPERTY(meta = (BindWidget)) UPanelWidget* ThrusterModulesContainer;
 	UPROPERTY(meta = (BindWidget)) USB_ModuleWidget* ShieldModuleWidget;
+	UPROPERTY(meta = (BindWidget)) URZ_ProgressBarWidget* ShipDurabilityProgressBar;
+	UPROPERTY(meta = (BindWidget)) URZ_ProgressBarWidget* ShieldDurabilityProgressBar;
+	UPROPERTY(meta = (BindWidget)) URZ_ProgressBarWidget* ShieldCooldownProgressBar;
 };

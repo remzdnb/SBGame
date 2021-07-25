@@ -21,7 +21,7 @@ protected:
 public:
 
 	UFUNCTION()
-	void Init(const class ASB_DataManager* const NewDataManager, class ASB_Ship* const NewShipRef, class USB_BaseModule* const NewBaseModuleRef);
+	void Update(class USB_BaseModule* const NewBaseModuleRef);
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnSelectionUpdatedBPI(bool bNewIsSelected);
@@ -33,18 +33,14 @@ public:
 	void OnDurabilityUpdated(float NewDurability);
 
 private:
-
-	const class ASB_DataManager* DataManager;
-
-	//
-
-	UPROPERTY() class ASB_Ship* ShipRef;
-	UPROPERTY() class USB_BaseModule* BaseModuleRef;
+	
+	TWeakObjectPtr<USB_BaseModule> BaseModuleRef;
 
 	//
 
-	UPROPERTY(meta = (BindWidget)) class UTextBlock* ModuleSlotText;
-	UPROPERTY(meta = (BindWidget)) class UTextBlock* ModuleClassText;
+	UPROPERTY(meta = (BindWidget)) class UTextBlock* ModuleSlotIDText;
+	UPROPERTY(meta = (BindWidget)) class UTextBlock* ModuleSlotTypeText;
+	UPROPERTY(meta = (BindWidget)) class UTextBlock* ModuleRowNameText;
 	UPROPERTY(meta = (BindWidget)) class UImage* ModuleImage;
 	UPROPERTY(meta = (BindWidget)) class UProgressBar* ModuleDurabilityProgressBar;
 	UPROPERTY(meta = (BindWidget)) class UProgressBar* ModuleStatusProgressBar;
