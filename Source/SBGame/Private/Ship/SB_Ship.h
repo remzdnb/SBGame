@@ -38,7 +38,7 @@ public:
 	virtual void OnRep_PlayerState() override;
 	//
 
-	FORCEINLINE UFUNCTION() USB_ShipMovementComponent* const GetShipMovementCT() const { return MovementCT; }
+	FORCEINLINE UFUNCTION() USB_ShipMovementComponent* const GetShipMovement() const { return ShipMovement; }
 	FORCEINLINE UFUNCTION() USB_ShipCameraManager* const GetShipCameraManager() const { return ShipCameraManager; }
 
 private:
@@ -48,18 +48,26 @@ private:
 	class ASB_PlayerState* PState;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class USB_ShipMovementComponent* MovementCT;
+	class USB_ShipMovementComponent* ShipMovement;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	USB_ShipCameraManager* ShipCameraManager;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	FName ShipDataRowName;
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	///// Modules
 
 public:
 
+	void SpawnModule(const FSB_ModuleSlotData* const ModuleSlotData, const FName& RowName);
+
 	UFUNCTION()
 	void HoverModule();
+
+	UFUNCTION()
+	void SelectModuleByID(uint8 ModuleID);
 	
 	UFUNCTION()
 	void SelectModule(class USB_BaseModule* const ModuleToSelect);
@@ -79,7 +87,7 @@ public:
 	FORCEINLINE UFUNCTION() class USB_BaseModule* const GetSelectedModule() const { return SelectedModule.Get(); }
 	FORCEINLINE UFUNCTION() TInlineComponentArray<class USB_BaseModule*> GetAllModules() const { return BaseModules; }
 	FORCEINLINE UFUNCTION() TInlineComponentArray<class USB_ThrusterModule*> GetThrusterModules() const { return ThrusterModules; }
-	FORCEINLINE UFUNCTION() TInlineComponentArray<class USB_WeaponModule*> GetWeaponModules() const { return WeaponModules; }
+	FORCEINLINE UFUNCTION() TInlineComponentArray<class USB_BaseWeaponModule*> GetWeaponModules() const { return WeaponModules; }
 
 	//
 
@@ -112,9 +120,11 @@ public:
 
 private:
 
+	TArray<class USB_BaseModule*> SortedModules;
+	
 	TInlineComponentArray<class USB_BaseModule*> BaseModules;
 	TInlineComponentArray<class USB_ThrusterModule*> ThrusterModules;
-	TInlineComponentArray<class USB_WeaponModule*> WeaponModules;
+	TInlineComponentArray<class USB_BaseWeaponModule*> WeaponModules;
 
 	TWeakObjectPtr<class USB_BaseModule> HoveredModule;
 	TWeakObjectPtr<class USB_BaseModule> SelectedModule;

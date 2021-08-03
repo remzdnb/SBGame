@@ -1,10 +1,14 @@
+// SBGame
 #include "Battle/SB_BattlePlayerController.h"
-#include "SB_Ship.h"
-#include "SB_ShipMovementComponent.h"
-#include "SB_ShieldModule.h"
+#include "Ship/SB_Ship.h"
+#include "Ship/SB_ShipMovementComponent.h"
+#include "Module/SB_ShieldModule.h"
 #include "SB_DataManager.h"
-//
+// UIPlugin
+#include "RZ_UIManager.h"
+// Engine
 #include "Kismet/KismetSystemLibrary.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
 
 void ASB_BattlePlayerController::Tick(float DeltaTime)
 {
@@ -50,6 +54,7 @@ void ASB_BattlePlayerController::SetupInputComponent()
 
 	InputComponent->BindAction("LeftMouseButton", IE_Pressed, this, &ASB_BattlePlayerController::LeftMouseButtonPressed).bConsumeInput = false;
 	InputComponent->BindAction("LeftMouseButton", IE_Released, this, &ASB_BattlePlayerController::LeftMouseButtonReleased).bConsumeInput = false;
+	InputComponent->BindAction("Tab", IE_Pressed, this, &ASB_BattlePlayerController::TabKeyPressed).bConsumeInput = false;
 }
 
 void ASB_BattlePlayerController::LeftMouseButtonPressed()
@@ -72,6 +77,29 @@ void ASB_BattlePlayerController::LeftMouseButtonReleased()
 	if (OwnedShip)
 	{
 		OwnedShip->StopFireAllWeapons();
+	}
+}
+
+void ASB_BattlePlayerController::TabKeyPressed()
+{
+	if (UIManager)
+	{
+		if (UIManager->IsMenuOpen())
+		{
+			UIManager->ToggleMenu(false);
+			UIManager->ToggleHUD(true);
+
+			UWidgetBlueprintLibrary::SetInputMode_GameOnly(this);
+			bShowMouseCursor = false;
+		}
+		else
+		{
+			UIManager->ToggleMenu(true);
+			UIManager->ToggleHUD(false);
+
+			UWidgetBlueprintLibrary::SetInputMode_GameAndUIEx(this);
+			bShowMouseCursor = true;
+		}
 	}
 }
 

@@ -1,6 +1,6 @@
-#include "SB_ShipMovementComponent.h"
-#include "SB_Ship.h"
-#include "SB_ThrusterModule.h"
+#include "Ship/SB_ShipMovementComponent.h"
+#include "Ship/SB_Ship.h"
+#include "Module/SB_ThrusterModule.h"
 #include "SB_DataManager.h"
 #include "SB_UtilityLibrary.h"
 //

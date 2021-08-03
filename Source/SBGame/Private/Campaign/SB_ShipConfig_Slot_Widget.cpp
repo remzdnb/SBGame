@@ -1,8 +1,6 @@
 #include "Campaign/SB_ShipConfig_Slot_Widget.h"
-#include "Campaign/SB_ShipConfig_Module_Widget.h"
-#include "SB_BaseModule.h"
-#include "SB_Ship.h"
-#include "SB_DataManager.h"
+#include "Module/SB_BaseModule.h"
+#include "Ship/SB_Ship.h"
 //
 #include "SB_ShipConfig_Main_Widget.h"
 #include "Components/PanelWidget.h"

@@ -24,13 +24,16 @@ void URZ_MenuLayoutWidget::Init(ARZ_UIManager* NewUIManager)
 
 UUserWidget* URZ_MenuLayoutWidget::CreateMenuWidget(const FName& TabName, TSubclassOf<UUserWidget> WidgetClass, bool bShouldCreateTab, class URZ_ButtonWidget* TabToAssign)
 {
-	UUserWidget* CreatedWidget = CreateWidget<UUserWidget>(GetWorld(), WidgetClass);
-	if (CreatedWidget)
+	if (WidgetClass == nullptr)
+		return nullptr;
+	
+	UUserWidget* const NewWidget = CreateWidget<UUserWidget>(GetOwningPlayer(), WidgetClass);
+	if (NewWidget)
 	{
 		const uint8 NewWidgetID = LoadedWidgets.Num(); // Find new valid ID
 
-		WidgetSwitcher->AddChild(CreatedWidget);
-		LoadedWidgets.Add(TabName, CreatedWidget);
+		WidgetSwitcher->AddChild(NewWidget);
+		LoadedWidgets.Add(TabName, NewWidget);
 		
 		// Create / Load Tab
 
@@ -56,7 +59,7 @@ UUserWidget* URZ_MenuLayoutWidget::CreateMenuWidget(const FName& TabName, TSubcl
 
 		SetActiveWidgetByIndex(1);
 		
-		return CreatedWidget;
+		return NewWidget;
 	}
 
 	return nullptr;

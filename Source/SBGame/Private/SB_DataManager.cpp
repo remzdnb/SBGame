@@ -1,6 +1,6 @@
 #include "SB_DataManager.h"
 
-FSB_BaseModuleData* const ASB_DataManager::GetBaseModuleDataFromRow(FName RowName) const
+const FSB_BaseModuleData* const ASB_DataManager::GetBaseModuleDataFromRow(FName RowName) const
 {
 	if (BaseModuleDT == nullptr)
 		return nullptr;
@@ -13,7 +13,7 @@ FSB_BaseModuleData* const ASB_DataManager::GetBaseModuleDataFromRow(FName RowNam
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("ASB_DataManager::GetBaseModuleDataFromRoww - Row not found : %s"), *RowName.ToString());
+		UE_LOG(LogTemp, Error, TEXT("ASB_DataManager::GetBaseModuleDataFromRow - Row not found : %s"), *RowName.ToString());
 		return nullptr;
 	}
 }
@@ -36,13 +36,13 @@ const FSB_ThrusterModuleData* const ASB_DataManager::GetThrusterModuleDataFromRo
 	}
 }
 
-const FSB_WeaponModuleData* const ASB_DataManager::GetWeaponModuleDataFromRow(const FName& RowName) const
+const FSB_BaseWeaponModuleData* const ASB_DataManager::GetWeaponModuleDataFromRow(const FName& RowName) const
 {
 	if (WeaponModuleDT == nullptr)
 		return nullptr;
 
 	FString ContextString;
-	FSB_WeaponModuleData* WeaponModuleData = WeaponModuleDT->FindRow<FSB_WeaponModuleData>(RowName, ContextString);
+	FSB_BaseWeaponModuleData* WeaponModuleData = WeaponModuleDT->FindRow<FSB_BaseWeaponModuleData>(RowName, ContextString);
 	if (WeaponModuleData)
 	{
 		return WeaponModuleData;
@@ -68,6 +68,24 @@ const FSB_ProjectileData* const ASB_DataManager::GetProjectileDataFromRow(FName 
 	else
 	{
 		UE_LOG(LogTemp, Error, TEXT("ASB_DataManager::GetProjectileDataFromRow - Row not found : %s"), *RowName.ToString());
+		return nullptr;
+	}
+}
+
+const FSB_ModuleSlotData* const ASB_DataManager::GetCarrierModuleSlotFromRow(const FName& RowName) const
+{
+	if (CarrierShipConfigDT == nullptr)
+		return nullptr;
+
+	const FString ContextString;
+	FSB_ModuleSlotData* ModuleSlotData = CarrierShipConfigDT->FindRow<FSB_ModuleSlotData>(RowName, ContextString);
+	if (ModuleSlotData)
+	{
+		return ModuleSlotData;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("ASB_DataManager::GetCarrierModuleSlotFromRow - Row not found : %s"), *RowName.ToString());
 		return nullptr;
 	}
 }

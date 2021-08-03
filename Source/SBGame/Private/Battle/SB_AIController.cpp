@@ -1,10 +1,10 @@
-#include "SB_AIController.h"
+#include "Battle/SB_AIController.h"
 #include "SB_PlayerController.h"
 #include "SB_GameMode.h"
 #include "SB_GameState.h"
 #include "SB_PlayerState.h"
-#include "SB_Ship.h"
-#include "SB_ShipMovementComponent.h"
+#include "Ship/SB_Ship.h"
+#include "Ship/SB_ShipMovementComponent.h"
 #include "SB_DataManager.h"
 //
 #include "Kismet/GameplayStatics.h"
@@ -55,10 +55,10 @@ void ASB_AIController::Tick(float DeltaTime)
 	// omg
 	if (OwnedShip.IsValid())
 	{
-		if (OwnedShip->GetShipMovementCT())
+		if (OwnedShip->GetShipMovement())
 		{
-			//float LerpedYaw = FMath::Lerp(GetControlRotation().Yaw, OwnedShip->GetShipMovementCT()->GetTargetRotationYaw(), DataManager->ShipSettings.TurnInertia);
-			OwnedShip->SetActorRotation(FRotator(0.0f, OwnedShip->GetShipMovementCT()->GetTargetRotationYaw(), 0.0f));
+			//float LerpedYaw = FMath::Lerp(GetControlRotation().Yaw, OwnedShip->GetShipMovement()->GetTargetRotationYaw(), DataManager->ShipSettings.TurnInertia);
+			OwnedShip->SetActorRotation(FRotator(0.0f, OwnedShip->GetShipMovement()->GetTargetRotationYaw(), 0.0f));
 			//SetControlRotation(FRotator(0.0f, LerpedYaw, 0.0f));
 			//SetFocus / SetFocalpoint?
 		}
@@ -136,21 +136,21 @@ void ASB_AIController::UpdateMovement()
 {
 	if (CollisionActor_Right.IsValid() == false && CollisionActor_Left.IsValid() == false)
 	{
-		OwnedShip->GetShipMovementCT()->MoveForward(1.0f);
+		OwnedShip->GetShipMovement()->MoveForward(1.0f);
 	}
 	else if (CollisionActor_Right.IsValid() == true && CollisionActor_Left.IsValid() == true)
 	{
-		OwnedShip->GetShipMovementCT()->TurnRight(1.0f);
+		OwnedShip->GetShipMovement()->TurnRight(1.0f);
 	}
 	else if (CollisionActor_Right.IsValid() == true && CollisionActor_Left.IsValid() == false)
 	{
-		OwnedShip->GetShipMovementCT()->MoveForward(1.0f);
-		OwnedShip->GetShipMovementCT()->TurnRight(-1.0f);
+		OwnedShip->GetShipMovement()->MoveForward(1.0f);
+		OwnedShip->GetShipMovement()->TurnRight(-1.0f);
 	}
 	else if (CollisionActor_Right.IsValid() == false && CollisionActor_Left.IsValid() == true)
 	{
-		OwnedShip->GetShipMovementCT()->MoveForward(1.0f);
-		OwnedShip->GetShipMovementCT()->TurnRight(1.0f);
+		OwnedShip->GetShipMovement()->MoveForward(1.0f);
+		OwnedShip->GetShipMovement()->TurnRight(1.0f);
 	}
 }
 

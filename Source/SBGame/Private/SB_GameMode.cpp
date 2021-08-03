@@ -2,8 +2,8 @@
 #include "SB_GameState.h"
 #include "SB_PlayerState.h"
 #include "SB_PlayerController.h"
-#include "SB_AIController.h"
-#include "SB_ShipStart.h"
+#include "Battle/SB_AIController.h"
+#include "Ship/SB_ShipStart.h"
 #include "RZ_UIManager.h"
 #include "SB_DataManager.h"
 //

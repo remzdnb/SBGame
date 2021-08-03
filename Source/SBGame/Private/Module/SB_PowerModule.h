@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SB_BaseModule.h"
+#include "Module/SB_BaseModule.h"
 //
 #include "CoreMinimal.h"
 #include "SB_PowerModule.generated.h"

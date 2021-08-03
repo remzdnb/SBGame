@@ -1,11 +1,14 @@
+// SBGame
 #include "Campaign/SB_CampaignPlayerController.h"
-#include "SB_BaseModule.h"
+#include "Module/SB_BaseModule.h"
 #include "SB_GameMode.h"
-#include "RZ_UIManager.h"
-//
 #include "SB_DataManager.h"
-#include "SB_Ship.h"
-#include "SB_ShipCameraManager.h"
+#include "Ship/SB_Ship.h"
+#include "Ship/SB_ShipCameraManager.h"
+// UIPlugin
+#include "RZ_UIManager.h"
+#include "RZ_MenuLayoutWidget.h"
+// Engine
 #include "Blueprint/WidgetBlueprintLibrary.h"
 
 void ASB_CampaignPlayerController::BeginPlay()
@@ -14,21 +17,24 @@ void ASB_CampaignPlayerController::BeginPlay()
 
 	if (IsLocalController())
 	{
+		//
+		
 		if (GMode)
 		{
 			GMode->QueryRespawn(this);
 		}
 
-		if (UIManager)
+		// UI
+		
+		for (auto& MapRow : DataManager->UISettings.CampaignMenuWidgets)
 		{
-			for (auto& MapRow : DataManager->UISettings.CampaignMenuWidgets)
-			{
-				UIManager->CreateMenuWidget(MapRow.Key, MapRow.Value);
-			}
-
-			UIManager->OnNewMenuWidgetSelected.AddUniqueDynamic(this, &ASB_CampaignPlayerController::OnNewMenuWidgetSelected);
+			UIManager->GetMenuLayoutWidget()->CreateMenuWidget(MapRow.Key, MapRow.Value);
 		}
 
+		UIManager->OnNewMenuWidgetSelected.AddUniqueDynamic(this, &ASB_CampaignPlayerController::OnNewMenuWidgetSelected);
+
+		// Controller
+		
 		UWidgetBlueprintLibrary::SetInputMode_GameAndUIEx(this);
 		bShowMouseCursor = true;
 		bEnableMouseOverEvents = true;
@@ -55,26 +61,32 @@ void ASB_CampaignPlayerController::Tick(float DeltaTime)
 
 void ASB_CampaignPlayerController::OnNewMenuWidgetSelected(const FName& WidgetName, UUserWidget* SelectedWidget)
 {
-	if (WidgetName == "Home")
-	{
-		UWidgetBlueprintLibrary::SetInputMode_UIOnlyEx(this);
-
-		if (OwnedShip)
-		{
-			OwnedShip->GetShipCameraManager()->SetArmRotation(FRotator(-25.0f, OwnedShip->GetActorRotation().Yaw - 145.0f, 0.0f), true);
-			OwnedShip->GetShipCameraManager()->SetMaxTargetArmLength();
-		}
-	}
-
 	if (WidgetName == "Ship")
 	{
 		UWidgetBlueprintLibrary::SetInputMode_GameAndUIEx(this);
 
 		if (OwnedShip)
 		{
-			OwnedShip->GetShipCameraManager()->SetArmRotation(FRotator(-55.0f, OwnedShip->GetActorRotation().Yaw - 90.0f, 0.0f), true);
+			OwnedShip->GetShipCameraManager()->SetArmRotation(FRotator(-25.0f, OwnedShip->GetActorRotation().Yaw - 110.0f, 0.0f), true);
 			OwnedShip->GetShipCameraManager()->SetMinTargetArmLength();
 		}
+
+		//bEnableMouseOverEvents = true;
+		//bEnableClickEvents = true;
+	}
+	else
+	{
+		UWidgetBlueprintLibrary::SetInputMode_UIOnlyEx(this);
+
+		if (OwnedShip)
+		{
+			OwnedShip->SelectModule(nullptr);
+			OwnedShip->GetShipCameraManager()->SetArmRotation(FRotator(-25.0f, OwnedShip->GetActorRotation().Yaw - 145.0f, 0.0f), true);
+			OwnedShip->GetShipCameraManager()->SetMaxTargetArmLength();
+		}
+		
+		//bEnableMouseOverEvents = false;
+		//bEnableClickEvents = false;
 	}
 
 	if (GEngine)

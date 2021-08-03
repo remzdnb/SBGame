@@ -24,5 +24,8 @@ public:
 	FString JoinIP;
 
 	UPROPERTY()
-	TArray<FName> ShipConfig;
+	FName ShipRowName;
+	
+	UPROPERTY()
+	TArray<FName> ModulesRowNames;
 };

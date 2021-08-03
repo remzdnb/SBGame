@@ -1,5 +1,5 @@
-#include "SB_BaseModule.h"
-#include "SB_Ship.h"
+#include "Module/SB_BaseModule.h"
+#include "Ship/SB_Ship.h"
 #include "SB_GameInstance.h"
 #include "SB_DataManager.h"
 //
@@ -22,11 +22,31 @@ USB_BaseModule::USB_BaseModule()
 	State = ESB_ModuleState::Ready;
 }
 
+void USB_BaseModule::Init(
+	const ASB_DataManager* const NewDataManager,
+	const FSB_ModuleSlotData* const NewModuleSlotData,
+	const FName& NewModuleRowName)
+{
+	DataManager = NewDataManager;
+	ModuleSlotData = NewModuleSlotData;
+	ModuleRowName = NewModuleRowName;
+
+	BaseModuleData = DataManager->GetBaseModuleDataFromRow(ModuleRowName);
+	if (BaseModuleData)
+	{
+		SetSkeletalMesh(BaseModuleData->SkeletalMesh);
+		SetAnimInstanceClass(BaseModuleData->AnimInstance);
+		SkeletalMesh->bEnablePerPolyCollision = true;
+		Durability = BaseModuleData->MaxDurability;
+		SetWorldScale3D(BaseModuleData->WorldScale);
+	}
+}
+
 void USB_BaseModule::InitializeComponent()
 {
 	Super::InitializeComponent();
 	
-	if (GetWorld()->IsGameWorld() == false)
+	/*if (GetWorld()->IsGameWorld() == false)
 		return;
 
 	OwningShip = Cast<ASB_Ship>(GetOwner());
@@ -40,7 +60,7 @@ void USB_BaseModule::InitializeComponent()
 		Durability = BaseModuleData->MaxDurability;
 
 		SetWorldScale3D(BaseModuleData->WorldScale);
-	}
+	}*/
 }
 
 void USB_BaseModule::BeginPlay()
@@ -50,6 +70,12 @@ void USB_BaseModule::BeginPlay()
 
 void USB_BaseModule::OnHoverStart()
 {
+	if (BaseModuleData == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("USB_BaseModule::OnHoverStart : BaseModuleData == nullptr"));
+		return;
+	}
+	
 	if (bIsSelected == false)
 	{
 		if (BaseModuleData->bIsSelectable)

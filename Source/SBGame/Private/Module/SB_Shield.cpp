@@ -1,6 +1,6 @@
-#include "SB_Shield.h"
-#include "SB_ShieldModule.h"
-#include "SB_Ship.h"
+#include "Module/SB_Shield.h"
+#include "Module/SB_ShieldModule.h"
+#include "Ship/SB_Ship.h"
 #include "SB_DataManager.h"
 //
 #include "Components/StaticMeshComponent.h"

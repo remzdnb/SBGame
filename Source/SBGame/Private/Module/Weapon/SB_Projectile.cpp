@@ -1,6 +1,6 @@
-#include "SB_Projectile.h"
-#include "SB_Ship.h"
-#include "SB_BaseModule.h"
+#include "Module/Weapon/SB_Projectile.h"
+#include "Ship/SB_Ship.h"
+#include "Module/SB_BaseModule.h"
 #include "SB_Interfaces.h"
 #include "SB_DataManager.h"
 //

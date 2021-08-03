@@ -14,7 +14,7 @@ enum class ESB_GameType : uint8
 };
 
 UENUM(BlueprintType)
-enum class ESB_SlotType : uint8
+enum class ESB_ModuleSlotType : uint8
 {
 	Hull,
 	Command,
@@ -33,7 +33,8 @@ enum class ESB_ModuleType : uint8
 	Hull,
 	Command,
 	Thruster,
-	Weapon,
+	PrimaryWeapon,
+	AuxiliaryWeapon,
 	Shield
 };
 
@@ -42,7 +43,7 @@ enum class ESB_WeaponType : uint8
 {
 	Trace,
 	Projectile,
-	Laser
+	Beam
 };
 
 UENUM(BlueprintType)
@@ -77,7 +78,7 @@ enum class ESB_ShieldState : uint8
 	Cooldown
 };
 
-#pragma region +++++ Game Data ...
+#pragma region +++++ Settings ...
 
 USTRUCT(BlueprintType)
 struct FSB_GameSettings
@@ -145,73 +146,12 @@ struct FSB_GameSettings
 };
 
 USTRUCT(BlueprintType)
-struct FSB_AISettings
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float DetectionUpdateRate;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float CollisionDetectionRange;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float CollisionDetectionSphereRadius;
-
-	FSB_AISettings()
-	{
-		DetectionUpdateRate = 0.5f;
-		CollisionDetectionRange = 35000.0f;
-		CollisionDetectionSphereRadius = 1000.0f;
-	}
-};
-
-USTRUCT(BlueprintType)
-struct FSB_UISettings
-{
-	GENERATED_USTRUCT_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TMap<FName, TSubclassOf<class UUserWidget>> BattleMenuWidgets;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TMap<FName, TSubclassOf<class UUserWidget>> CampaignMenuWidgets;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class UUserWidget> Cursor_WBP;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class UUserWidget> BattleMenu_WBP;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class UUserWidget> ScoreboardMain_WBP;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class UUserWidget> ScoreboardPlayer_WBP;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class UUserWidget> BattleHUD_WBP;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class UUserWidget> Module_WBP;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class UUserWidget> ShipOTM_WBP;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class UUserWidget> DamageMarker_WBP;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class UUserWidget> Button_Small_WBP;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class UUserWidget> Button_Large_WBP;
-};
-
-USTRUCT(BlueprintType)
 struct FSB_ShipSettings
 {
 	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TArray<FSB_ModuleSlotData> CarrierShipConfig;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	float MoveSpeed;
@@ -296,9 +236,71 @@ struct FSB_ShieldSettings
 	}
 };
 
-#pragma endregion
+USTRUCT(BlueprintType)
+struct FSB_UISettings
+{
+	GENERATED_USTRUCT_BODY()
 
-#pragma region +++++ Module Data ...
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TMap<FName, TSubclassOf<class UUserWidget>> BattleMenuWidgets;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TMap<FName, TSubclassOf<class UUserWidget>> CampaignMenuWidgets;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class UUserWidget> Cursor_WBP;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class UUserWidget> BattleMenu_WBP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class UUserWidget> ScoreboardMain_WBP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class UUserWidget> ScoreboardPlayer_WBP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class UUserWidget> BattleHUD_WBP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class UUserWidget> Module_WBP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class UUserWidget> ShipOTM_WBP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class UUserWidget> DamageMarker_WBP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class UUserWidget> Button_Small_WBP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class UUserWidget> Button_Large_WBP;
+};
+
+USTRUCT(BlueprintType)
+struct FSB_AISettings
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float DetectionUpdateRate;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float CollisionDetectionRange;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float CollisionDetectionSphereRadius;
+
+	FSB_AISettings()
+	{
+		DetectionUpdateRate = 0.5f;
+		CollisionDetectionRange = 35000.0f;
+		CollisionDetectionSphereRadius = 1000.0f;
+	}
+};
+
+#pragma region +++++ Data ...
 
 USTRUCT(BlueprintType)
 struct FSB_ModuleSlotData : public FTableRowBase
@@ -306,23 +308,31 @@ struct FSB_ModuleSlotData : public FTableRowBase
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	FName SlotName;
+	uint8 UniqueID;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	ESB_ModuleSlotType Type;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	ESB_ModuleType SlotType;
+	FString DisplayName;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FVector RelativeLocation;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	FName ModuleDataRowName;
+	bool bShouldUpdateModule;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FName DefaultModuleRowName;
+ 
 	FSB_ModuleSlotData()
 	{
-		SlotName = "SlotName";
-		SlotType = ESB_ModuleType::Hull;
+		UniqueID = 0;
+		DisplayName = "SlotName";
+		Type = ESB_ModuleSlotType::Hull;
 		RelativeLocation = FVector(0.0f);
-		ModuleDataRowName = "ModuleDataRowName";
+		bShouldUpdateModule = true;
+		DefaultModuleRowName = "DataRowName";
 	}
 };
 
@@ -365,7 +375,7 @@ struct FSB_BaseModuleData : public FTableRowBase
 	{
 		DisplayName = "Default";
 		DisplayTexture = nullptr;
-		ModuleType = ESB_ModuleType::Weapon;
+		ModuleType = ESB_ModuleType::PrimaryWeapon;
 		bIsSelectable = false;
 		SkeletalMesh = nullptr;
 		WorldScale = FVector(1.0f);
@@ -398,10 +408,13 @@ struct FSB_ThrusterModuleData : public FTableRowBase
 };
 
 USTRUCT(BlueprintType)
-struct FSB_WeaponModuleData : public FTableRowBase
+struct FSB_BaseWeaponModuleData : public FTableRowBase
 {
 	GENERATED_USTRUCT_BODY()
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	bool bIsPrimary;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	ESB_WeaponType Type;
 	
@@ -426,8 +439,9 @@ struct FSB_WeaponModuleData : public FTableRowBase
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	class USoundCue* FireSound;
 
-	FSB_WeaponModuleData()
+	FSB_BaseWeaponModuleData()
 	{
+		bIsPrimary = true;
 		Type = ESB_WeaponType::Projectile;
 		RotationRate = 1.0f;
 		FireRate = 0.5f;

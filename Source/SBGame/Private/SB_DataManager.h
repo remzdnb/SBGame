@@ -6,6 +6,8 @@
 #include "GameFramework/Info.h"
 #include "SB_DataManager.generated.h"
 
+class UDataTable;
+
 UCLASS(Blueprintable)
 class ASB_DataManager : public AInfo
 {
@@ -13,12 +15,14 @@ class ASB_DataManager : public AInfo
 
 public:
 
-	FORCEINLINE UFUNCTION() class UDataTable* GetBaseModuleDT() { return BaseModuleDT; }
-	
-	FSB_BaseModuleData* const GetBaseModuleDataFromRow(FName RowName) const;
+	FORCEINLINE UFUNCTION() const UDataTable* const GetBaseModuleDT() { return BaseModuleDT; }
+	FORCEINLINE UFUNCTION() const UDataTable* const GetCarrierShipConfigDT() const { return CarrierShipConfigDT; }
+
+	const FSB_BaseModuleData* const GetBaseModuleDataFromRow(FName RowName) const;
 	const FSB_ThrusterModuleData* const GetThrusterModuleDataFromRow(const FName& RowName) const;
-	const FSB_WeaponModuleData* const GetWeaponModuleDataFromRow(const FName& RowName) const;
+	const FSB_BaseWeaponModuleData* const GetWeaponModuleDataFromRow(const FName& RowName) const;
 	const FSB_ProjectileData* const GetProjectileDataFromRow(FName RowName) const;
+	const FSB_ModuleSlotData* const GetCarrierModuleSlotFromRow(const FName& RowName) const;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FSB_GameSettings GameSettings;
@@ -35,15 +39,25 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FSB_ShieldSettings ShieldSettings;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	class UDataTable* BaseModuleDT;
+private:
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	class UDataTable* ThrusterModuleDT;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UDataTable* BaseModuleDT;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	class UDataTable* WeaponModuleDT;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UDataTable* ThrusterModuleDT;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	class UDataTable* ProjectileDT;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UDataTable* WeaponModuleDT;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UDataTable* ProjectileDT;
+
+	//
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UDataTable* CarrierShipConfigDT;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UDataTable* CargoShipConfigDT;
 };

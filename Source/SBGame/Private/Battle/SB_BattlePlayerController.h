@@ -28,4 +28,5 @@ private:
 
 	UFUNCTION() void LeftMouseButtonPressed();
 	UFUNCTION() void LeftMouseButtonReleased();
+	UFUNCTION() void TabKeyPressed();
 };

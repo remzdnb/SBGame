@@ -5,6 +5,8 @@
 #include "Blueprint/UserWidget.h"
 #include "SB_ModuleWidget.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FPressedDelegate, uint8, ModuleID, const FName&, ModuleRowName);
+
 UCLASS()
 class USB_ModuleWidget : public UUserWidget
 {
@@ -20,8 +22,13 @@ protected:
 
 public:
 
-	UFUNCTION()
-	void Update(class USB_BaseModule* const NewBaseModuleRef);
+	void Update(
+		class USB_BaseModule* const ModuleRef,
+		uint8 NewModuleID = 0,
+		const FName& NewDataRowName = "Default",
+		const FSB_BaseModuleData* const ModuleData = nullptr);
+
+	//
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnSelectionUpdatedBPI(bool bNewIsSelected);
@@ -32,9 +39,21 @@ public:
 	UFUNCTION()
 	void OnDurabilityUpdated(float NewDurability);
 
+	//
+
+	FPressedDelegate OnPressed;
+
 private:
 	
 	TWeakObjectPtr<USB_BaseModule> BaseModuleRef;
+
+	//
+
+	bool bIsHovered;
+	bool bIsPressed;
+
+	uint8 ModuleID;
+	FName DataRowName;
 
 	//
 

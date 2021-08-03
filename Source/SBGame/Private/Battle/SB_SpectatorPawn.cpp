@@ -1,4 +1,4 @@
-#include "SB_SpectatorPawn.h"
+#include "Battle/SB_SpectatorPawn.h"
 //
 #include "Components/SphereComponent.h"
 #include "GameFramework/SpringArmComponent.h" 

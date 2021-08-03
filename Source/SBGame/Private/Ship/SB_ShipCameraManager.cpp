@@ -1,6 +1,6 @@
-#include "SB_ShipCameraManager.h"
-#include "SB_Ship.h"
-#include "SB_WeaponModule.h"
+#include "Ship/SB_ShipCameraManager.h"
+#include "Ship/SB_Ship.h"
+#include "Module/Weapon/SB_BaseWeaponModule.h"
 //
 #include "GameFramework/Actor.h"
 #include "GameFramework/SpringArmComponent.h" 

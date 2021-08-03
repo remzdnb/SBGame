@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "SB_BaseModule.h"
+#include "Module/SB_BaseModule.h"
 #include "SB_ThrusterModule.generated.h"
 
 UCLASS()
@@ -12,6 +12,11 @@ class USB_ThrusterModule : public USB_BaseModule
 public:
 
 	USB_ThrusterModule();
+
+	virtual void Init(
+		const ASB_DataManager* const NewDataManager,
+		const FSB_ModuleSlotData* const NewModuleSlotData,
+		const FName& NewModuleRowName) override;
 	
 	virtual void InitializeComponent() override;
 	virtual void BeginPlay() override;
@@ -24,7 +29,7 @@ protected:
 private:
 
 	const FSB_ThrusterModuleData* ThrusterModuleData;
-	const class USB_ShipMovementComponent* ShipMovementCT;
+	const class USB_ShipMovementComponent* ShipMovement;
 
 	//
 

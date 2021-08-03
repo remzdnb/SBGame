@@ -21,7 +21,7 @@ public:
 
 	//
 
-	FORCEINLINE UFUNCTION() class UProjectileMovementComponent* const GetProjectileMovementCT() const { return ProjectileMovement; }
+	FORCEINLINE UFUNCTION() class UProjectileMovementComponent* const GetProjectileShipMovement() const { return ProjectileMovement; }
 
 private:
 

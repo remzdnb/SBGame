@@ -14,6 +14,9 @@ public:
 	virtual void NativeOnInitialized() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
+	UFUNCTION(BlueprintNativeEvent)
+	void OnModuleSelectedBPN(const class USB_BaseModule* const NewSelectedModule);
+
 private:
 
 	UFUNCTION()
@@ -23,21 +26,7 @@ private:
 	void OnModuleHovered(const class USB_BaseModule* const NewHoveredModule);
 
 	UFUNCTION()
-	void OnModuleSelected(const class USB_BaseModule* const NewSelectedModule);
-
-	UFUNCTION()
 	void OnModuleReplaced();
-	
-	//
-
-	UFUNCTION()
-	void RefreshSlotWidgets();
-
-	UFUNCTION()
-	void RefreshModuleWidgets();
-
-	UFUNCTION()
-	void RefreshModuleListWidgets();
 
 	UFUNCTION()
 	void Debug(float DeltaTime);
@@ -49,9 +38,6 @@ private:
 	
 	TWeakObjectPtr<class ASB_Ship> OwnedShip;
 
-	//TArray<class USB_ShipConfig_Slot_Widget*> SlotWidgets;
-	TArray<UUserWidget*> ModuleWidgets;
-
 	FRotator DefaultArmRotation;
 	float DefaultArmLength;
 	FRotator SelectedArmRotation;
@@ -60,19 +46,81 @@ private:
 	//
 
 	UPROPERTY(meta = (BindWidget)) class UCanvasPanel* MainCanvas;
-	UPROPERTY(meta = (BindWidget)) class UCanvasPanel* SlotsContainerCanvas;
-	UPROPERTY(meta = (BindWidget)) class UPanelWidget* ModuleSelectionMainPanel;
-	UPROPERTY(meta = (BindWidget)) class UPanelWidget* ModuleSelectionContainerPanel;
-	UPROPERTY(meta = (BindWidget)) class UPanelWidget* ModuleListContainerPanel;
+
+public:
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///// Ship selection
+
+	
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///// Slots
+
+private:
+
+	UFUNCTION()
+	void UpdateSlots();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class USB_ShipConfig_Slot_Widget> ShipConfig_Slot_WBP;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<class USB_ShipConfig_Module_Widget> ShipConfig_Module_WBP;
+	//
+	
+	UPROPERTY(meta = (BindWidget)) class UCanvasPanel* SlotsContainerCanvas;
+
+public:
+	
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///// Config module list.
+
+private:
+
+	UFUNCTION()
+	void UpdateConfigList();
+
+	UFUNCTION()
+	void OnConfigListModulePressed(uint8 ModuleID, const FName& DataRowName);
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<class USB_ModuleWidget> ModuleSlotWBP;
+	TSubclassOf<class USB_ModuleWidget> ConfigModuleWBP;
+	
+	//
+	
+	UPROPERTY(meta = (BindWidget)) class UPanelWidget* ConfigListContainerPanel;
+
+public:
+	
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///// Shop
+
+private:
+	
+	UFUNCTION()
+	void UpdateShop();
+
+	UFUNCTION()
+	void OnShopModuleSelected(uint8 NewModuleID, const FName& DataRowName);
+	
+	UFUNCTION()
+	void OnShopApplyButtonPressed(uint8 ButtonID);
+
+	//
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class USB_ModuleWidget> ShopModuleWBP;
+
+	//
+
+	UPROPERTY(meta = (BindWidget)) class UPanelWidget* ShopMainPanel;
+	UPROPERTY(meta = (BindWidget)) class UPanelWidget* ShopContainerPanel;
+	UPROPERTY(meta = (BindWidget)) class UTextBlock* ShopSlotTypeText;
+	UPROPERTY(meta = (BindWidget)) class UTextBlock* ShopModuleNameText;
+	UPROPERTY(meta = (BindWidget)) class UImage* ShopModuleImage;
+	UPROPERTY(meta = (BindWidget)) class URZ_StatWidget* ShopDurabilityStat;
+	UPROPERTY(meta = (BindWidget)) class URZ_StatWidget* ShopArmorStat;
+	UPROPERTY(meta = (BindWidget)) class URZ_ButtonWidget* ShopApplyButton;
+
+
 };
 
 

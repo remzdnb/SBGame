@@ -60,7 +60,7 @@ void USB_GameInstance::SetNewShipConfig(const TArray<FName>& NewShipConfig)
 {
 	if (SaveGame)
 	{
-		SaveGame->ShipConfig = NewShipConfig;
+		SaveGame->ModulesRowNames = NewShipConfig;
 		UGameplayStatics::SaveGameToSlot(SaveGame, "PlayerSaveGame", 0);
 
 		UE_LOG(LogTemp, Warning, TEXT("USB_GameInstance::SetNewShipConfig : Game Saved"));

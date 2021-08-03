@@ -1,7 +1,7 @@
-#include "SB_ShieldModule.h"
-#include "SB_Shield.h"
-#include "SB_Ship.h"
-#include "SB_ShipCameraManager.h"
+#include "Module/SB_ShieldModule.h"
+#include "Module/SB_Shield.h"
+#include "Ship/SB_Ship.h"
+#include "Ship/SB_ShipCameraManager.h"
 #include "SB_PlayerController.h"
 #include "SB_DataManager.h"
 //
@@ -20,21 +20,10 @@ USB_ShieldModule::USB_ShieldModule()
 	LastUndeployTime = 0.0f;
 }
 
-void USB_ShieldModule::InitializeComponent()
+void USB_ShieldModule::Init(const ASB_DataManager* const NewDataManager,
+	const FSB_ModuleSlotData* const NewModuleSlotData, const FName& NewModuleRowName)
 {
-	Super::InitializeComponent();
-
-	if (GetWorld()->IsGameWorld() == false)
-		return;
-	
-	ShieldDurability = DataManager->ShieldSettings.MaxDurability;
-}
-
-void USB_ShieldModule::BeginPlay()
-{
-	Super::BeginPlay();
-
-	// Arm used to attach both setup & shield meshes.
+		// Arm used to attach both setup & shield meshes.
 	ShieldArm = NewObject<USpringArmComponent>(GetOwner(), FName("ShieldArm"));
 	if (ShieldArm)
 	{
@@ -78,6 +67,21 @@ void USB_ShieldModule::BeginPlay()
 		ShieldActor->SetActorRelativeRotation(FRotator(90.0f, 0.0f, 0.0f));
 		ShieldActor->SetActorHiddenInGame(true);
 	}
+
+	ShieldDurability = DataManager->ShieldSettings.MaxDurability;
+}
+
+void USB_ShieldModule::InitializeComponent()
+{
+	Super::InitializeComponent();
+
+	if (GetWorld()->IsGameWorld() == false)
+		return;
+}
+
+void USB_ShieldModule::BeginPlay()
+{
+	Super::BeginPlay();
 }
 
 void USB_ShieldModule::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)

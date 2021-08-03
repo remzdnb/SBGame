@@ -2,15 +2,15 @@
 #include "SB_PlayerState.h"
 #include "SB_GameMode.h"
 #include "SB_GameState.h"
-#include "SB_Ship.h"
-#include "SB_ShipMovementComponent.h"
-#include "SB_ShipCameraManager.h"
-#include "SB_ShipOTMWidget.h"
-#include "SB_ShieldModule.h"
-#include "SB_SpectatorPawn.h"
+#include "Ship/SB_Ship.h"
+#include "Ship/SB_ShipMovementComponent.h"
+#include "Ship/SB_ShipCameraManager.h"
+#include "Battle/SB_ShipOTMWidget.h"
+#include "Module/SB_ShieldModule.h"
+#include "Battle/SB_SpectatorPawn.h"
 #include "RZ_UIManager.h"
-#include "SB_BattleMenuWidget.h"
-#include "SB_BattleHUDWidget.h"
+#include "Battle/SB_BattleMenuWidget.h"
+#include "Battle/SB_BattleHUDWidget.h"
 #include "SB_CursorWidget.h"
 #include "SB_DataManager.h"
 #include "RZ_DamageMarkerWidget.h"
@@ -99,7 +99,7 @@ void ASB_PlayerController::BeginPlay()
 		//PState->SetTeamID(1);
 	}
 
-	//SetControlRotation(FRotator(0.0f, OwnedShip->GetShipMovementCT()->GetTargetRotationYaw(), 0.0f));
+	//SetControlRotation(FRotator(0.0f, OwnedShip->GetShipMovement()->GetTargetRotationYaw(), 0.0f));
 }
 
 void ASB_PlayerController::Tick(float DeltaTime)
@@ -108,9 +108,9 @@ void ASB_PlayerController::Tick(float DeltaTime)
 
 	if (OwnedShip)
 	{
-		if (OwnedShip->GetShipMovementCT())
+		if (OwnedShip->GetShipMovement())
 		{
-			float LerpedYaw = FMath::Lerp(GetControlRotation().Yaw, OwnedShip->GetShipMovementCT()->GetTargetRotationYaw(), DataManager->ShipSettings.TurnInertia);
+			float LerpedYaw = FMath::Lerp(GetControlRotation().Yaw, OwnedShip->GetShipMovement()->GetTargetRotationYaw(), DataManager->ShipSettings.TurnInertia);
 			//SetControlRotation(FRotator(0.0f, LerpedYaw, 0.0f));
 		}
 	}
@@ -199,7 +199,6 @@ void ASB_PlayerController::SetupInputComponent()
 
 	InputComponent->BindAction("RightMouseButton", IE_Pressed, this, &ASB_PlayerController::RightMouseButtonPressed).bConsumeInput = false;
 	InputComponent->BindAction("RightMouseButton", IE_Released, this, &ASB_PlayerController::RightMouseButtonReleased).bConsumeInput = false;
-	InputComponent->BindAction("Tab", IE_Pressed, this, &ASB_PlayerController::TabKeyPressed).bConsumeInput = false;
 	InputComponent->BindAction("Shift", IE_Pressed, this, &ASB_PlayerController::ShiftKeyPressed).bConsumeInput = false;
 	InputComponent->BindAction("Shift", IE_Released, this, &ASB_PlayerController::ShiftKeyReleased).bConsumeInput = false;
 	InputComponent->BindAction("SpaceBar", IE_Pressed, this, &ASB_PlayerController::SpaceBarKeyPressed).bConsumeInput = false;
@@ -241,9 +240,9 @@ void ASB_PlayerController::MoveForwardAxis(float AxisValue)
 
 	if (OwnedShip && OwnedShip == GetPawn() && DataManager->GameSettings.GameType == ESB_GameType::Battle)
 	{
-		if (OwnedShip->GetShipMovementCT())
+		if (OwnedShip->GetShipMovement())
 		{
-			OwnedShip->GetShipMovementCT()->MoveForward(AxisValue);
+			OwnedShip->GetShipMovement()->MoveForward(AxisValue);
 		}
 	}
 }
@@ -255,9 +254,9 @@ void ASB_PlayerController::MoveRightAxis(float AxisValue)
 
 	if (OwnedShip && OwnedShip == GetPawn() && DataManager->GameSettings.GameType == ESB_GameType::Battle)
 	{
-		if (OwnedShip->GetShipMovementCT())
+		if (OwnedShip->GetShipMovement())
 		{
-			OwnedShip->GetShipMovementCT()->TurnRight(AxisValue);
+			OwnedShip->GetShipMovement()->TurnRight(AxisValue);
 		}
 	}
 }
@@ -292,29 +291,6 @@ void ASB_PlayerController::RightMouseButtonPressed()
 
 void ASB_PlayerController::RightMouseButtonReleased()
 {
-}
-
-void ASB_PlayerController::TabKeyPressed()
-{
-	if (UIManager)
-	{
-		if (UIManager->IsMenuOpen())
-		{
-			UIManager->ToggleMenu(false);
-			UIManager->ToggleHUD(true);
-
-			UWidgetBlueprintLibrary::SetInputMode_GameOnly(this);
-			bShowMouseCursor = false;
-		}
-		else
-		{
-			UIManager->ToggleMenu(true);
-			UIManager->ToggleHUD(false);
-
-			UWidgetBlueprintLibrary::SetInputMode_GameAndUIEx(this);
-			bShowMouseCursor = true;
-		}
-	}
 }
 
 void ASB_PlayerController::ShiftKeyPressed()

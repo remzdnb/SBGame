@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SB_BaseModule.h"
+#include "Module/SB_BaseModule.h"
 //
 #include "CoreMinimal.h"
 #include "SB_ShieldModule.generated.h"
@@ -16,6 +16,11 @@ class USB_ShieldModule : public USB_BaseModule
 public:
 
 	USB_ShieldModule();
+
+	virtual void Init(
+		const ASB_DataManager* const NewDataManager,
+		const FSB_ModuleSlotData* const NewModuleSlotData,
+		const FName& NewModuleRowName) override;
 
 	virtual void InitializeComponent() override;
 	virtual void BeginPlay() override;

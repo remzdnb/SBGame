@@ -39,14 +39,14 @@
               <absolutePath>D:\Unreal\Projects\Launcher_4.24.3\SBGame\Source\SBGame\Private\SB_BaseModule.h</absolutePath>
             </Favorite>
             <Favorite>
-              <name>SB_WeaponModule.cpp</name>
-              <path>Source\SBGame\Private\SB_WeaponModule.cpp</path>
-              <absolutePath>D:\Unreal\Projects\Launcher_4.24.3\SBGame\Source\SBGame\Private\SB_WeaponModule.cpp</absolutePath>
+              <name>SB_BaseWeaponModule.cpp</name>
+              <path>Source\SBGame\Private\SB_BaseWeaponModule.cpp</path>
+              <absolutePath>D:\Unreal\Projects\Launcher_4.24.3\SBGame\Source\SBGame\Private\SB_BaseWeaponModule.cpp</absolutePath>
             </Favorite>
             <Favorite>
-              <name>SB_WeaponModule.h</name>
-              <path>Source\SBGame\Private\SB_WeaponModule.h</path>
-              <absolutePath>D:\Unreal\Projects\Launcher_4.24.3\SBGame\Source\SBGame\Private\SB_WeaponModule.h</absolutePath>
+              <name>SB_BaseWeaponModule.h</name>
+              <path>Source\SBGame\Private\SB_BaseWeaponModule.h</path>
+              <absolutePath>D:\Unreal\Projects\Launcher_4.24.3\SBGame\Source\SBGame\Private\SB_BaseWeaponModule.h</absolutePath>
             </Favorite>
             <Favorite>
               <name>SB_PowerModule.cpp</name>

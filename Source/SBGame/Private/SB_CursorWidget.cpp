@@ -1,10 +1,10 @@
 #include "SB_CursorWidget.h"
-#include "SB_BaseModule.h"
+#include "Module/SB_BaseModule.h"
 #include "Campaign/SB_CampaignPlayerController.h"
 #include "Battle/SB_BattlePlayerController.h"
 #include "RZ_StatWidget.h"
 //
-#include "SB_Ship.h"
+#include "Ship/SB_Ship.h"
 #include "Components/TextBlock.h"
 
 void USB_CursorWidget::NativeOnInitialized()
@@ -21,7 +21,7 @@ void USB_CursorWidget::OnNewOwnedShip(ASB_Ship* const NewOwnedShip)
 	OwnedShip = NewOwnedShip;
 	if (OwnedShip.IsValid())
 	{
-		OwnedShip->OnModuleHovered.AddUniqueDynamic(this, &USB_CursorWidget::OnHoveredModuleUpdated);
+		//OwnedShip->OnModuleHovered.AddUniqueDynamic(this, &USB_CursorWidget::OnHoveredModuleUpdated);
 		//OwnedShip->OnModuleSelected.AddUniqueDynamic(this, &USB_CursorWidget::OnSelectedModuleUpdated);
 	}
 }
@@ -31,7 +31,7 @@ void USB_CursorWidget::OnHoveredModuleUpdated(const USB_BaseModule* const NewHov
 	if (OwnedShip.IsValid() == false)
 		return;
 
-	if (OwnedShip->GetSelectedModule() != nullptr)
+	if (OwnedShip->GetSelectedModule() == nullptr)
 	{
 		if (NewHoveredModule)
 		{

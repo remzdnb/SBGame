@@ -1,25 +1,25 @@
-///// SB_WeaponModule.h - RemzDNB
+///// SB_BaseWeaponModule.h - RemzDNB
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
 
 #include "SB_Types.h"
-#include "SB_BaseModule.h"
+#include "Module/SB_BaseModule.h"
 //
 #include "CoreMinimal.h"
-#include "SB_WeaponModule.generated.h"
+#include "SB_BaseWeaponModule.generated.h"
 
 class ASB_Ship;
 class ASB_DataManager;
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
-class USB_WeaponModule : public USB_BaseModule
+class USB_BaseWeaponModule : public USB_BaseModule
 {
 	GENERATED_BODY()
 
 public:
 
-	USB_WeaponModule();
+	USB_BaseWeaponModule();
 
 	virtual void InitializeComponent() override;
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -44,7 +44,7 @@ public:
 
 private:
 
-	const FSB_WeaponModuleData* WeaponModuleData;
+	const FSB_BaseWeaponModuleData* WeaponModuleData;
 	class USB_WeaponModuleAnimInstance* WeaponAnimInstance;
 
 	//

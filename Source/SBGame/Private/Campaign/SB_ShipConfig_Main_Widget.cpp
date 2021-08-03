@@ -1,20 +1,23 @@
 #include "Campaign/SB_ShipConfig_Main_Widget.h"
 #include "Campaign/SB_ShipConfig_Slot_Widget.h"
-#include "Campaign/SB_ShipConfig_Module_Widget.h"
 #include "Campaign/SB_CampaignPlayerController.h"
-#include "SB_ModuleWidget.h"
-#include "SB_Ship.h"
-#include "SB_ShipCameraManager.h"
-#include "SB_BaseModule.h"
+#include "Module/SB_ModuleWidget.h"
+#include "Ship/SB_Ship.h"
+#include "Ship/SB_ShipCameraManager.h"
+#include "Module/SB_BaseModule.h"
 #include "SB_DataManager.h"
+#include "SB_UtilityLibrary.h"
 //
 #include "Components/PanelWidget.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/TextBlock.h"
+#include "Components/Button.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "EngineUtils.h"
+#include "RZ_ButtonWidget.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
+#include "Components/Image.h"
 
 void USB_ShipConfig_Main_Widget::NativeOnInitialized()
 {
@@ -34,6 +37,8 @@ void USB_ShipConfig_Main_Widget::NativeOnInitialized()
 		OwnedShip = OwningPC->GetOwnedShip();
 		OwningPC->OnNewOwnedShip.AddUniqueDynamic(this, &USB_ShipConfig_Main_Widget::OnNewOwnedShip);
 	}
+
+	ShopApplyButton->OnButtonPressed.AddUniqueDynamic(this, &USB_ShipConfig_Main_Widget::OnShopApplyButtonPressed);
 }
 
 void USB_ShipConfig_Main_Widget::OnNewOwnedShip(ASB_Ship* const NewOwnedShip)
@@ -48,11 +53,12 @@ void USB_ShipConfig_Main_Widget::OnNewOwnedShip(ASB_Ship* const NewOwnedShip)
 	SelectedArmLength = 2500.0f;
 
 	OwnedShip->OnModuleHovered.AddUniqueDynamic(this, &USB_ShipConfig_Main_Widget::OnModuleHovered);
-	OwnedShip->OnModuleSelected.AddUniqueDynamic(this, &USB_ShipConfig_Main_Widget::OnModuleSelected);
+	OwnedShip->OnModuleSelected.AddUniqueDynamic(this, &USB_ShipConfig_Main_Widget::OnModuleSelectedBPN);
 	OwnedShip->OnModuleReplaced.AddUniqueDynamic(this, &USB_ShipConfig_Main_Widget::OnModuleReplaced);
 
-	RefreshSlotWidgets();
-	RefreshModuleListWidgets();
+	UpdateSlots();
+	UpdateConfigList();
+	UpdateShop();
 }
 
 void USB_ShipConfig_Main_Widget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -109,52 +115,60 @@ void USB_ShipConfig_Main_Widget::NativeTick(const FGeometry& MyGeometry, float I
 
 void USB_ShipConfig_Main_Widget::OnModuleHovered(const USB_BaseModule* const NewHoveredModule)
 {
+	UpdateSlots();
 }
 
-void USB_ShipConfig_Main_Widget::OnModuleSelected(const USB_BaseModule* const NewSelectedModule)
+void USB_ShipConfig_Main_Widget::OnModuleSelectedBPN_Implementation(const USB_BaseModule* const NewSelectedModule)
 {
 	if (NewSelectedModule)
 	{
-		ModuleSelectionMainPanel->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		UE_LOG(LogTemp, Warning, TEXT("USB_ShipConfig_Main_Widget::OnModuleSelectedBPN :: selectedModule true"));
+		
+		UpdateShop();
+		
+		ShopMainPanel->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		SlotsContainerCanvas->SetVisibility(ESlateVisibility::Collapsed);
 		
 		OwnedShip->GetShipCameraManager()->SetTargetArmLength(SelectedArmLength);
 		OwnedShip->GetShipCameraManager()->SetArmRotation(SelectedArmRotation, true);
 		OwnedShip->GetShipCameraManager()->SetArmRelativeLocation(NewSelectedModule->GetRelativeLocation());
 		UWidgetBlueprintLibrary::SetInputMode_UIOnlyEx(GetOwningPlayer());
-	
-		
-		UE_LOG(LogTemp, Warning, TEXT("USB_ShipConfig_Main_Widget::OnModuleSelected :: NewModule."));
 	}
 	else
 	{
-		ModuleSelectionMainPanel->SetVisibility(ESlateVisibility::Hidden);
+		UE_LOG(LogTemp, Warning, TEXT("USB_ShipConfig_Main_Widget::OnModuleSelectedBPN :: selectedModule false"));
+		
+		UpdateSlots();
+		
+		ShopMainPanel->SetVisibility(ESlateVisibility::Hidden);
 		SlotsContainerCanvas->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		
 		OwnedShip->GetShipCameraManager()->SetTargetArmLength(DefaultArmLength);
 		OwnedShip->GetShipCameraManager()->SetArmRotation(DefaultArmRotation, true);
 		UWidgetBlueprintLibrary::SetInputMode_GameAndUIEx(GetOwningPlayer());
-		
-		UE_LOG(LogTemp, Warning, TEXT("USB_ShipConfig_Main_Widget::OnModuleSelected :: New nullptr module."));
 	}
-
-	RefreshModuleWidgets();
 }
 
 
 inline void USB_ShipConfig_Main_Widget::OnModuleReplaced()
 {
-	RefreshSlotWidgets();
-	RefreshModuleWidgets();
-	RefreshModuleListWidgets();
+	UpdateSlots();
+	UpdateConfigList();
+	UpdateShop();
 
 	//OnModuleSelected(nullptr);
 }
 
-void USB_ShipConfig_Main_Widget::RefreshSlotWidgets()
+void USB_ShipConfig_Main_Widget::UpdateSlots()
 {
-	SlotsContainerCanvas->ClearChildren();
+	if (OwnedShip.IsValid() == false)
+		return;
 
+	//if (OwnedShip->GetSelectedModule()->ModuleID == ModuleRef-)
+	
+	/*SlotsContainerCanvas->ClearChildren();
+
+	uint8 Index = 0;
 	for (auto& ModuleRef : OwnedShip->GetAllModules())
 	{
 		if (ModuleRef->GetBaseModuleData()->bIsSelectable)
@@ -166,10 +180,43 @@ void USB_ShipConfig_Main_Widget::RefreshSlotWidgets()
 				SlotsContainerCanvas->AddChild(SlotWidget);
 			}
 		}
-	}
+
+		Index++;
+	}*/
+
+	UE_LOG(LogTemp, Warning, TEXT("USB_ShipConfig_Main_Widget::UpdateSlots"));
 }
 
-void USB_ShipConfig_Main_Widget::RefreshModuleWidgets()
+void USB_ShipConfig_Main_Widget::UpdateConfigList()
+{
+	if (OwnedShip.IsValid() == false)
+		return;
+
+	ConfigListContainerPanel->ClearChildren();
+
+	for (auto& Module : OwnedShip->GetAllModules())
+	{
+		USB_ModuleWidget* const ModuleWidget = CreateWidget<USB_ModuleWidget>(GetWorld(), ConfigModuleWBP);
+		if (ModuleWidget)
+		{
+			ConfigListContainerPanel->AddChild(ModuleWidget);
+			ModuleWidget->OnPressed.AddUniqueDynamic(this, &USB_ShipConfig_Main_Widget::OnConfigListModulePressed);
+			ModuleWidget->Update(Module);
+		}
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("USB_ShipConfig_Main_Widget::UpdateConfigList"));
+}
+
+void USB_ShipConfig_Main_Widget::OnConfigListModulePressed(uint8 ModuleID, const FName& DataRowName)
+{
+	if (OwnedShip.IsValid() == false)
+		return;
+
+	OwnedShip->SelectModuleByID(ModuleID);
+}
+
+void USB_ShipConfig_Main_Widget::UpdateShop()
 {
 	if (OwnedShip.IsValid() == false)
 		return;
@@ -177,47 +224,56 @@ void USB_ShipConfig_Main_Widget::RefreshModuleWidgets()
 	if (OwnedShip->GetSelectedModule() == nullptr)
 		return;
 
-	// selected module valid ?
+	//
+
+	ShopSlotTypeText->SetText(FText::FromString(SB_UtilityLibrary::GetEnumAsString("ESB_ModuleType", OwnedShip->GetSelectedModule()->GetBaseModuleData()->ModuleType)));
+	ShopModuleNameText->SetText(FText::FromString(OwnedShip->GetSelectedModule()->GetBaseModuleData()->DisplayName.ToString()));
+	ShopModuleImage->SetBrushFromTexture(OwnedShip->GetSelectedModule()->GetBaseModuleData()->DisplayTexture);
+
+	//
 	
-	ModuleSelectionContainerPanel->ClearChildren();
-	ModuleWidgets.Empty();
+	ShopContainerPanel->ClearChildren();
 	
 	for (auto& RowName : DataManager->GetBaseModuleDT()->GetRowNames())
 	{
-		FSB_BaseModuleData* const BaseModuleData = DataManager->GetBaseModuleDataFromRow(RowName);
+		const FSB_BaseModuleData* const BaseModuleData = DataManager->GetBaseModuleDataFromRow(RowName);
 		if (BaseModuleData)
 		{
 			if (BaseModuleData->ModuleType == OwnedShip->GetSelectedModule()->GetBaseModuleData()->ModuleType)
 			{
-				USB_ShipConfig_Module_Widget* const ModuleWidget = CreateWidget<USB_ShipConfig_Module_Widget>(GetWorld(), ShipConfig_Module_WBP);
+				USB_ModuleWidget* const ModuleWidget = CreateWidget<USB_ModuleWidget>(GetWorld(), ShopModuleWBP);
 				if (ModuleWidget)
 				{
-					ModuleWidget->Init(DataManager, OwnedShip.Get(), OwnedShip->GetSelectedModule()->ModuleID, RowName);
-					ModuleSelectionContainerPanel->AddChild(ModuleWidget);
+					ModuleWidget->Update(nullptr, OwnedShip->GetSelectedModule()->GetModuleSlotData()->UniqueID, RowName, BaseModuleData);
+					ModuleWidget->OnPressed.AddUniqueDynamic(this, &USB_ShipConfig_Main_Widget::OnShopModuleSelected);
+					ShopContainerPanel->AddChild(ModuleWidget);
+
+					if (OwnedShip->GetSelectedModule()->GetModuleRowName() == RowName)
+					{
+						ModuleWidget->OnSelectionUpdatedBPI(true);
+					}
 				}
 			}
 		}
 	}
+
+	UE_LOG(LogTemp, Warning, TEXT("USB_ShipConfig_Main_Widget::UpdateShop"));
 }
 
-void USB_ShipConfig_Main_Widget::RefreshModuleListWidgets()
+void USB_ShipConfig_Main_Widget::OnShopModuleSelected(uint8 NewModuleID, const FName& DataRowName)
 {
 	if (OwnedShip.IsValid() == false)
 		return;
 
-	ModuleListContainerPanel->ClearChildren();
+	OwnedShip->ReplaceModule(NewModuleID, DataRowName);
+}
 
-	for (auto& Module : OwnedShip->GetAllModules())
-	{
-		USB_ModuleWidget* const ModuleSlotWidget = CreateWidget<USB_ModuleWidget>(GetWorld(), ModuleSlotWBP);
-		if (ModuleSlotWidget)
-		{
-			ModuleListContainerPanel->AddChild(ModuleSlotWidget);
-			ModuleSlotWidget->Update(Module);
-		}
-	}
-
-	UE_LOG(LogTemp, Display, TEXT("USB_ShipConfig_Main_Widget::RefreshModuleListWidgets"));
+void USB_ShipConfig_Main_Widget::OnShopApplyButtonPressed(uint8 ButtonID)
+{
+	if (OwnedShip.IsValid() == false)
+		return;
+		
+	OwnedShip->SelectModule(nullptr);
 }
 
 void USB_ShipConfig_Main_Widget::Debug(float DeltaTime)

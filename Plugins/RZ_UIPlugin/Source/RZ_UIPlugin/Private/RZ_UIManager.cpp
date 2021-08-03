@@ -20,7 +20,10 @@ ARZ_UIManager::ARZ_UIManager() :
 void ARZ_UIManager::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-	
+
+	if (GetWorld()->IsGameWorld() == false)
+		return;
+
 	MenuLayoutWidget = CreateWidget<URZ_MenuLayoutWidget>(GetOwningPlayerController(), MenuLayoutWBP);
 	MenuLayoutWidget->Init(this);
 }
@@ -30,11 +33,6 @@ void ARZ_UIManager::BeginPlay()
 	Super::BeginPlay();
 
 	ToggleMenu(true);
-}
-
-void ARZ_UIManager::CreateMenuWidget(const FName& WidgetName, TSubclassOf<UUserWidget> WidgetClass)
-{
-	MenuLayoutWidget->CreateMenuWidget(WidgetName, WidgetClass, true);
 }
 
 void ARZ_UIManager::AddHUDWidget(UUserWidget* NewWidget)
@@ -63,19 +61,17 @@ void ARZ_UIManager::ToggleMenu(bool bNewIsOpen)
 
 	if (bNewIsOpen == true)
 	{
-		if (bIsMenuOpen == false)
-		{
+		if (MenuLayoutWidget->IsInViewport() == false)
 			MenuLayoutWidget->AddToViewport();
-			bIsMenuOpen = true;
-		}
+		
+		bIsMenuOpen = true;
 	}
 	else
 	{
-		if (bIsMenuOpen == true)
-		{
+		if (MenuLayoutWidget->IsInViewport() == true)
 			MenuLayoutWidget->RemoveFromParent();
-			bIsMenuOpen = false;
-		}
+
+		bIsMenuOpen = false;
 	}
 }
 

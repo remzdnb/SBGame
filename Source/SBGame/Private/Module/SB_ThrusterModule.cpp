@@ -1,6 +1,6 @@
-#include "SB_ThrusterModule.h"
-#include "SB_Ship.h"
-#include "SB_ShipMovementComponent.h"
+#include "Module/SB_ThrusterModule.h"
+#include "Ship/SB_Ship.h"
+#include "Ship/SB_ShipMovementComponent.h"
 #include "SB_DataManager.h"
 //
 #include "Particles/ParticleSystemComponent.h"
@@ -13,21 +13,14 @@ USB_ThrusterModule::USB_ThrusterModule()
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
-void USB_ThrusterModule::InitializeComponent()
+void USB_ThrusterModule::Init(
+	const ASB_DataManager* const NewDataManager, 
+	const FSB_ModuleSlotData* const NewModuleSlotData, 
+	const FName& NewModuleRowName)
 {
-	Super::InitializeComponent();
+	Super::Init(NewDataManager, NewModuleSlotData, NewModuleRowName);
 
-	if (GetWorld()->IsGameWorld() == false)
-		return;
-
-	ShipMovementCT = Cast<ASB_Ship>(GetOwner())->GetShipMovementCT();
-}
-
-void USB_ThrusterModule::BeginPlay()
-{
-	Super::BeginPlay();
-
-	ThrusterModuleData = DataManager->GetThrusterModuleDataFromRow(ModuleName);
+	ThrusterModuleData = DataManager->GetThrusterModuleDataFromRow(ModuleRowName);
 	if (ThrusterModuleData)
 	{
 		for (auto& ExhaustSocketName : ThrusterModuleData->ExhaustSocketNames)
@@ -49,6 +42,21 @@ void USB_ThrusterModule::BeginPlay()
 			}
 		}
 	}
+}
+
+void USB_ThrusterModule::InitializeComponent()
+{
+	Super::InitializeComponent();
+
+	if (GetWorld()->IsGameWorld() == false)
+		return;
+
+	ShipMovement = Cast<ASB_Ship>(GetOwner())->GetShipMovement();
+}
+
+void USB_ThrusterModule::BeginPlay()
+{
+	Super::BeginPlay();
 }
 
 void USB_ThrusterModule::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -75,12 +83,12 @@ void USB_ThrusterModule::UpdateState(const ESB_ModuleState NewState)
 
 void USB_ThrusterModule::UpdateExhaustParticle()
 {
-	if (ShipMovementCT == nullptr)
+	if (ModuleSlotData == nullptr || ShipMovement == nullptr)
 		return;
 
-	if (SlotType == ESB_SlotType::Thruster_Left)
+	if (ModuleSlotData->Type == ESB_ModuleSlotType::Thruster_Left)
 	{
-		if (ShipMovementCT->GetRightAxisValue() < 0)
+		if (ShipMovement->GetRightAxisValue() < 0)
 		{
 			SetExhaustParticlesVisibility(true);
 		}
@@ -89,9 +97,9 @@ void USB_ThrusterModule::UpdateExhaustParticle()
 			SetExhaustParticlesVisibility(false);
 		}
 	}
-	else if (SlotType == ESB_SlotType::Thruster_Right)
+	else if (ModuleSlotData->Type == ESB_ModuleSlotType::Thruster_Right)
 	{
-		if (ShipMovementCT->GetRightAxisValue() > 0)
+		if (ShipMovement->GetRightAxisValue() > 0)
 		{
 			SetExhaustParticlesVisibility(true);
 		}
@@ -100,9 +108,9 @@ void USB_ThrusterModule::UpdateExhaustParticle()
 			SetExhaustParticlesVisibility(false);
 		}
 	}
-	else if (SlotType == ESB_SlotType::Thruster_Back)
+	else if (ModuleSlotData->Type == ESB_ModuleSlotType::Thruster_Back)
 	{
-		if (ShipMovementCT->GetForwardAxisValue() > 0)
+		if (ShipMovement->GetForwardAxisValue() > 0)
 		{
 			SetExhaustParticlesVisibility(true);
 		}
@@ -111,9 +119,9 @@ void USB_ThrusterModule::UpdateExhaustParticle()
 			SetExhaustParticlesVisibility(false);
 		}
 	}
-	else if (SlotType == ESB_SlotType::Thruster_Front)
+	else if (ModuleSlotData->Type == ESB_ModuleSlotType::Thruster_Front)
 	{
-		if (ShipMovementCT->GetForwardAxisValue() < 0)
+		if (ShipMovement->GetForwardAxisValue() < 0)
 		{
 			SetExhaustParticlesVisibility(true);
 		}
@@ -137,7 +145,7 @@ void USB_ThrusterModule::Debug(float DeltaTime)
 	if (DataManager == nullptr)
 		return;
 	
-	if (DataManager->GameSettings.bIsDebugEnabled_ThrusterModule == false || OwningShip == nullptr || ShipMovementCT == nullptr)
+	if (DataManager->GameSettings.bIsDebugEnabled_ThrusterModule == false || OwningShip == nullptr || ShipMovement == nullptr)
 		return;
 
 	FString RoleString = "None";
@@ -162,9 +170,9 @@ void USB_ThrusterModule::Debug(float DeltaTime)
 	FString StringToPrint;
 
 	if (ExhaustParticles.Num() == 0)
-		StringToPrint = RoleString + this->GetName() + " // Exhaust Particle : list empty // FAxis : " + FString::FromInt(ShipMovementCT->GetForwardAxisValue());
+		StringToPrint = RoleString + this->GetName() + " // Exhaust Particle : list empty // FAxis : " + FString::FromInt(ShipMovement->GetForwardAxisValue());
 	else
-		StringToPrint = RoleString + this->GetName() + " // Exhaust Particle : list filled // FAxis : " + FString::FromInt(ShipMovementCT->GetForwardAxisValue());
+		StringToPrint = RoleString + this->GetName() + " // Exhaust Particle : list filled // FAxis : " + FString::FromInt(ShipMovement->GetForwardAxisValue());
 
 	GEngine->AddOnScreenDebugMessage(-1, DeltaTime, Color, StringToPrint);
 }

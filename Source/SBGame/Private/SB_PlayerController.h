@@ -95,7 +95,6 @@ private:
 	UFUNCTION() void MouseWheelAxis(float AxisValue);
 	UFUNCTION() void RightMouseButtonPressed();
 	UFUNCTION() void RightMouseButtonReleased();
-	UFUNCTION() void TabKeyPressed();
 	UFUNCTION() void ShiftKeyPressed();
 	UFUNCTION() void ShiftKeyReleased();
 	UFUNCTION() void SpaceBarKeyPressed();

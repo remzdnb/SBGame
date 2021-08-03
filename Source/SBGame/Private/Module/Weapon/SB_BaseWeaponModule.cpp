@@ -1,6 +1,6 @@
-#include "SB_WeaponModule.h"
+#include "SB_BaseWeaponModule.h"
 #include "SB_WeaponModuleAnimInstance.h"
-#include "SB_Ship.h"
+#include "Ship/SB_Ship.h"
 #include "SB_Projectile.h"
 #include "SB_DataManager.h"
 //
@@ -15,7 +15,7 @@
 
 #pragma region +++++ Setup ...
 
-USB_WeaponModule::USB_WeaponModule()
+USB_BaseWeaponModule::USB_BaseWeaponModule()
 {
 	bIsSelected = false;
 	bIsSniperView = false;
@@ -24,14 +24,14 @@ USB_WeaponModule::USB_WeaponModule()
 	LastFireTime = 0.0f;
 }
 
-void USB_WeaponModule::InitializeComponent()
+void USB_BaseWeaponModule::InitializeComponent()
 {
 	Super::InitializeComponent();
 
 	if (GetWorld()->IsGameWorld() == false)
 		return;
 	
-	WeaponModuleData = DataManager->GetWeaponModuleDataFromRow(ModuleName);
+	WeaponModuleData = DataManager->GetWeaponModuleDataFromRow(ModuleRowName);
 	WeaponAnimInstance = Cast<USB_WeaponModuleAnimInstance>(GetAnimInstance());
 }
 
@@ -39,7 +39,7 @@ void USB_WeaponModule::InitializeComponent()
 
 #pragma region +++++ Main ...
 
-void USB_WeaponModule::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void USB_BaseWeaponModule::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
@@ -57,7 +57,7 @@ void USB_WeaponModule::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	Debug(DeltaTime);
 }
 
-void USB_WeaponModule::SetIsWeaponSelected(bool bToggleSelection, bool bNewIsSelected)
+void USB_BaseWeaponModule::SetIsWeaponSelected(bool bToggleSelection, bool bNewIsSelected)
 {
 	if (bToggleSelection)
 	{
@@ -79,7 +79,7 @@ void USB_WeaponModule::SetIsWeaponSelected(bool bToggleSelection, bool bNewIsSel
 	}
 }
 
-void USB_WeaponModule::ToggleSniperView(bool bNewIsSniperView)
+void USB_BaseWeaponModule::ToggleSniperView(bool bNewIsSniperView)
 {
 	bIsSniperView = bNewIsSniperView;
 }
@@ -88,7 +88,7 @@ void USB_WeaponModule::ToggleSniperView(bool bNewIsSniperView)
 
 #pragma region +++++ AutoLock ...
 
-void USB_WeaponModule::SetTargetShip(ASB_Ship* const NewTargetShip)
+void USB_BaseWeaponModule::SetTargetShip(ASB_Ship* const NewTargetShip)
 {
 	if (TargetShip)
 		TargetShip->ToggleOutline(false);
@@ -101,7 +101,7 @@ void USB_WeaponModule::SetTargetShip(ASB_Ship* const NewTargetShip)
 	bWantsToFire = false;
 }
 
-void USB_WeaponModule::SelectAutoLockCT()
+void USB_BaseWeaponModule::SelectAutoLockCT()
 {
 	if (OwningShip == nullptr)
 		return;
@@ -147,7 +147,7 @@ void USB_WeaponModule::SelectAutoLockCT()
 
 #pragma region +++++ Fire ...
 
-void USB_WeaponModule::SetWantsToFire(bool bNewWantsToFire)
+void USB_BaseWeaponModule::SetWantsToFire(bool bNewWantsToFire)
 {
 	if (TargetShip)
 	{
@@ -159,7 +159,7 @@ void USB_WeaponModule::SetWantsToFire(bool bNewWantsToFire)
 	bWantsToFire = bNewWantsToFire;
 }
 
-void USB_WeaponModule::FireTick()
+void USB_BaseWeaponModule::FireTick()
 {
 	if (OwningShip->GetLocalRole() < ROLE_Authority)
 		return;
@@ -182,7 +182,7 @@ void USB_WeaponModule::FireTick()
 	}
 }
 
-void USB_WeaponModule::FireOnce()
+void USB_BaseWeaponModule::FireOnce()
 {
 	for (uint8 MuzzleIndex = 1; MuzzleIndex <= WeaponModuleData->MuzzleCount; MuzzleIndex++)
 	{
@@ -197,12 +197,12 @@ void USB_WeaponModule::FireOnce()
 		if (Projectile)
 		{
 			//Projectile->Init(WeaponModuleData, (ASB_Ship*)GetOwner());
-			Projectile->GetProjectileMovementCT()->InitialSpeed = 100000.0f;
-			Projectile->GetProjectileMovementCT()->MaxSpeed = 100000.0f;
+			Projectile->GetProjectileShipMovement()->InitialSpeed = 100000.0f;
+			Projectile->GetProjectileShipMovement()->MaxSpeed = 100000.0f;
 			UGameplayStatics::FinishSpawningActor(Projectile, SpawnTransform);
 
 			if (DataManager->GameSettings.bIsDebugEnabled_WeaponModule)
-				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, "USB_WeaponModule::FireOnce : Projectile spawned");
+				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, "USB_BaseWeaponModule::FireOnce : Projectile spawned");
 		}
 
 		if (WeaponModuleData->MuzzleParticle && bHiddenInGame == false)
@@ -226,7 +226,7 @@ void USB_WeaponModule::FireOnce()
 
 #pragma region +++++ Network / Debug ...
 
-void USB_WeaponModule::Debug(float DeltaTime)
+void USB_BaseWeaponModule::Debug(float DeltaTime)
 {
 	if (OwningShip == nullptr)
 		return;
