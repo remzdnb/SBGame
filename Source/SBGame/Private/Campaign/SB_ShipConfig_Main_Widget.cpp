@@ -1,3 +1,4 @@
+// SBGame
 #include "Campaign/SB_ShipConfig_Main_Widget.h"
 #include "Campaign/SB_ShipConfig_Slot_Widget.h"
 #include "Campaign/SB_CampaignPlayerController.h"
@@ -6,22 +7,29 @@
 #include "Ship/SB_ShipCameraManager.h"
 #include "Module/SB_BaseModule.h"
 #include "SB_DataManager.h"
+#include "SB_GameInstance.h"
+#include "SB_PlayerSaveGame.h"
 #include "SB_UtilityLibrary.h"
-//
+// UIPlugin
+#include "RZ_ButtonWidget.h"
+// Engine
 #include "Components/PanelWidget.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
-#include "Components/TextBlock.h"
 #include "Components/Button.h"
-#include "Blueprint/WidgetLayoutLibrary.h"
-#include "EngineUtils.h"
-#include "RZ_ButtonWidget.h"
-#include "Blueprint/WidgetBlueprintLibrary.h"
+#include "Components/TextBlock.h"
 #include "Components/Image.h"
+#include "EngineUtils.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
+
+#pragma region +++++ Main ...
 
 void USB_ShipConfig_Main_Widget::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
+
+	GInstance = Cast<USB_GameInstance>(GetGameInstance());
 	
 	for (TActorIterator<ASB_DataManager> NewDataManager(GetWorld()); NewDataManager; ++NewDataManager)
 	{
@@ -34,10 +42,13 @@ void USB_ShipConfig_Main_Widget::NativeOnInitialized()
 	{
 		// If ships references are already set, initialize now. If not, wait for PlayerController events.
 
-		OwnedShip = OwningPC->GetOwnedShip();
+		//OwnedShip = OwningPC->GetOwnedShip();
+		OnNewOwnedShip(OwningPC->GetOwnedShip());
 		OwningPC->OnNewOwnedShip.AddUniqueDynamic(this, &USB_ShipConfig_Main_Widget::OnNewOwnedShip);
 	}
 
+	PrevShipButton->OnPressed.AddUniqueDynamic(this, &USB_ShipConfig_Main_Widget::OnPrevShipButtonPressed);
+	NextShipButton->OnPressed.AddUniqueDynamic(this, &USB_ShipConfig_Main_Widget::OnNextShipButtonPressed);
 	ShopApplyButton->OnButtonPressed.AddUniqueDynamic(this, &USB_ShipConfig_Main_Widget::OnShopApplyButtonPressed);
 }
 
@@ -56,8 +67,8 @@ void USB_ShipConfig_Main_Widget::OnNewOwnedShip(ASB_Ship* const NewOwnedShip)
 	OwnedShip->OnModuleSelected.AddUniqueDynamic(this, &USB_ShipConfig_Main_Widget::OnModuleSelectedBPN);
 	OwnedShip->OnModuleReplaced.AddUniqueDynamic(this, &USB_ShipConfig_Main_Widget::OnModuleReplaced);
 
+	UpdateModuleList();
 	UpdateSlots();
-	UpdateConfigList();
 	UpdateShop();
 }
 
@@ -149,15 +160,91 @@ void USB_ShipConfig_Main_Widget::OnModuleSelectedBPN_Implementation(const USB_Ba
 	}
 }
 
-
 inline void USB_ShipConfig_Main_Widget::OnModuleReplaced()
 {
 	UpdateSlots();
-	UpdateConfigList();
+	UpdateModuleList();
 	UpdateShop();
 
 	//OnModuleSelected(nullptr);
 }
+
+#pragma endregion
+
+#pragma region +++++ Ship selection & Module list ...
+
+void USB_ShipConfig_Main_Widget::OnPrevShipButtonPressed()
+{
+	const FName& SavedShipRowName = GInstance->GetSaveGame()->ShipDataRowName;
+
+	for (int32 Index = 0; Index != DataManager->ShipDT->GetRowNames().Num(); ++Index)
+	{
+		if (DataManager->ShipDT->GetRowNames()[Index] == SavedShipRowName)
+		{
+			if (DataManager->ShipDT->GetRowNames().IsValidIndex(Index - 1) == false)
+			{
+				OwningPC->SelectShip(DataManager->ShipDT->GetRowNames()[DataManager->ShipDT->GetRowNames().Num() - 1]);
+				return;
+			}
+
+			OwningPC->SelectShip(DataManager->ShipDT->GetRowNames()[Index - 1]);
+			return;
+		}
+	}
+}
+
+void USB_ShipConfig_Main_Widget::OnNextShipButtonPressed()
+{
+	const FName& SavedShipRowName = GInstance->GetSaveGame()->ShipDataRowName;
+	
+	for (int32 Index = 0; Index != DataManager->ShipDT->GetRowNames().Num(); ++Index)
+	{
+		if (DataManager->ShipDT->GetRowNames()[Index] == SavedShipRowName)
+		{
+			if (DataManager->ShipDT->GetRowNames().IsValidIndex(Index + 1) == false)
+			{
+				OwningPC->SelectShip(DataManager->ShipDT->GetRowNames()[0]);
+				return;
+			}
+
+			OwningPC->SelectShip(DataManager->ShipDT->GetRowNames()[Index + 1]);
+			return;
+		}
+	}
+}
+
+void USB_ShipConfig_Main_Widget::UpdateModuleList()
+{
+	if (OwnedShip.IsValid() == false)
+		return;
+
+	ShipNameText->SetText(FText::FromString(GInstance->GetSaveGame()->ShipDataRowName.ToString()));
+
+	ModuleListContainerPanel->ClearChildren();
+
+	for (auto& Module : OwnedShip->GetAllModules())
+	{
+		USB_ModuleWidget* const ModuleWidget = CreateWidget<USB_ModuleWidget>(GetWorld(), ConfigModuleWBP);
+		if (ModuleWidget)
+		{
+			ModuleListContainerPanel->AddChild(ModuleWidget);
+			ModuleWidget->OnPressed.AddUniqueDynamic(this, &USB_ShipConfig_Main_Widget::OnConfigListModulePressed);
+			ModuleWidget->Update(Module);
+		}
+	}
+}
+
+void USB_ShipConfig_Main_Widget::OnConfigListModulePressed(uint8 ModuleID, const FName& DataRowName)
+{
+	if (OwnedShip.IsValid() == false)
+		return;
+
+	OwnedShip->SelectModuleByID(ModuleID);
+}
+
+#pragma endregion
+
+#pragma region +++++ Slots ...
 
 void USB_ShipConfig_Main_Widget::UpdateSlots()
 {
@@ -171,50 +258,25 @@ void USB_ShipConfig_Main_Widget::UpdateSlots()
 	uint8 Index = 0;
 	for (auto& ModuleRef : OwnedShip->GetAllModules())
 	{
-		if (ModuleRef->GetBaseModuleData()->bIsSelectable)
-		{
-			USB_ShipConfig_Slot_Widget* const SlotWidget = CreateWidget<USB_ShipConfig_Slot_Widget>(GetWorld(), ShipConfig_Slot_WBP);
-			if (SlotWidget)
-			{
-				SlotWidget->Init(OwnedShip.Get(), ModuleRef);
-				SlotsContainerCanvas->AddChild(SlotWidget);
-			}
-		}
-
-		Index++;
-	}*/
-
-	UE_LOG(LogTemp, Warning, TEXT("USB_ShipConfig_Main_Widget::UpdateSlots"));
-}
-
-void USB_ShipConfig_Main_Widget::UpdateConfigList()
-{
-	if (OwnedShip.IsValid() == false)
-		return;
-
-	ConfigListContainerPanel->ClearChildren();
-
-	for (auto& Module : OwnedShip->GetAllModules())
+	if (ModuleRef->GetBaseModuleData()->bIsSelectable)
 	{
-		USB_ModuleWidget* const ModuleWidget = CreateWidget<USB_ModuleWidget>(GetWorld(), ConfigModuleWBP);
-		if (ModuleWidget)
-		{
-			ConfigListContainerPanel->AddChild(ModuleWidget);
-			ModuleWidget->OnPressed.AddUniqueDynamic(this, &USB_ShipConfig_Main_Widget::OnConfigListModulePressed);
-			ModuleWidget->Update(Module);
-		}
+	USB_ShipConfig_Slot_Widget* const SlotWidget = CreateWidget<USB_ShipConfig_Slot_Widget>(GetWorld(), ShipConfig_Slot_WBP);
+	if (SlotWidget)
+	{
+	SlotWidget->Init(OwnedShip.Get(), ModuleRef);
+	SlotsContainerCanvas->AddChild(SlotWidget);
+	}
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("USB_ShipConfig_Main_Widget::UpdateConfigList"));
+	Index++;
+	}*/
+
+	//UE_LOG(LogTemp, Warning, TEXT("USB_ShipConfig_Main_Widget::UpdateSlots"));
 }
 
-void USB_ShipConfig_Main_Widget::OnConfigListModulePressed(uint8 ModuleID, const FName& DataRowName)
-{
-	if (OwnedShip.IsValid() == false)
-		return;
+#pragma endregion
 
-	OwnedShip->SelectModuleByID(ModuleID);
-}
+#pragma region +++++ Shop ...
 
 void USB_ShipConfig_Main_Widget::UpdateShop()
 {
@@ -234,7 +296,7 @@ void USB_ShipConfig_Main_Widget::UpdateShop()
 	
 	ShopContainerPanel->ClearChildren();
 	
-	for (auto& RowName : DataManager->GetBaseModuleDT()->GetRowNames())
+	for (auto& RowName : DataManager->BaseModuleDT->GetRowNames())
 	{
 		const FSB_BaseModuleData* const BaseModuleData = DataManager->GetBaseModuleDataFromRow(RowName);
 		if (BaseModuleData)
@@ -257,7 +319,7 @@ void USB_ShipConfig_Main_Widget::UpdateShop()
 		}
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("USB_ShipConfig_Main_Widget::UpdateShop"));
+	//UE_LOG(LogTemp, Warning, TEXT("USB_ShipConfig_Main_Widget::UpdateShop"));
 }
 
 void USB_ShipConfig_Main_Widget::OnShopModuleSelected(uint8 NewModuleID, const FName& DataRowName)
@@ -275,6 +337,8 @@ void USB_ShipConfig_Main_Widget::OnShopApplyButtonPressed(uint8 ButtonID)
 		
 	OwnedShip->SelectModule(nullptr);
 }
+
+#pragma endregion
 
 void USB_ShipConfig_Main_Widget::Debug(float DeltaTime)
 {

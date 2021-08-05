@@ -7,73 +7,21 @@
   <component name="ChangeListManager">
     <list default="true" id="5baad2d9-f65c-4900-a7d9-f0391a0141a7" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.SBGame/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.SBGame/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Plugins/RZ_UIPlugin/Source/RZ_UIPlugin/Private/RZ_MenuLayoutWidget.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Plugins/RZ_UIPlugin/Source/RZ_UIPlugin/Private/RZ_MenuLayoutWidget.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Plugins/RZ_UIPlugin/Source/RZ_UIPlugin/Private/RZ_UIManager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Plugins/RZ_UIPlugin/Source/RZ_UIPlugin/Private/RZ_UIManager.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Plugins/RZ_UIPlugin/Source/RZ_UIPlugin/Public/RZ_UIManager.h" beforeDir="false" afterPath="$PROJECT_DIR$/Plugins/RZ_UIPlugin/Source/RZ_UIPlugin/Public/RZ_UIManager.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Plugins/RZ_UIPlugin/Source/RZ_UIPlugin/RZ_UIPlugin.Build.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Plugins/RZ_UIPlugin/Source/RZ_UIPlugin/RZ_UIPlugin.Build.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SBGame.favdoc" beforeDir="false" afterPath="$PROJECT_DIR$/SBGame.favdoc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/Battle/SB_BattlePlayerController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SBGame/Private/Battle/SB_BattlePlayerController.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/Battle/SB_BattlePlayerController.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SBGame/Private/Battle/SB_BattlePlayerController.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/Campaign/SB_CampaignPlayerController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SBGame/Private/Campaign/SB_CampaignPlayerController.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/Campaign/SB_CampaignPlayerController.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SBGame/Private/Campaign/SB_CampaignPlayerController.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/Campaign/SB_ShipConfig_Main_Widget.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SBGame/Private/Campaign/SB_ShipConfig_Main_Widget.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/Campaign/SB_ShipConfig_Main_Widget.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SBGame/Private/Campaign/SB_ShipConfig_Main_Widget.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/Campaign/SB_ShipConfig_Module_Widget.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/Campaign/SB_ShipConfig_Module_Widget.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/Campaign/SB_ShipConfig_Slot_Widget.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SBGame/Private/Campaign/SB_ShipConfig_Slot_Widget.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_AIController.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_AIController.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_BaseModule.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_BaseModule.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_BattleHUDWidget.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_BattleHUDWidget.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_BattleMenuWidget.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_BattleMenuWidget.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_CursorWidget.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SBGame/Private/SB_CursorWidget.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/Module/SB_BaseModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SBGame/Private/Module/SB_BaseModule.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_DataManager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SBGame/Private/SB_DataManager.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_DataManager.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SBGame/Private/SB_DataManager.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_GameInstance.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SBGame/Private/SB_GameInstance.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_GameMode.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SBGame/Private/SB_GameMode.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_ModuleWidget.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_ModuleWidget.h" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_PlayerController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SBGame/Private/SB_PlayerController.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_PlayerController.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SBGame/Private/SB_PlayerController.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_PlayerSaveGame.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SBGame/Private/SB_PlayerSaveGame.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_PlayerSaveGame.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SBGame/Private/SB_PlayerSaveGame.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_PowerModule.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_PowerModule.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_Projectile.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_Projectile.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_ScoreboardMainWidget.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_ScoreboardMainWidget.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_ScoreboardPlayerWidget.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_ScoreboardPlayerWidget.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_Shield.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_Shield.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_ShieldModule.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_ShieldModule.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_Ship.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_Ship.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_ShipCameraManager.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_ShipCameraManager.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_ShipMovementComponent.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_ShipMovementComponent.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_ShipOTMWidget.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_ShipOTMWidget.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_ShipPowerComponent.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_ShipPowerComponent.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_ShipStart.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_ShipStart.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_SpectatorPawn.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_SpectatorPawn.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_SpectatorWidget.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_SpectatorWidget.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_ThrusterModule.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_ThrusterModule.h" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_Types.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SBGame/Private/SB_Types.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_WeaponModule.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_WeaponModule.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_WeaponModuleAnimInstance.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_WeaponModuleAnimInstance.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/SB_UtilityLibrary.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SBGame/Private/SB_UtilityLibrary.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/SBGame/Private/Ship/SB_Ship.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SBGame/Private/Ship/SB_Ship.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -96,8 +44,6 @@
   </component>
   <component name="IdeDocumentHistory">
     <changedPaths>
-      <option value="$PROJECT_DIR$/Source/SBGame/Private/SB_CursorWidget.h" />
-      <option value="$PROJECT_DIR$/Source/SBGame/Private/Campaign/SB_CampaignPlayerController.h" />
       <option value="$PROJECT_DIR$/Source/SBGame/Private/SB_Ship.h" />
       <option value="$PROJECT_DIR$/Source/SBGame/Private/SB_ModuleWidget.h" />
       <option value="$PROJECT_DIR$/Source/SBGame/Private/SB_ModuleWidget.cpp" />
@@ -119,34 +65,36 @@
       <option value="$PROJECT_DIR$/Source/SBGame/Private/Module/Weapon/SB_TraceWeaponModule.h" />
       <option value="$PROJECT_DIR$/Source/SBGame/Private/Module/Weapon/SB_BeamWeaponModule.h" />
       <option value="$PROJECT_DIR$/Source/SBGame/Private/Module/Weapon/SB_BeamWeaponModule.cpp" />
-      <option value="$PROJECT_DIR$/Source/SBGame/Private/SB_PlayerSaveGame.cpp" />
-      <option value="$PROJECT_DIR$/Source/SBGame/Private/SB_PlayerSaveGame.h" />
-      <option value="$PROJECT_DIR$/Source/SBGame/Private/SB_GameInstance.cpp" />
-      <option value="$PROJECT_DIR$/Source/SBGame/Private/SB_DataManager.h" />
       <option value="$PROJECT_DIR$/Source/SBGame/Private/Ship/SB_Ship.h" />
-      <option value="$PROJECT_DIR$/Source/SBGame/Private/SB_DataManager.cpp" />
       <option value="$PROJECT_DIR$/Source/SBGame/Private/Module/Weapon/SB_BaseWeaponModule.cpp" />
       <option value="$PROJECT_DIR$/Source/SBGame/Private/Module/SB_ModuleWidget.cpp" />
-      <option value="$PROJECT_DIR$/Source/SBGame/Private/Ship/SB_Ship.cpp" />
       <option value="$PROJECT_DIR$/Source/SBGame/Private/Module/SB_BaseModule.h" />
       <option value="$PROJECT_DIR$/Source/SBGame/Private/Module/SB_ThrusterModule.h" />
       <option value="$PROJECT_DIR$/Source/SBGame/Private/Module/SB_ShieldModule.h" />
       <option value="$PROJECT_DIR$/Source/SBGame/Private/Module/SB_ShieldModule.cpp" />
       <option value="$PROJECT_DIR$/Source/SBGame/Private/Module/SB_ThrusterModule.cpp" />
-      <option value="$PROJECT_DIR$/Source/SBGame/Private/Module/SB_BaseModule.cpp" />
       <option value="$PROJECT_DIR$/Source/SBGame/Private/SB_CursorWidget.cpp" />
-      <option value="$PROJECT_DIR$/Source/SBGame/Private/SB_PlayerController.cpp" />
-      <option value="$PROJECT_DIR$/Source/SBGame/Private/SB_PlayerController.h" />
       <option value="$PROJECT_DIR$/Source/SBGame/Private/Battle/SB_BattlePlayerController.h" />
       <option value="$PROJECT_DIR$/Source/SBGame/Private/Battle/SB_BattlePlayerController.cpp" />
       <option value="$PROJECT_DIR$/Plugins/RZ_UIPlugin/Source/RZ_UIPlugin/RZ_UIPlugin.Build.cs" />
       <option value="$PROJECT_DIR$/Plugins/RZ_UIPlugin/Source/RZ_UIPlugin/Public/RZ_UIManager.h" />
       <option value="$PROJECT_DIR$/Plugins/RZ_UIPlugin/Source/RZ_UIPlugin/Private/RZ_UIManager.cpp" />
-      <option value="$PROJECT_DIR$/Source/SBGame/Private/Campaign/SB_CampaignPlayerController.cpp" />
       <option value="$PROJECT_DIR$/Plugins/RZ_UIPlugin/Source/RZ_UIPlugin/Private/RZ_MenuLayoutWidget.cpp" />
-      <option value="$PROJECT_DIR$/Source/SBGame/Private/Campaign/SB_ShipConfig_Main_Widget.cpp" />
-      <option value="$PROJECT_DIR$/Source/SBGame/Private/Campaign/SB_ShipConfig_Main_Widget.h" />
       <option value="$PROJECT_DIR$/Source/SBGame/Private/SB_Types.h" />
+      <option value="$PROJECT_DIR$/Source/SBGame/Private/Ship/SB_Ship.cpp" />
+      <option value="$PROJECT_DIR$/Source/SBGame/Private/SB_PlayerController.cpp" />
+      <option value="$PROJECT_DIR$/Source/SBGame/Private/SB_PlayerController.h" />
+      <option value="$PROJECT_DIR$/Source/SBGame/Private/SB_UtilityLibrary.h" />
+      <option value="$PROJECT_DIR$/Source/SBGame/Private/Campaign/SB_CampaignPlayerController.h" />
+      <option value="$PROJECT_DIR$/Source/SBGame/Private/SB_PlayerSaveGame.h" />
+      <option value="$PROJECT_DIR$/Source/SBGame/Private/SB_PlayerSaveGame.cpp" />
+      <option value="$PROJECT_DIR$/Source/SBGame/Private/Module/SB_BaseModule.cpp" />
+      <option value="$PROJECT_DIR$/Source/SBGame/Private/Campaign/SB_CampaignPlayerController.cpp" />
+      <option value="$PROJECT_DIR$/Source/SBGame/Private/SB_GameInstance.cpp" />
+      <option value="$PROJECT_DIR$/Source/SBGame/Private/Campaign/SB_ShipConfig_Main_Widget.h" />
+      <option value="$PROJECT_DIR$/Source/SBGame/Private/SB_DataManager.h" />
+      <option value="$PROJECT_DIR$/Source/SBGame/Private/SB_DataManager.cpp" />
+      <option value="$PROJECT_DIR$/Source/SBGame/Private/Campaign/SB_ShipConfig_Main_Widget.cpp" />
     </changedPaths>
   </component>
   <component name="ProjectId" id="1vfxuTotKHFWKS1YO1ygfzCEOKL" />
@@ -852,7 +800,10 @@
       <workItem from="1627924694201" duration="5319000" />
       <workItem from="1627956000832" duration="852000" />
       <workItem from="1628014526409" duration="4993000" />
-      <workItem from="1628024051863" duration="2105000" />
+      <workItem from="1628024051863" duration="15414000" />
+      <workItem from="1628106381851" duration="4299000" />
+      <workItem from="1628136742854" duration="1242000" />
+      <workItem from="1628138044563" duration="487000" />
     </task>
     <servers />
   </component>

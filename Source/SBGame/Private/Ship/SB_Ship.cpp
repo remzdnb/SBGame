@@ -402,7 +402,7 @@ void ASB_Ship::LoadConfig(const TArray<FName>& NewConfig)
 		BaseModule->DestroyComponent();
 	}
 
-	// Create new modules
+	/* Create new modules
 	uint8 Index = 0;
 	const TArray<FName> DefaultConfigRowNames = DataManager->GetCarrierShipConfigDT()->GetRowNames();
 	for (auto& DefaultConfigRowName : DefaultConfigRowNames)
@@ -429,7 +429,7 @@ void ASB_Ship::LoadConfig(const TArray<FName>& NewConfig)
 		}
 
 		Index++;
-	}
+	}*/
 }
 
 void ASB_Ship::SaveConfig()

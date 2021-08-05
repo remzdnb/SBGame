@@ -72,7 +72,7 @@ void USB_BaseModule::OnHoverStart()
 {
 	if (BaseModuleData == nullptr)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("USB_BaseModule::OnHoverStart : BaseModuleData == nullptr"));
+		//UE_LOG(LogTemp, Warning, TEXT("USB_BaseModule::OnHoverStart : BaseModuleData == nullptr"));
 		return;
 	}
 	

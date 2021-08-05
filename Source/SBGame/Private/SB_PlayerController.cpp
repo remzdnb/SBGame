@@ -1,5 +1,6 @@
 #include "SB_PlayerController.h"
 #include "SB_PlayerState.h"
+#include "SB_GameInstance.h"
 #include "SB_GameMode.h"
 #include "SB_GameState.h"
 #include "Ship/SB_Ship.h"
@@ -43,6 +44,7 @@ void ASB_PlayerController::PostInitializeComponents()
 		break;
 	}*/
 
+	GInstance = Cast<USB_GameInstance>(GetGameInstance());
 	GMode = Cast<ASB_GameMode>(GetWorld()->GetAuthGameMode());
 	PState = Cast<ASB_PlayerState>(PlayerState);
 }

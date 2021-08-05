@@ -53,7 +53,7 @@ void USB_GameInstance::ApplySaveGame()
 		UGameplayStatics::SaveGameToSlot(SaveGame, "PlayerSaveGame", 0);
 	}
 
-	Debug();
+	//Debug();
 }
 
 void USB_GameInstance::SetNewShipConfig(const TArray<FName>& NewShipConfig)

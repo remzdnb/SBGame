@@ -34,6 +34,7 @@ private:
 	//
 
 	class ASB_DataManager* DataManager;
+	class USB_GameInstance* GInstance;
 	class ASB_CampaignPlayerController* OwningPC;
 	
 	TWeakObjectPtr<class ASB_Ship> OwnedShip;
@@ -49,9 +50,32 @@ private:
 
 public:
 
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	///// Ship selection
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///// Ship selection & Module list
 
+private:
+
+	UFUNCTION()
+	void OnPrevShipButtonPressed();
+
+	UFUNCTION()
+	void OnNextShipButtonPressed();
+	
+	UFUNCTION()
+	void UpdateModuleList();
+
+	UFUNCTION()
+	void OnConfigListModulePressed(uint8 ModuleID, const FName& DataRowName);
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class USB_ModuleWidget> ConfigModuleWBP;
+	
+	//
+
+	UPROPERTY(meta = (BindWidget)) class UButton* PrevShipButton;
+	UPROPERTY(meta = (BindWidget)) class UButton* NextShipButton;
+	UPROPERTY(meta = (BindWidget)) class UTextBlock* ShipNameText;
+	UPROPERTY(meta = (BindWidget)) class UPanelWidget* ModuleListContainerPanel;
 	
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	///// Slots
@@ -67,26 +91,6 @@ private:
 	//
 	
 	UPROPERTY(meta = (BindWidget)) class UCanvasPanel* SlotsContainerCanvas;
-
-public:
-	
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	///// Config module list.
-
-private:
-
-	UFUNCTION()
-	void UpdateConfigList();
-
-	UFUNCTION()
-	void OnConfigListModulePressed(uint8 ModuleID, const FName& DataRowName);
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<class USB_ModuleWidget> ConfigModuleWBP;
-	
-	//
-	
-	UPROPERTY(meta = (BindWidget)) class UPanelWidget* ConfigListContainerPanel;
 
 public:
 	

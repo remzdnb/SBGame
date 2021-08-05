@@ -15,15 +15,14 @@ class ASB_DataManager : public AInfo
 
 public:
 
-	FORCEINLINE UFUNCTION() const UDataTable* const GetBaseModuleDT() { return BaseModuleDT; }
-	FORCEINLINE UFUNCTION() const UDataTable* const GetCarrierShipConfigDT() const { return CarrierShipConfigDT; }
-
-	const FSB_BaseModuleData* const GetBaseModuleDataFromRow(FName RowName) const;
+	const FSB_ShipData* const GetShipDataFromRow(const FName& RowName) const;
+	const FSB_BaseModuleData* const GetBaseModuleDataFromRow(const FName& RowName) const;
 	const FSB_ThrusterModuleData* const GetThrusterModuleDataFromRow(const FName& RowName) const;
 	const FSB_BaseWeaponModuleData* const GetWeaponModuleDataFromRow(const FName& RowName) const;
-	const FSB_ProjectileData* const GetProjectileDataFromRow(FName RowName) const;
-	const FSB_ModuleSlotData* const GetCarrierModuleSlotFromRow(const FName& RowName) const;
+	const FSB_ProjectileData* const GetProjectileDataFromRow(const FName& RowName) const;
 
+	// Settings
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FSB_GameSettings GameSettings;
 
@@ -39,8 +38,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FSB_ShieldSettings ShieldSettings;
 
-private:
-
+	// DataTables
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UDataTable*	ShipDT;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UDataTable* BaseModuleDT;
 
@@ -52,12 +54,4 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UDataTable* ProjectileDT;
-
-	//
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	UDataTable* CarrierShipConfigDT;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	UDataTable* CargoShipConfigDT;
 };

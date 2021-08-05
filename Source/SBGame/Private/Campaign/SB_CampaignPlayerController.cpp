@@ -5,10 +5,13 @@
 #include "SB_DataManager.h"
 #include "Ship/SB_Ship.h"
 #include "Ship/SB_ShipCameraManager.h"
+#include "SB_PlayerSaveGame.h"
 // UIPlugin
 #include "RZ_UIManager.h"
 #include "RZ_MenuLayoutWidget.h"
 // Engine
+#include "SB_GameInstance.h"
+#include "Kismet/GameplayStatics.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 
 void ASB_CampaignPlayerController::BeginPlay()
@@ -17,12 +20,28 @@ void ASB_CampaignPlayerController::BeginPlay()
 
 	if (IsLocalController())
 	{
-		//
+		// Ship
+
+		TSubclassOf<ASB_Ship> ShipClassToSpawn;
+		const FSB_ShipData* const ShipData = DataManager->GetShipDataFromRow(GInstance->GetSaveGame()->ShipDataRowName);
+		if (ShipData)
+			ShipClassToSpawn = ShipData->ShipBP;	
+		else
+			ShipClassToSpawn = DataManager->GetShipDataFromRow(DataManager->ShipDT->GetRowNames()[0])->ShipBP;
 		
-		if (GMode)
+		const FTransform SpawnTransform = FTransform(FVector::ZeroVector);
+		ASB_Ship* NewShip = GetWorld()->SpawnActorDeferred<ASB_Ship>(ShipClassToSpawn, SpawnTransform, this, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+		if (NewShip)
 		{
-			GMode->QueryRespawn(this);
+			UGameplayStatics::FinishSpawningActor(NewShip, SpawnTransform);
+			OnPossess(NewShip);
+			OnRep_Pawn();
 		}
+		
+		//if (GMode)
+		//{
+			//GMode->QueryRespawn(this);
+		//}
 
 		// UI
 		
@@ -53,11 +72,37 @@ void ASB_CampaignPlayerController::OnRep_Pawn()
 	}
 }
 
+void ASB_CampaignPlayerController::SelectShip(const FName& NewShipDataRowName)
+{
+	UE_LOG(LogTemp, Log, TEXT("ASB_CampaignPlayerController::NewShipDataRowName : %s"), *NewShipDataRowName.ToString());
+	
+	const FSB_ShipData* const NewShipData = DataManager->GetShipDataFromRow(NewShipDataRowName);
+	if (NewShipData)
+	{
+		if (OwnedShip)
+		{
+			UnPossess();
+			OwnedShip->Destroy();
+		}
+
+		GInstance->GetSaveGame()->ShipDataRowName = NewShipDataRowName;
+		GInstance->ApplySaveGame();
+		
+		const FTransform SpawnTransform = FTransform(FVector::ZeroVector);
+		ASB_Ship* NewShip = GetWorld()->SpawnActorDeferred<ASB_Ship>(NewShipData->ShipBP, SpawnTransform, this, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+		if (NewShip)
+		{
+			UGameplayStatics::FinishSpawningActor(NewShip, SpawnTransform);
+			OnPossess(NewShip);
+			OnRep_Pawn();
+		}
+	}
+}
+
 void ASB_CampaignPlayerController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
-
 
 void ASB_CampaignPlayerController::OnNewMenuWidgetSelected(const FName& WidgetName, UUserWidget* SelectedWidget)
 {

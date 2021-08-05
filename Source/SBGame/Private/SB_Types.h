@@ -150,8 +150,8 @@ struct FSB_ShipSettings
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TArray<FSB_ModuleSlotData> CarrierShipConfig;
+	//UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	//TArray<FSB_ModuleSlotData> CarrierShipConfig;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	float MoveSpeed;
@@ -303,6 +303,28 @@ struct FSB_AISettings
 #pragma region +++++ Data ...
 
 USTRUCT(BlueprintType)
+struct FSB_ShipData : public FTableRowBase
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FString DisplayName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class ASB_Ship> ShipBP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<AActor> DestructibleShipBP;
+ 
+	FSB_ShipData()
+	{
+		DisplayName = "ShipName";
+		ShipBP = nullptr;
+		DestructibleShipBP = nullptr;
+	}
+};
+
+USTRUCT(BlueprintType)
 struct FSB_ModuleSlotData : public FTableRowBase
 {
 	GENERATED_USTRUCT_BODY()
@@ -320,7 +342,7 @@ struct FSB_ModuleSlotData : public FTableRowBase
 	FVector RelativeLocation;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	bool bShouldUpdateModule;
+	bool bShouldUpdateModule; // is modifiable module
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FName DefaultModuleRowName;

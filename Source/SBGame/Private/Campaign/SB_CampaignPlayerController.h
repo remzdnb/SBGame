@@ -20,6 +20,9 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void OnRep_Pawn() override;
 
+	UFUNCTION()
+	void SelectShip(const FName& NewShipDataRowName);
+
 private:
 	
 	UFUNCTION()
