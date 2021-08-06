@@ -13,7 +13,7 @@ USB_ThrusterModule::USB_ThrusterModule()
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
-void USB_ThrusterModule::Init(
+/*void USB_ThrusterModule::Init(
 	const ASB_DataManager* const NewDataManager, 
 	const FSB_ModuleSlotData* const NewModuleSlotData, 
 	const FName& NewModuleRowName)
@@ -42,7 +42,7 @@ void USB_ThrusterModule::Init(
 			}
 		}
 	}
-}
+}*/
 
 void USB_ThrusterModule::InitializeComponent()
 {
@@ -63,7 +63,7 @@ void USB_ThrusterModule::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	UpdateExhaustParticle();
+	//UpdateExhaustParticle();
 	Debug(DeltaTime);
 }
 
@@ -81,7 +81,7 @@ void USB_ThrusterModule::UpdateState(const ESB_ModuleState NewState)
 	}
 }
 
-void USB_ThrusterModule::UpdateExhaustParticle()
+/*void USB_ThrusterModule::UpdateExhaustParticle()
 {
 	if (ModuleSlotData == nullptr || ShipMovement == nullptr)
 		return;
@@ -130,7 +130,7 @@ void USB_ThrusterModule::UpdateExhaustParticle()
 			SetExhaustParticlesVisibility(false);
 		}
 	}
-}
+}*/
 
 void USB_ThrusterModule::SetExhaustParticlesVisibility(bool bNewIsVisible)
 {

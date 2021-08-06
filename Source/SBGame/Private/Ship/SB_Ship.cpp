@@ -1,14 +1,15 @@
 #include "Ship/SB_Ship.h"
 #include "Ship/SB_ShipMovementComponent.h"
-#include "Battle/SB_ShipOTMWidget.h"
+#include "Ship/SB_ShipCameraManager.h"
+#include "Module/SB_ModuleSlotComponent.h"
 #include "Module/SB_ThrusterModule.h"
-#include "Module/Weapon/SB_BaseWeaponModule.h"
 #include "Module/SB_ShieldModule.h"
+#include "Module/Weapon/SB_BaseWeaponModule.h"
+#include "Battle/SB_ShipOTMWidget.h"
 #include "SB_PlayerController.h"
 #include "SB_PlayerState.h"
 #include "SB_DataManager.h"
 #include "SB_GameInstance.h"
-#include "Ship/SB_ShipCameraManager.h"
 //
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -45,13 +46,14 @@ ASB_Ship::ASB_Ship(const FObjectInitializer& ObjectInitializer) :
 	GetMesh()->SetGenerateOverlapEvents(true);
 	GetMesh()->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
 	//BaseModules.Add(Cast<USB_BaseModule>(GetMesh()));
+	GetMesh()->DestroyComponent();
 
-	CircleParticleCT = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("CircleParticleCT"));
-	CircleParticleCT->SetupAttachment(RootComponent);
+	//CircleParticleCT = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("CircleParticleCT"));
+	//CircleParticleCT->SetupAttachment(RootComponent);
 
 	//
 
-	CommandModule = CreateDefaultSubobject<USB_BaseModule>(TEXT("CommandModule"));
+	/*CommandModule = CreateDefaultSubobject<USB_BaseModule>(TEXT("CommandModule"));
 	CommandModule->SetupAttachment(GetMesh());
 	ThrusterModule_Back = CreateDefaultSubobject<USB_ThrusterModule>(TEXT("ThrusterModule_Back"));
 	ThrusterModule_Back->SetupAttachment(GetMesh());
@@ -62,17 +64,17 @@ ASB_Ship::ASB_Ship(const FObjectInitializer& ObjectInitializer) :
 	ThrusterModule_Right = CreateDefaultSubobject<USB_ThrusterModule>(TEXT("ThrusterModule_Right"));
 	ThrusterModule_Right->SetupAttachment(GetMesh());
 	ShieldModule = CreateDefaultSubobject<USB_ShieldModule>(TEXT("ShieldModule"));
-	ShieldModule->SetupAttachment(GetMesh());
+	ShieldModule->SetupAttachment(GetMesh());*/
 
 	ShipCameraManager = CreateDefaultSubobject<USB_ShipCameraManager>(FName("ShipCameraManager"));
 	ShipMovement = Cast<USB_ShipMovementComponent>(ACharacter::GetMovementComponent());
 	
-	for (uint8 Index = 0; Index < MAXAUTOLOCKCOMPONENTS; Index++)
+	/*for (uint8 Index = 0; Index < MAXAUTOLOCKCOMPONENTS; Index++)
 	{
 		USceneComponent* const NewAutoLockCT = CreateDefaultSubobject<USceneComponent>(FName("AutoLockCT_0" + FString::FromInt(Index)));
 		NewAutoLockCT->SetupAttachment(RootComponent);
 		AutoLockCTs.Add(NewAutoLockCT);
-	}
+	}*/
 
 	//
 
@@ -94,17 +96,29 @@ ASB_Ship::ASB_Ship(const FObjectInitializer& ObjectInitializer) :
 	SelectedModule = nullptr;
 }
 
+void ASB_Ship::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+
+	GetComponents(ModuleSlots);
+
+	for (auto& ModuleSlot : ModuleSlots)
+	{
+		ModuleSlot->UpdateDemoMesh();
+	}
+}
+
 void ASB_Ship::PreInitializeComponents()
 {
 	if (GetWorld()->IsGameWorld() == true)
-	{
-		for (TActorIterator<ASB_DataManager> NewDataManager(GetWorld()); NewDataManager; ++NewDataManager)
+	{	
+		GInstance = Cast<USB_GameInstance>(GetGameInstance());
+		
+		for (TActorIterator<ASB_DataManager> NewDataManager(GetWorld()); NewDataManager; ++NewDataManager) // get from ginstance ?
 		{
 			DataManager = *NewDataManager;
 			break;
 		}
-
-		GInstance = Cast<USB_GameInstance>(GetGameInstance());
 	}
 	
 	Super::PreInitializeComponents();
@@ -116,15 +130,21 @@ void ASB_Ship::PostInitializeComponents()
 
 	if (GetWorld()->IsGameWorld() == true)
 	{
+		GetComponents(ModuleSlots);
 		GetComponents(BaseModules);
 		GetComponents(ThrusterModules);
 		GetComponents(WeaponModules);
-	}	
+	}
 }
 
 void ASB_Ship::BeginPlay()
 {
 	Super::BeginPlay();
+
+	for (auto& ModuleSlot : ModuleSlots)
+	{
+		ModuleSlot->SpawnModule();
+	}
 
 	//SortedModules.Add(Cast<USB_BaseModule>(GetMesh()));
 		
@@ -206,7 +226,7 @@ void ASB_Ship::Tick(float DeltaTime)
 	}*/
 
 	// Update circle particle
-	CircleParticleCT->SetWorldRotation(UKismetMathLibrary::MakeRotFromX(ShipMovement->Velocity));
+	//CircleParticleCT->SetWorldRotation(UKismetMathLibrary::MakeRotFromX(ShipMovement->Velocity));
 
 	HoverModule();
 	
@@ -235,7 +255,57 @@ void ASB_Ship::UpdateOwnerViewData_Server_Implementation(const FVector& NewOwner
 
 #pragma region +++++ Modules ...
 
-void ASB_Ship::SpawnModule(const FSB_ModuleSlotData* const ModuleSlotData, const FName& RowName)
+void ASB_Ship::LoadModules(const TArray<FName>& NewConfig)
+{
+	const TInlineComponentArray<USB_BaseModule*> TmpBaseModules;
+
+	for (auto& ModuleSlot : ModuleSlots)
+	{
+		const FSB_BaseModuleData& BaseModuleData = DataManager->GetBaseModuleDataFromRowRef(ModuleSlot->GetModuleSlotData().DefaultModuleRowName);
+
+		
+	}
+	
+	/* 
+	// Destroy old modules
+	TInlineComponentArray<class USB_BaseModule*> InlineBaseModules;
+	for (auto& BaseModule : InlineBaseModules)
+	if (BaseModule->GetModuleSlotData()->bShouldUpdateModule == true)
+	{
+	BaseModule->DestroyComponent();
+	}
+
+	Create new modules
+	uint8 Index = 0;
+	const TArray<FName> DefaultConfigRowNames = DataManager->GetCarrierShipConfigDT()->GetRowNames();
+	for (auto& DefaultConfigRowName : DefaultConfigRowNames)
+	{
+	const FSB_ModuleSlotData* const SlotData = DataManager->GetCarrierModuleSlotFromRow(DefaultConfigRowName);
+	if (SlotData->bShouldUpdateModule == false)
+	break;
+		
+	if (NewConfig.IsValidIndex(Index)) // Valid config RowName
+	{
+	const FSB_BaseModuleData* const ModuleData = DataManager->GetBaseModuleDataFromRow(NewConfig[Index]);
+	if (ModuleData)
+	{
+	SpawnModule(SlotData, NewConfig[Index]);
+	}
+	else
+	{
+	SpawnModule(SlotData, SlotData->DefaultModuleRowName);
+	}
+	}
+	else // Spawn default
+	{
+	SpawnModule(SlotData, SlotData->DefaultModuleRowName);
+	}
+
+	Index++;
+	}*/
+}
+
+/*void ASB_Ship::SpawnModule(const FSB_ModuleSlotData* const ModuleSlotData, const FName& RowName)
 {
 	const FSB_BaseModuleData* const BaseModuleData = DataManager->GetBaseModuleDataFromRow(RowName);
 	if (BaseModuleData)
@@ -267,7 +337,7 @@ void ASB_Ship::SpawnModule(const FSB_ModuleSlotData* const ModuleSlotData, const
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ASB_Ship::SpawnModule // Invalid DT row name : %s"), *RowName.ToString());
 	}
-}
+}*/
 
 void ASB_Ship::HoverModule()
 {
@@ -391,47 +461,6 @@ void ASB_Ship::ReplaceModule(uint8 ModuleID, const FName& ModuleDataRowName)
 	//SelectModule(nullptr);
 	//SaveConfig();
 }
-
-void ASB_Ship::LoadConfig(const TArray<FName>& NewConfig)
-{
-	// Destroy old modules
-	TInlineComponentArray<class USB_BaseModule*> InlineBaseModules;
-	for (auto& BaseModule : InlineBaseModules)
-	if (BaseModule->GetModuleSlotData()->bShouldUpdateModule == true)
-	{
-		BaseModule->DestroyComponent();
-	}
-
-	/* Create new modules
-	uint8 Index = 0;
-	const TArray<FName> DefaultConfigRowNames = DataManager->GetCarrierShipConfigDT()->GetRowNames();
-	for (auto& DefaultConfigRowName : DefaultConfigRowNames)
-	{
-		const FSB_ModuleSlotData* const SlotData = DataManager->GetCarrierModuleSlotFromRow(DefaultConfigRowName);
-		if (SlotData->bShouldUpdateModule == false)
-			break;
-		
-		if (NewConfig.IsValidIndex(Index)) // Valid config RowName
-		{
-			const FSB_BaseModuleData* const ModuleData = DataManager->GetBaseModuleDataFromRow(NewConfig[Index]);
-			if (ModuleData)
-			{
-				SpawnModule(SlotData, NewConfig[Index]);
-			}
-			else
-			{
-				SpawnModule(SlotData, SlotData->DefaultModuleRowName);
-			}
-		}
-		else // Spawn default
-		{
-			SpawnModule(SlotData, SlotData->DefaultModuleRowName);
-		}
-
-		Index++;
-	}*/
-}
-
 void ASB_Ship::SaveConfig()
 {
 	if (GInstance)

@@ -20,7 +20,7 @@ USB_ShieldModule::USB_ShieldModule()
 	LastUndeployTime = 0.0f;
 }
 
-void USB_ShieldModule::Init(const ASB_DataManager* const NewDataManager,
+/*void USB_ShieldModule::Init(const ASB_DataManager* const NewDataManager,
 	const FSB_ModuleSlotData* const NewModuleSlotData, const FName& NewModuleRowName)
 {
 		// Arm used to attach both setup & shield meshes.
@@ -69,7 +69,7 @@ void USB_ShieldModule::Init(const ASB_DataManager* const NewDataManager,
 	}
 
 	ShieldDurability = DataManager->ShieldSettings.MaxDurability;
-}
+}*/
 
 void USB_ShieldModule::InitializeComponent()
 {

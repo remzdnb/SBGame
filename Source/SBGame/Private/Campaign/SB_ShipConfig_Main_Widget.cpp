@@ -22,6 +22,7 @@
 #include "EngineUtils.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
+#include "Module/SB_ModuleSlotComponent.h"
 
 #pragma region +++++ Main ...
 
@@ -222,7 +223,19 @@ void USB_ShipConfig_Main_Widget::UpdateModuleList()
 
 	ModuleListContainerPanel->ClearChildren();
 
-	for (auto& Module : OwnedShip->GetAllModules())
+	for (auto& ModuleSlot : OwnedShip->GetModuleSlots())
+	{
+		USB_ModuleWidget* const ModuleWidget = CreateWidget<USB_ModuleWidget>(GetWorld(), ConfigModuleWBP);
+		if (ModuleWidget)
+		{
+			ModuleListContainerPanel->AddChild(ModuleWidget);
+			ModuleWidget->OnPressed.AddUniqueDynamic(this, &USB_ShipConfig_Main_Widget::OnConfigListModulePressed);
+			if (ModuleSlot->GetSpawnedModule()) // ?
+				ModuleWidget->Update(DataManager, ModuleSlot->GetModuleSlotData(), ModuleSlot->GetSpawnedModule()->GetModuleRowName());
+		}
+	}
+
+	/*for (auto& Module : OwnedShip->GetAllModules())
 	{
 		USB_ModuleWidget* const ModuleWidget = CreateWidget<USB_ModuleWidget>(GetWorld(), ConfigModuleWBP);
 		if (ModuleWidget)
@@ -231,10 +244,10 @@ void USB_ShipConfig_Main_Widget::UpdateModuleList()
 			ModuleWidget->OnPressed.AddUniqueDynamic(this, &USB_ShipConfig_Main_Widget::OnConfigListModulePressed);
 			ModuleWidget->Update(Module);
 		}
-	}
+	}*/
 }
 
-void USB_ShipConfig_Main_Widget::OnConfigListModulePressed(uint8 ModuleID, const FName& DataRowName)
+void USB_ShipConfig_Main_Widget::OnConfigListModulePressed(uint8 ModuleID, const FName& DataRowName) // module list item pressed
 {
 	if (OwnedShip.IsValid() == false)
 		return;
@@ -280,7 +293,7 @@ void USB_ShipConfig_Main_Widget::UpdateSlots()
 
 void USB_ShipConfig_Main_Widget::UpdateShop()
 {
-	if (OwnedShip.IsValid() == false)
+	/*if (OwnedShip.IsValid() == false)
 		return;
 
 	if (OwnedShip->GetSelectedModule() == nullptr)
@@ -317,7 +330,7 @@ void USB_ShipConfig_Main_Widget::UpdateShop()
 				}
 			}
 		}
-	}
+	}*/
 
 	//UE_LOG(LogTemp, Warning, TEXT("USB_ShipConfig_Main_Widget::UpdateShop"));
 }

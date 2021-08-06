@@ -61,7 +61,7 @@ void USB_BattleHUDWidget::OnNewOwnedShip(ASB_Ship* const NewOwnedShip)
 		USB_ModuleWidget* ModuleWidget = CreateWidget<USB_ModuleWidget>(GetWorld(), DataManager->UISettings.Module_WBP);
 		if (ModuleWidget)
 		{
-			ModuleWidget->Update(Cast<USB_BaseModule>(ThrusterModule));
+			//ModuleWidget->Update(Cast<USB_BaseModule>(ThrusterModule));
 			ThrusterModulesContainer->AddChild(ModuleWidget);
 		}
 	}
@@ -72,14 +72,14 @@ void USB_BattleHUDWidget::OnNewOwnedShip(ASB_Ship* const NewOwnedShip)
 		USB_ModuleWidget* ModuleWidget = CreateWidget<USB_ModuleWidget>(GetWorld(), DataManager->UISettings.Module_WBP);
 		if (ModuleWidget)
 		{
-			ModuleWidget->Update(Cast<USB_BaseModule>(WeaponModule));
+			//ModuleWidget->Update(Cast<USB_BaseModule>(WeaponModule));
 			WeaponModulesContainer->AddChild(ModuleWidget);
 		}
 	}
 
 	if (NewOwnedShip->ShieldModule)
 	{
-		ShieldModuleWidget->Update(Cast<USB_BaseModule>(NewOwnedShip->ShieldModule));
+		//ShieldModuleWidget->Update(Cast<USB_BaseModule>(NewOwnedShip->ShieldModule));
 	}
 
 	OnShipSpawnedBPI();

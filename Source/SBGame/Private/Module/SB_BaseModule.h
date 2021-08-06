@@ -11,8 +11,6 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSelectionUpdatedDelegate, bool, bNe
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FModuleStateUpdatedDelegate, ESB_ModuleState, NewState);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FModuleDurabilityUpdatedDelegate, float, NewDurability);
 
-class ASB_DataManager;
-
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class USB_BaseModule : public USkeletalMeshComponent, public ISB_CombatInterface
 {
@@ -23,8 +21,8 @@ public:
 	USB_BaseModule();
 
 	virtual void Init(
-		const ASB_DataManager* const NewDataManager,
-		const FSB_ModuleSlotData* const NewModuleSlotData,
+		const class ASB_DataManager* const NewDataManager,
+		const FSB_ModuleSlotData& NewModuleSlotData,
 		const FName& NewModuleRowName);
 	
 	virtual void InitializeComponent() override;
@@ -47,7 +45,7 @@ public:
 	
 	//
 
-	FORCEINLINE UFUNCTION() const FSB_ModuleSlotData* const GetModuleSlotData() const { return ModuleSlotData; }
+	FORCEINLINE UFUNCTION() const FSB_ModuleSlotData& GetModuleSlotData() const { return ModuleSlotData; }
 	FORCEINLINE UFUNCTION() const FSB_BaseModuleData* const GetBaseModuleData() const { return BaseModuleData; }
 	FORCEINLINE UFUNCTION() const FName& GetModuleRowName() const { return ModuleRowName; }
 	FORCEINLINE UFUNCTION() ESB_ModuleState GetState() const { return State; }
@@ -73,10 +71,11 @@ protected:
 	void OnRep_Durability();
 	
 	//
+
+	const class USB_GameInstance* GInstance;
+	const class ASB_DataManager* DataManager;
 	
-	const ASB_DataManager* DataManager;
-	
-	const FSB_ModuleSlotData* ModuleSlotData; // local ? can get gced ?
+	//const FSB_ModuleSlotData* ModuleSlotData; // local ? can get gced ?
 	const FSB_BaseModuleData* BaseModuleData;
 	FName ModuleRowName;
 
@@ -85,11 +84,14 @@ protected:
 	FTimerHandle RepairTimer;
 
 	//
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	FSB_ModuleSlotData ModuleSlotData;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"));
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true")) // why visibleanywhere ?
 	bool bIsHovered;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"));
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	bool bIsSelected;
 
 	UPROPERTY(ReplicatedUsing=OnRep_State)

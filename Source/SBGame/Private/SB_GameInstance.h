@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "SB_Types.h"
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
 #include "SB_GameInstance.generated.h"
@@ -32,11 +33,20 @@ public:
 
 	UFUNCTION()
 	void SetNewShipConfig(const TArray<FName>& NewShipConfig);
+
+	//
+
+	const FSB_BaseModuleData* const GetBaseModuleDataFromRow(const FName& RowName) const;
 	
 	//
 
 	FORCEINLINE UFUNCTION() ASB_DataManager* const GetDataManager() const { return DataManager; }
 	FORCEINLINE UFUNCTION() USB_PlayerSaveGame* const GetSaveGame() const { return SaveGame; }
+
+	//
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	class UDataTable* BaseModuleDT;
 
 private:
 	
@@ -45,6 +55,8 @@ private:
 
 	UPROPERTY()
 	USB_PlayerSaveGame* SaveGame;
+
+	//
 
 	//
 

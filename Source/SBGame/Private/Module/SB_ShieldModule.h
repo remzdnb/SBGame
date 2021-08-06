@@ -17,10 +17,10 @@ public:
 
 	USB_ShieldModule();
 
-	virtual void Init(
+	/*virtual void Init(
 		const ASB_DataManager* const NewDataManager,
 		const FSB_ModuleSlotData* const NewModuleSlotData,
-		const FName& NewModuleRowName) override;
+		const FName& NewModuleRowName) override;*/
 
 	virtual void InitializeComponent() override;
 	virtual void BeginPlay() override;

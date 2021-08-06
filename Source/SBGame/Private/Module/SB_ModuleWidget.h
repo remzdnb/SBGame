@@ -12,8 +12,13 @@ class USB_ModuleWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
-protected:
+public:
 
+	USB_ModuleWidget(const FObjectInitializer& ObjectInitializer);
+
+protected:
+	
+	virtual void NativeOnInitialized() override;
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	virtual FReply NativeOnMouseButtonDoubleClick(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 
@@ -22,11 +27,13 @@ protected:
 
 public:
 
-	void Update(
+	void Update(const class ASB_DataManager* const NewDataManager, const FSB_ModuleSlotData& NewSlotData, const FName& NewModuleDataRowName);
+	
+	/*void Update(
 		class USB_BaseModule* const ModuleRef,
 		uint8 NewModuleID = 0,
 		const FName& NewDataRowName = "Default",
-		const FSB_BaseModuleData* const ModuleData = nullptr);
+		const FSB_BaseModuleData* const ModuleData = nullptr);*/
 
 	//
 
@@ -44,8 +51,14 @@ public:
 	FPressedDelegate OnPressed;
 
 private:
+
+	const class USB_GameInstance* GInstance;
 	
-	TWeakObjectPtr<USB_BaseModule> BaseModuleRef;
+	TWeakObjectPtr<class USB_BaseModule> BaseModuleRef;
+
+	class ASB_DataManager* DataManager;
+
+	class UDataTable* BaseModuleDT;
 
 	//
 
@@ -57,9 +70,9 @@ private:
 
 	//
 
-	UPROPERTY(meta = (BindWidget)) class UTextBlock* ModuleSlotIDText;
-	UPROPERTY(meta = (BindWidget)) class UTextBlock* ModuleSlotTypeText;
-	UPROPERTY(meta = (BindWidget)) class UTextBlock* ModuleRowNameText;
+	UPROPERTY(meta = (BindWidget)) class UTextBlock* SlotID;
+	UPROPERTY(meta = (BindWidget)) class UTextBlock* SlotName;
+	UPROPERTY(meta = (BindWidget)) class UTextBlock* ModuleName;
 	UPROPERTY(meta = (BindWidget)) class UImage* ModuleImage;
 	UPROPERTY(meta = (BindWidget)) class UProgressBar* ModuleDurabilityProgressBar;
 	UPROPERTY(meta = (BindWidget)) class UProgressBar* ModuleStatusProgressBar;

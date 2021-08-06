@@ -13,7 +13,7 @@ enum class ESB_GameType : uint8
 	Battle
 };
 
-UENUM(BlueprintType)
+/*UENUM(BlueprintType)
 enum class ESB_ModuleSlotType : uint8
 {
 	Hull,
@@ -25,7 +25,7 @@ enum class ESB_ModuleSlotType : uint8
 	Weapon_Primary,
 	Weapon_Auxiliary,
 	Shield
-};
+};*/
 
 UENUM(BlueprintType)
 enum class ESB_ModuleType : uint8
@@ -36,6 +36,15 @@ enum class ESB_ModuleType : uint8
 	PrimaryWeapon,
 	AuxiliaryWeapon,
 	Shield
+};
+
+UENUM(BlueprintType)
+enum class ESB_ThrusterType : uint8
+{
+	Back,
+	Front,
+	Left,
+	Right
 };
 
 UENUM(BlueprintType)
@@ -333,28 +342,24 @@ struct FSB_ModuleSlotData : public FTableRowBase
 	uint8 UniqueID;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	ESB_ModuleSlotType Type;
+	ESB_ModuleType Type;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FString DisplayName;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	FVector RelativeLocation;
+	FName DefaultModuleRowName;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	bool bShouldUpdateModule; // is modifiable module
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	FName DefaultModuleRowName;
  
 	FSB_ModuleSlotData()
 	{
 		UniqueID = 0;
+		Type = ESB_ModuleType::Hull;
 		DisplayName = "SlotName";
-		Type = ESB_ModuleSlotType::Hull;
-		RelativeLocation = FVector(0.0f);
-		bShouldUpdateModule = true;
 		DefaultModuleRowName = "DataRowName";
+		bShouldUpdateModule = true;
 	}
 };
 

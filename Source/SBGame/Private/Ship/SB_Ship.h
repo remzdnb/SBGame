@@ -31,6 +31,7 @@ public:
 
 	ASB_Ship(const FObjectInitializer& ObjectInitializer);
 
+	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void PreInitializeComponents() override;
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
@@ -61,8 +62,14 @@ private:
 
 public:
 
-	void SpawnModule(const FSB_ModuleSlotData* const ModuleSlotData, const FName& RowName);
+	//void SpawnModule(const FSB_ModuleSlotData* const ModuleSlotData, const FName& RowName);
 
+	UFUNCTION()
+	void LoadModules(const TArray<FName>& NewConfig);
+
+	UFUNCTION()
+	void SaveConfig();
+	
 	UFUNCTION()
 	void HoverModule();
 
@@ -74,17 +81,13 @@ public:
 	
 	UFUNCTION()
 	void ReplaceModule(uint8 ModuleID, const FName& ModuleDataRowName);
-	
-	UFUNCTION()
-	void LoadConfig(const TArray<FName>& NewConfig);
 
-	UFUNCTION()
-	void SaveConfig();
 
 	//
 
 	FORCEINLINE UFUNCTION() class USB_BaseModule* const GetHoveredModule() const { return HoveredModule.Get(); }
 	FORCEINLINE UFUNCTION() class USB_BaseModule* const GetSelectedModule() const { return SelectedModule.Get(); }
+	FORCEINLINE UFUNCTION() TInlineComponentArray<class USB_ModuleSlotComponent*> GetModuleSlots() const { return ModuleSlots; }
 	FORCEINLINE UFUNCTION() TInlineComponentArray<class USB_BaseModule*> GetAllModules() const { return BaseModules; }
 	FORCEINLINE UFUNCTION() TInlineComponentArray<class USB_ThrusterModule*> GetThrusterModules() const { return ThrusterModules; }
 	FORCEINLINE UFUNCTION() TInlineComponentArray<class USB_BaseWeaponModule*> GetWeaponModules() const { return WeaponModules; }
@@ -121,7 +124,8 @@ public:
 private:
 
 	TArray<class USB_BaseModule*> SortedModules;
-	
+
+	TInlineComponentArray<class USB_ModuleSlotComponent*> ModuleSlots;
 	TInlineComponentArray<class USB_BaseModule*> BaseModules;
 	TInlineComponentArray<class USB_ThrusterModule*> ThrusterModules;
 	TInlineComponentArray<class USB_BaseWeaponModule*> WeaponModules;

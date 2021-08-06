@@ -15,7 +15,10 @@ class ASB_DataManager : public AInfo
 
 public:
 
+	void Lol();
+
 	const FSB_ShipData* const GetShipDataFromRow(const FName& RowName) const;
+	const FSB_BaseModuleData& GetBaseModuleDataFromRowRef(const FName& RowName) const;
 	const FSB_BaseModuleData* const GetBaseModuleDataFromRow(const FName& RowName) const;
 	const FSB_ThrusterModuleData* const GetThrusterModuleDataFromRow(const FName& RowName) const;
 	const FSB_BaseWeaponModuleData* const GetWeaponModuleDataFromRow(const FName& RowName) const;
@@ -54,4 +57,8 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UDataTable* ProjectileDT;
+
+private:
+
+	FSB_BaseModuleData DefaultBaseModuleData;
 };

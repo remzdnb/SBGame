@@ -1,8 +1,10 @@
 #include "SB_UtilityLibrary.h"
 #include "Engine/Engine.h"
 
+
 SB_UtilityLibrary::SB_UtilityLibrary()
 {
+
 }
 
 void SB_UtilityLibrary::PrintStringToScreen(const FString& PrefixString, const FString& InputString, FColor Color, int32 Key, float TimeToDisplay)

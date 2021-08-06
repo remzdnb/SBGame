@@ -17,6 +17,8 @@ USB_BaseModule::USB_BaseModule()
 	SetCustomDepthStencilValue(1);
 	SetIsReplicatedByDefault(true);
 
+	GInstance = Cast<USB_GameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+
 	bIsHovered = false;
 	bIsSelected = false;
 	State = ESB_ModuleState::Ready;
@@ -24,14 +26,14 @@ USB_BaseModule::USB_BaseModule()
 
 void USB_BaseModule::Init(
 	const ASB_DataManager* const NewDataManager,
-	const FSB_ModuleSlotData* const NewModuleSlotData,
+	const FSB_ModuleSlotData& NewModuleSlotData,
 	const FName& NewModuleRowName)
 {
-	DataManager = NewDataManager;
+	//DataManager = NewDataManager;
 	ModuleSlotData = NewModuleSlotData;
 	ModuleRowName = NewModuleRowName;
 
-	BaseModuleData = DataManager->GetBaseModuleDataFromRow(ModuleRowName);
+ 	BaseModuleData = GInstance->GetBaseModuleDataFromRow(ModuleRowName);
 	if (BaseModuleData)
 	{
 		SetSkeletalMesh(BaseModuleData->SkeletalMesh);

@@ -1,5 +1,9 @@
 #include "SB_DataManager.h"
 
+void ASB_DataManager::Lol()
+{
+}
+
 const FSB_ShipData* const ASB_DataManager::GetShipDataFromRow(const FName& RowName) const
 {
 	if (ShipDT == nullptr)
@@ -12,6 +16,19 @@ const FSB_ShipData* const ASB_DataManager::GetShipDataFromRow(const FName& RowNa
 	const FSB_ShipData* const ShipData = ShipDT->FindRow<FSB_ShipData>(RowName, ContextString);
 	
 	return ShipData;
+}
+
+const FSB_BaseModuleData& ASB_DataManager::GetBaseModuleDataFromRowRef(const FName& RowName) const
+{
+	if (BaseModuleDT == nullptr)
+		return DefaultBaseModuleData;
+
+	const FString ContextString;
+	const FSB_BaseModuleData* BaseModuleData = BaseModuleDT->FindRow<FSB_BaseModuleData>(RowName, ContextString);
+	if (BaseModuleData)
+		return *BaseModuleData;
+
+	return DefaultBaseModuleData;
 }
 
 const FSB_BaseModuleData* const ASB_DataManager::GetBaseModuleDataFromRow(const FName& RowName) const
@@ -30,6 +47,8 @@ const FSB_BaseModuleData* const ASB_DataManager::GetBaseModuleDataFromRow(const 
 		UE_LOG(LogTemp, Error, TEXT("ASB_DataManager::GetBaseModuleDataFromRow - Row not found : %s"), *RowName.ToString());
 		return nullptr;
 	}
+
+	return nullptr;
 }
 
 const FSB_ThrusterModuleData* const ASB_DataManager::GetThrusterModuleDataFromRow(const FName& RowName) const

@@ -67,6 +67,23 @@ void USB_GameInstance::SetNewShipConfig(const TArray<FName>& NewShipConfig)
 	}
 }
 
+const FSB_BaseModuleData* const USB_GameInstance::GetBaseModuleDataFromRow(const FName& RowName) const
+{
+	if (BaseModuleDT == nullptr)
+	{
+		return nullptr;
+	}
+	
+	const FString ContextString;
+	const FSB_BaseModuleData* BaseModuleData = BaseModuleDT->FindRow<FSB_BaseModuleData>(RowName, ContextString);
+	if (BaseModuleData)
+	{
+		return BaseModuleData;
+	}
+
+	return nullptr;
+}
+
 void USB_GameInstance::Debug()
 {
 	if (SaveGame)

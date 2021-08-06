@@ -31,8 +31,8 @@ void USB_BaseWeaponModule::InitializeComponent()
 	if (GetWorld()->IsGameWorld() == false)
 		return;
 	
-	WeaponModuleData = DataManager->GetWeaponModuleDataFromRow(ModuleRowName);
-	WeaponAnimInstance = Cast<USB_WeaponModuleAnimInstance>(GetAnimInstance());
+	//WeaponModuleData = DataManager->GetWeaponModuleDataFromRow(ModuleRowName);
+	//WeaponAnimInstance = Cast<USB_WeaponModuleAnimInstance>(GetAnimInstance());
 }
 
 #pragma endregion
@@ -46,15 +46,15 @@ void USB_BaseWeaponModule::TickComponent(float DeltaTime, ELevelTick TickType, F
 	if (OwningShip == nullptr || WeaponModuleData == nullptr)
 		return;
 
-	SelectAutoLockCT();
-	FireTick();
+	//SelectAutoLockCT();
+	//FireTick();
 
 	if (WeaponAnimInstance)
 	{
 		//WeaponAnimInstance->UpdateInstance(GetComponentLocation(), OwningShip->GetOwnerViewLocation());
 	}
 
-	Debug(DeltaTime);
+	//Debug(DeltaTime);
 }
 
 void USB_BaseWeaponModule::SetIsWeaponSelected(bool bToggleSelection, bool bNewIsSelected)
