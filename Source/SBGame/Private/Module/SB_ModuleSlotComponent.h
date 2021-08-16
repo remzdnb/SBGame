@@ -23,23 +23,22 @@ public:
 	//
 
 	UFUNCTION()
-	void SpawnModule();
+	void SpawnModule(const FName& NewModuleDataRowName);
+	
+	UFUNCTION()
+	void SpawnDefaultModule();
 
 	UFUNCTION()
-	void DestroyModule();
-
-	UFUNCTION()
-	void UpdateDemoMesh();
+	void UpdateEditorMesh();
 
 	//
 
 	FORCEINLINE UFUNCTION() const FSB_ModuleSlotData& GetModuleSlotData() const { return ModuleSlotData; }
-	FORCEINLINE UFUNCTION() const class USB_BaseModule* GetSpawnedModule() const { return SpawnedModule; }
+	FORCEINLINE UFUNCTION() class USB_BaseModule* GetSpawnedModule() const { return SpawnedModule; }
 
 private:
 
 	class USB_GameInstance* GInstance;
-	class ASB_DataManager* DManager;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	FSB_ModuleSlotData ModuleSlotData;
@@ -51,7 +50,6 @@ private:
 	
 	UPROPERTY()
 	class USB_BaseModule* SpawnedModule;
-
 	
 	class UDataTable* BaseModuleDT;
 };

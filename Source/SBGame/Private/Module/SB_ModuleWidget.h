@@ -5,7 +5,7 @@
 #include "Blueprint/UserWidget.h"
 #include "SB_ModuleWidget.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FPressedDelegate, uint8, ModuleID, const FName&, ModuleRowName);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPressedDelegate, uint8, SlotID);
 
 UCLASS()
 class USB_ModuleWidget : public UUserWidget
@@ -27,15 +27,8 @@ protected:
 
 public:
 
-	void Update(const class ASB_DataManager* const NewDataManager, const FSB_ModuleSlotData& NewSlotData, const FName& NewModuleDataRowName);
-	
-	/*void Update(
-		class USB_BaseModule* const ModuleRef,
-		uint8 NewModuleID = 0,
-		const FName& NewDataRowName = "Default",
-		const FSB_BaseModuleData* const ModuleData = nullptr);*/
-
-	//
+	UFUNCTION()
+	void Update(const FSB_ModuleSlotData& NewSlotData, const class USB_BaseModule* const NewModuleRef);
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnSelectionUpdatedBPI(bool bNewIsSelected);
@@ -53,20 +46,9 @@ public:
 private:
 
 	const class USB_GameInstance* GInstance;
-	
-	TWeakObjectPtr<class USB_BaseModule> BaseModuleRef;
 
-	class ASB_DataManager* DataManager;
-
-	class UDataTable* BaseModuleDT;
-
-	//
-
-	bool bIsHovered;
-	bool bIsPressed;
-
-	uint8 ModuleID;
-	FName DataRowName;
+	FSB_ModuleSlotData SlotData;
+	TWeakObjectPtr<const class USB_BaseModule> ModuleRef;
 
 	//
 

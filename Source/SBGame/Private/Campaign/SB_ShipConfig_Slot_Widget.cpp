@@ -2,12 +2,9 @@
 #include "Module/SB_BaseModule.h"
 #include "Ship/SB_Ship.h"
 //
-#include "SB_ShipConfig_Main_Widget.h"
 #include "Components/PanelWidget.h"
 #include "Components/TextBlock.h"
- 
 #include "Components/Image.h"
-#include "Engine/DataTable.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 
 void USB_ShipConfig_Slot_Widget::NativeOnInitialized()

@@ -70,12 +70,12 @@ void ASB_AIController::SpawnAndPossessShip(const FTransform& SpawnTransform)
 	if (GetPawn() != nullptr)
 		return;
 
-	ASB_Ship* const NewShip = GetWorld()->SpawnActorDeferred<ASB_Ship>(DataManager->GameSettings.ShipClass, SpawnTransform, this, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+	/*ASB_Ship* const NewShip = GetWorld()->SpawnActorDeferred<ASB_Ship>(DataManager->GameSettings.ShipClass, SpawnTransform, this, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
 	if (NewShip)
 	{
 		UGameplayStatics::FinishSpawningActor(NewShip, SpawnTransform);
 		OnPossess(NewShip);
-	}
+	}*/
 }
 
 void ASB_AIController::OnPossess(APawn* InPawn)

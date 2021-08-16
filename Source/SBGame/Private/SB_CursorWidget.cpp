@@ -31,7 +31,7 @@ void USB_CursorWidget::OnHoveredModuleUpdated(const USB_BaseModule* const NewHov
 	if (OwnedShip.IsValid() == false)
 		return;
 
-	if (OwnedShip->GetSelectedModule() == nullptr)
+	/*if (OwnedShip->GetSelectedModule() == nullptr)
 	{
 		if (NewHoveredModule)
 		{
@@ -49,7 +49,7 @@ void USB_CursorWidget::OnHoveredModuleUpdated(const USB_BaseModule* const NewHov
 	else
 	{
 		PlayStartAnimationBPI(false);
-	}
+	}*/
 }
 
 void USB_CursorWidget::OnSelectedModuleUpdated(const USB_BaseModule* const NewSelectedModule)

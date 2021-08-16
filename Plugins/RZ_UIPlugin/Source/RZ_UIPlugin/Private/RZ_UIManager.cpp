@@ -25,14 +25,13 @@ void ARZ_UIManager::PostInitializeComponents()
 		return;
 
 	MenuLayoutWidget = CreateWidget<URZ_MenuLayoutWidget>(GetOwningPlayerController(), MenuLayoutWBP);
-	MenuLayoutWidget->Init(this);
+	if (MenuLayoutWidget)
+		MenuLayoutWidget->Init(this);
 }
 
 void ARZ_UIManager::BeginPlay()
 {
 	Super::BeginPlay();
-
-	ToggleMenu(true);
 }
 
 void ARZ_UIManager::AddHUDWidget(UUserWidget* NewWidget)

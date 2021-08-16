@@ -96,8 +96,6 @@ void URZ_MenuLayoutWidget::SetActiveWidgetByIndex(uint8 Index)
 		{
 			if (MapIndex == Index)
 			{
-				GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, "URZ_MenuLayoutWidget::SetActiveWidgetByIndex 2");
-			
 				UIManager->BroadcastMenuWidgetSelected(MapRow.Key, TabWidgets[Index]);
 			}
 

@@ -41,8 +41,7 @@ public:
 	FNewOwnedShipDelegate OnNewOwnedShip;
 
 protected:
-
-	class ASB_DataManager* DataManager;
+	
 	class USB_GameInstance* GInstance;
 	class ASB_GameMode* GMode;
 	class ASB_GameState* GState;

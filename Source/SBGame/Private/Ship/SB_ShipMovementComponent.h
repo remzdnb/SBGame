@@ -51,6 +51,13 @@ private:
 	const ASB_DataManager* DataManager;
 	TWeakObjectPtr<ASB_Ship> OwningShip;
 	TWeakObjectPtr<APlayerController> OwningPlayerController;
+
+	//
+	
+	USB_ThrusterModule* ThrusterModule_Back;
+	USB_ThrusterModule* ThrusterModule_Front;
+	USB_ThrusterModule* ThrusterModule_Left;
+	USB_ThrusterModule* ThrusterModule_Right;
 	
 	//
 

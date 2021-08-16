@@ -15,7 +15,9 @@ class ASB_BattlePlayerController : public ASB_PlayerController
 
 public:
 
+	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
+	virtual void OnRep_Pawn() override;
 	
 	virtual void SetupInputComponent() override;
 

@@ -13,7 +13,6 @@
 
 ASB_GameMode::ASB_GameMode()
 {
-	PlayerControllerClass = ASB_PlayerController::StaticClass();
 	GameStateClass = ASB_GameState::StaticClass();
 	PlayerStateClass = ASB_PlayerState::StaticClass();
 	HUDClass = ARZ_UIManager::StaticClass();

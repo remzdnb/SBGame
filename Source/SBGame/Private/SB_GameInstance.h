@@ -29,37 +29,44 @@ public:
 	void CreateNewSaveGame();
 
 	UFUNCTION()
-	void ApplySaveGame();
+	void SavePlayerName(const FString& NewPlayerName);
 
 	UFUNCTION()
-	void SetNewShipConfig(const TArray<FName>& NewShipConfig);
+	void SaveSelectedShip(const FName& NewSelectedShipName);
+	
+	UFUNCTION()
+	void SaveShipConfig(const TArray<FName>& NewShipConfig);
+
+	UFUNCTION()
+	void ResetShipConfig();
 
 	//
-
+	
+	const FSB_ShipData* const GetShipDataFromRow(const FName& RowName) const;
 	const FSB_BaseModuleData* const GetBaseModuleDataFromRow(const FName& RowName) const;
 	
 	//
-
-	FORCEINLINE UFUNCTION() ASB_DataManager* const GetDataManager() const { return DataManager; }
-	FORCEINLINE UFUNCTION() USB_PlayerSaveGame* const GetSaveGame() const { return SaveGame; }
+	
+	FORCEINLINE UFUNCTION() const USB_PlayerSaveGame* const GetSaveGame() const { return SaveGame; }
 
 	//
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	class UDataTable* ShipDT;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	class UDataTable* BaseModuleDT;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FSB_UISettings UISettings;
+
 private:
-	
-	UPROPERTY()
-	ASB_DataManager* DataManager;
-
-	UPROPERTY()
-	USB_PlayerSaveGame* SaveGame;
-
-	//
-
-	//
 
 	UFUNCTION()
 	void Debug();
+
+	//
+	
+	UPROPERTY()
+	USB_PlayerSaveGame* SaveGame;
 };

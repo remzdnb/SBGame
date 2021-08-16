@@ -17,7 +17,6 @@ class ASB_CampaignPlayerController : public ASB_PlayerController
 public:
 	
 	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaTime) override;
 	virtual void OnRep_Pawn() override;
 
 	UFUNCTION()

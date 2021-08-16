@@ -21,7 +21,7 @@ void USB_GameInstance::Init()
 
 	for (TActorIterator<ASB_DataManager> NewDataManager(GetWorld()); NewDataManager; ++NewDataManager)
 	{
-		DataManager = *NewDataManager;
+		//DataManager = *NewDataManager;
 		break;
 	}
 
@@ -46,31 +46,61 @@ void USB_GameInstance::CreateNewSaveGame()
 	}
 }
 
-void USB_GameInstance::ApplySaveGame()
+void USB_GameInstance::SavePlayerName(const FString& NewPlayerName)
 {
 	if (SaveGame)
 	{
+		SaveGame->PlayerName = NewPlayerName;
 		UGameplayStatics::SaveGameToSlot(SaveGame, "PlayerSaveGame", 0);
 	}
-
-	//Debug();
 }
 
-void USB_GameInstance::SetNewShipConfig(const TArray<FName>& NewShipConfig)
+void USB_GameInstance::SaveSelectedShip(const FName& NewSelectedShipName)
 {
 	if (SaveGame)
 	{
-		SaveGame->ModulesRowNames = NewShipConfig;
+		SaveGame->ShipDataRowName = NewSelectedShipName;
 		UGameplayStatics::SaveGameToSlot(SaveGame, "PlayerSaveGame", 0);
-
-		UE_LOG(LogTemp, Warning, TEXT("USB_GameInstance::SetNewShipConfig : Game Saved"));
 	}
+}
+
+void USB_GameInstance::SaveShipConfig(const TArray<FName>& NewShipConfig)
+{
+	if (SaveGame)
+	{
+		SaveGame->ShipConfig = NewShipConfig;
+		UGameplayStatics::SaveGameToSlot(SaveGame, "PlayerSaveGame", 0);
+	}
+}
+
+void USB_GameInstance::ResetShipConfig()
+{
+	if (SaveGame)
+	{
+		SaveGame->ShipConfig.Empty();
+		UGameplayStatics::SaveGameToSlot(SaveGame, "PlayerSaveGame", 0);
+	}
+}
+
+const FSB_ShipData* const USB_GameInstance::GetShipDataFromRow(const FName& RowName) const
+{
+	if (ShipDT == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("ASB_DataManager::GetShipDataFromRow : Missing ShipDT."));
+		return nullptr;
+	}
+
+	const FString ContextString;
+	const FSB_ShipData* const ShipData = ShipDT->FindRow<FSB_ShipData>(RowName, ContextString);
+	
+	return ShipData;
 }
 
 const FSB_BaseModuleData* const USB_GameInstance::GetBaseModuleDataFromRow(const FName& RowName) const
 {
 	if (BaseModuleDT == nullptr)
 	{
+		UE_LOG(LogTemp, Error, TEXT("ASB_DataManager::GetShipDataFromRow : Missing BaseModuleDT."));
 		return nullptr;
 	}
 	

@@ -95,19 +95,7 @@ struct FSB_GameSettings
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	ESB_GameType GameType;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class ASB_Ship> ShipClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class AActor> DestructibleShipClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<class AAIController> AIControllerClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	bool bAutoSpawnPlayers;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	bool bIsDebugEnabled_GameMode;
@@ -138,10 +126,7 @@ struct FSB_GameSettings
 
 	FSB_GameSettings()
 	{
-		GameType = ESB_GameType::Battle;
-		ShipClass = nullptr;
 		AIControllerClass = nullptr;
-		bAutoSpawnPlayers = false;
 		bIsDebugEnabled_GameMode = false;
 		bIsDebugEnabled_PlayerController = false;
 		bIsDebugEnabled_AI = false;
@@ -258,9 +243,6 @@ struct FSB_UISettings
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<class UUserWidget> Cursor_WBP;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class UUserWidget> BattleMenu_WBP;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<class UUserWidget> ScoreboardMain_WBP;

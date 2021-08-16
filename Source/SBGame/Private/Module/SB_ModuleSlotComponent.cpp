@@ -4,7 +4,6 @@
 #include "Module/Weapon/SB_BaseWeaponModule.h"
 #include "Ship/SB_Ship.h"
 #include "SB_GameInstance.h"
-#include "SB_DataManager.h"
 //
 #include "Kismet/GameplayStatics.h"
 #include "UObject/ConstructorHelpers.h"
@@ -25,34 +24,30 @@ USB_ModuleSlotComponent::USB_ModuleSlotComponent()
 void USB_ModuleSlotComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
-
-	DManager = GInstance->GetDataManager();
 }
 
-void USB_ModuleSlotComponent::SpawnModule()
+void USB_ModuleSlotComponent::SpawnModule(const FName& NewModuleDataRowName)
 {
-	DestroyModule();
-
-	FString ComponentName;
-	USB_BaseModule* NewModule;
+	if (SpawnedModule)
+		SpawnedModule->DestroyComponent();
 	
-	const FSB_BaseModuleData* const BaseModuleData = GInstance->GetBaseModuleDataFromRow(ModuleSlotData.DefaultModuleRowName);
+	const FSB_BaseModuleData* const BaseModuleData = GInstance->GetBaseModuleDataFromRow(NewModuleDataRowName);
 	if (BaseModuleData)
 	{
-
-
-		switch (BaseModuleData->ModuleType)
+		const FString ComponentName = NewModuleDataRowName.ToString() + FString::FromInt(ModuleSlotData.UniqueID);
+		USB_BaseModule* NewModule;
+		
+		if (BaseModuleData->ModuleType == ESB_ModuleType::PrimaryWeapon ||
+			BaseModuleData->ModuleType == ESB_ModuleType::AuxiliaryWeapon)
 		{
-		case ESB_ModuleType::PrimaryWeapon:
-			ComponentName = "PrimaryWeapon" + FString::FromInt(ModuleSlotData.UniqueID);
 			NewModule = NewObject<USB_BaseWeaponModule>(this, *ComponentName);
-			break;
-		default:
-			ComponentName = "BaseModule" + FString::FromInt(ModuleSlotData.UniqueID);
+		}
+		else
+		{
 			NewModule = NewObject<USB_BaseModule>(this, *ComponentName);
 		}
-
-		NewModule->Init(DManager, ModuleSlotData, ModuleSlotData.DefaultModuleRowName);
+		
+		NewModule->Init(ModuleSlotData, NewModuleDataRowName);
 		NewModule->AttachToComponent(GetAttachParent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 		NewModule->SetRelativeLocation(GetRelativeLocation());
 		NewModule->SetRelativeRotation(GetRelativeRotation());
@@ -60,35 +55,14 @@ void USB_ModuleSlotComponent::SpawnModule()
 
 		SpawnedModule = NewModule;
 	}
-	else
-	{
-		const FSB_BaseModuleData* const NewBaseModuleData = GInstance->GetBaseModuleDataFromRow(ModuleSlotData.DefaultModuleRowName);
-		if (NewBaseModuleData)
-		{
-			ComponentName = "EmptyModule" + FString::FromInt(ModuleSlotData.UniqueID);
-			NewModule = NewObject<USB_BaseWeaponModule>(this, *ComponentName);
-		
-			NewModule->Init(DManager, ModuleSlotData, "Empty");
-			NewModule->AttachToComponent(GetAttachParent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-			NewModule->SetRelativeLocation(GetRelativeLocation());
-			NewModule->SetRelativeRotation(GetRelativeRotation());
-			NewModule->RegisterComponent();
-
-			SpawnedModule = NewModule;
-		}
-
-	}
 }
 
-void USB_ModuleSlotComponent::DestroyModule()
+void USB_ModuleSlotComponent::SpawnDefaultModule()
 {
-	if (SpawnedModule)
-	{
-		SpawnedModule->DestroyComponent();
-	}
+	SpawnModule(ModuleSlotData.DefaultModuleRowName);
 }
 
-void USB_ModuleSlotComponent::UpdateDemoMesh()
+void USB_ModuleSlotComponent::UpdateEditorMesh()
 {
 	if (IsValid(BaseModuleDT) == false)
 		return;
@@ -101,6 +75,7 @@ void USB_ModuleSlotComponent::UpdateDemoMesh()
 		if (ModuleSlotActor)
 		{
 			ModuleSlotActor->DemoMesh->SetSkeletalMesh(BaseModuleData->SkeletalMesh);
+			ModuleSlotActor->DemoMesh->SetRelativeScale3D(BaseModuleData->WorldScale);
 		}
 	}
 }

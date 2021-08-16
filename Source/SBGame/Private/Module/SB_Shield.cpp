@@ -33,7 +33,7 @@ void ASB_Shield::BeginPlay()
 	}
 
 	OwningShip = Cast<ASB_Ship>(GetOwner());
-	OwningShieldModule = OwningShip->ShieldModule;
+	//OwningShieldModule = OwningShip->ShieldModule;
 
 	ShieldMesh->IgnoreActorWhenMoving(GetOwner()->GetOwner(), true);
 	ShieldMesh->SetRelativeScale3D(DataManager->ShieldSettings.ShieldMeshScale);

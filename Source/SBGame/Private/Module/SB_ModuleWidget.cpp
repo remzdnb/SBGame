@@ -1,7 +1,6 @@
 #include "Module/SB_ModuleWidget.h"
 #include "Module/SB_BaseModule.h"
 #include "SB_GameInstance.h"
-#include "SB_DataManager.h"
 //
 #include "Components/PanelWidget.h"
 #include "Components/TextBlock.h"
@@ -15,22 +14,16 @@ USB_ModuleWidget::USB_ModuleWidget(const FObjectInitializer& ObjectInitializer) 
 {
 	GInstance = Cast<USB_GameInstance>(UGameplayStatics::GetGameInstance(UUserWidget::GetWorld()));
 
-	static ConstructorHelpers::FObjectFinder<UDataTable> FoundDT(TEXT("DataTable'/Game/Data/SB_BaseModuleData_DT.SB_BaseModuleData_DT'"));
+	/*static ConstructorHelpers::FObjectFinder<UDataTable> FoundDT(TEXT("DataTable'/Game/Data/SB_BaseModuleData_DT.SB_BaseModuleData_DT'"));
 	if (FoundDT.Succeeded())
 	{
 		BaseModuleDT = FoundDT.Object;
-	}
+	}*/
 }
 
 void USB_ModuleWidget::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
-
-	for (TActorIterator<ASB_DataManager> NewDataManager(GetWorld()); NewDataManager; ++NewDataManager)
-	{
-		DataManager = *NewDataManager;
-		break;
-	}
 }
 
 FReply USB_ModuleWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -45,11 +38,8 @@ FReply USB_ModuleWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, co
 	}
 
 	//
-
-	if (BaseModuleRef.IsValid())
-		OnPressed.Broadcast(BaseModuleRef->GetModuleSlotData().UniqueID , BaseModuleRef->GetModuleRowName());
-	else
-		OnPressed.Broadcast(ModuleID, DataRowName);
+	
+	OnPressed.Broadcast(SlotData.UniqueID);
 
 	return FReply::Handled();
 }
@@ -61,15 +51,21 @@ FReply USB_ModuleWidget::NativeOnMouseButtonDoubleClick(const FGeometry& InGeome
 	return FReply::Handled();
 }
 
-void USB_ModuleWidget::Update(const ASB_DataManager* const NewDataManager, const FSB_ModuleSlotData& NewSlotData, const FName& NewModuleDataRowName)
+void USB_ModuleWidget::Update(const FSB_ModuleSlotData& NewSlotData, const USB_BaseModule* const NewModuleRef)
 {
+	SlotData = NewSlotData;
+	ModuleRef = NewModuleRef;
+	
 	SlotID->SetText(FText::FromString(FString::FromInt(NewSlotData.UniqueID)));
 	SlotName->SetText(FText::FromString(NewSlotData.DisplayName));
 
-	UE_LOG(LogTemp, Warning, TEXT("USB_ModuleWidget::Update : 1"));
+	if (NewModuleRef)
+	{
+		ModuleName->SetText(FText::FromString(NewModuleRef->GetBaseModuleData()->DisplayName.ToString()));
+	}
 	
 	//const FSB_BaseModuleData* const BaseModuleData = DataManager->GetBaseModuleDataFromRow(NewModuleDataRowName);
-	if (BaseModuleDT)
+	/*if (BaseModuleDT)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("USB_ModuleWidget::Update : 2"));
 		
@@ -81,7 +77,7 @@ void USB_ModuleWidget::Update(const ASB_DataManager* const NewDataManager, const
 			
 			ModuleName->SetText(FText::FromString(BaseModuleData->DisplayName.ToString()));
 		}
-	}
+	}*/
 
 	
 	/*BaseModuleRef = ModuleRef;
@@ -117,5 +113,5 @@ void USB_ModuleWidget::Update(const ASB_DataManager* const NewDataManager, const
 
 void USB_ModuleWidget::OnDurabilityUpdated(float NewDurability)
 {
-	ModuleDurabilityProgressBar->SetPercent(NewDurability / BaseModuleRef->GetBaseModuleData()->MaxDurability);
+	ModuleDurabilityProgressBar->SetPercent(NewDurability / ModuleRef->GetBaseModuleData()->MaxDurability);
 }

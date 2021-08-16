@@ -23,7 +23,7 @@ void USB_ShipOTMWidget::Init(const ASB_DataManager* const NewDataManager, ASB_Sh
 
 	OwnedShip = NewOwnedShip;
 	OwnedShip->OnDurabilityUpdated.AddUniqueDynamic(this, &USB_ShipOTMWidget::OnShipDurabilityUpdated);
-	OwnedShip->ShieldModule->OnShieldDurabilityUpdated.AddUniqueDynamic(this, &USB_ShipOTMWidget::OnShieldDurabilityUpdated);
+	//OwnedShip->ShieldModule->OnShieldDurabilityUpdated.AddUniqueDynamic(this, &USB_ShipOTMWidget::OnShieldDurabilityUpdated);
 }
 
 void USB_ShipOTMWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)

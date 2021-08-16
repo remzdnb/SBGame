@@ -27,5 +27,5 @@ public:
 	FName ShipDataRowName;
 	
 	UPROPERTY()
-	TArray<FName> ModulesRowNames;
+	TArray<FName> ShipConfig;
 };

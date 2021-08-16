@@ -10,9 +10,6 @@
 #define DEFAULTRELATIVEMESHROTATION FRotator(0.0f, -90.0f, 0.0f)
 #define MAXAUTOLOCKCOMPONENTS 4
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FModuleHoveredDelegate, const class USB_BaseModule* const, NewHoveredModule);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FModuleSelectedDelegate, const class USB_BaseModule* const, NewSelectedModule);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FModuleReplacedDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSelectedWeaponUpdated, uint8, NewSelectedWeaponID);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FDurabilityUpdatedDelegate, float, NewDurability, float, MaxDurability);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDestroyedDelegate, const APlayerState* const, Instigator);
@@ -56,82 +53,29 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	FName ShipDataRowName;
-
+	
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	///// Modules
 
 public:
-
-	//void SpawnModule(const FSB_ModuleSlotData* const ModuleSlotData, const FName& RowName);
-
+	
 	UFUNCTION()
-	void LoadModules(const TArray<FName>& NewConfig);
+	void LoadConfig(const TArray<FName>& NewConfig);
 
 	UFUNCTION()
 	void SaveConfig();
 	
-	UFUNCTION()
-	void HoverModule();
-
-	UFUNCTION()
-	void SelectModuleByID(uint8 ModuleID);
-	
-	UFUNCTION()
-	void SelectModule(class USB_BaseModule* const ModuleToSelect);
-	
-	UFUNCTION()
-	void ReplaceModule(uint8 ModuleID, const FName& ModuleDataRowName);
-
-
 	//
-
-	FORCEINLINE UFUNCTION() class USB_BaseModule* const GetHoveredModule() const { return HoveredModule.Get(); }
-	FORCEINLINE UFUNCTION() class USB_BaseModule* const GetSelectedModule() const { return SelectedModule.Get(); }
+	
 	FORCEINLINE UFUNCTION() TInlineComponentArray<class USB_ModuleSlotComponent*> GetModuleSlots() const { return ModuleSlots; }
 	FORCEINLINE UFUNCTION() TInlineComponentArray<class USB_BaseModule*> GetAllModules() const { return BaseModules; }
-	FORCEINLINE UFUNCTION() TInlineComponentArray<class USB_ThrusterModule*> GetThrusterModules() const { return ThrusterModules; }
 	FORCEINLINE UFUNCTION() TInlineComponentArray<class USB_BaseWeaponModule*> GetWeaponModules() const { return WeaponModules; }
-
-	//
-
-	FModuleHoveredDelegate OnModuleHovered;
-	FModuleSelectedDelegate OnModuleSelected;
-	FModuleReplacedDelegate OnModuleReplaced;
-
-	//
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	USB_BaseModule* HullModule_01;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	USB_BaseModule* CommandModule;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	USB_ThrusterModule* ThrusterModule_Back;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	USB_ThrusterModule* ThrusterModule_Front;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	USB_ThrusterModule* ThrusterModule_Left;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	USB_ThrusterModule* ThrusterModule_Right;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	USB_ShieldModule* ShieldModule;
 
 private:
 
-	TArray<class USB_BaseModule*> SortedModules;
-
 	TInlineComponentArray<class USB_ModuleSlotComponent*> ModuleSlots;
 	TInlineComponentArray<class USB_BaseModule*> BaseModules;
-	TInlineComponentArray<class USB_ThrusterModule*> ThrusterModules;
 	TInlineComponentArray<class USB_BaseWeaponModule*> WeaponModules;
-
-	TWeakObjectPtr<class USB_BaseModule> HoveredModule;
-	TWeakObjectPtr<class USB_BaseModule> SelectedModule;
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	///// Weapons

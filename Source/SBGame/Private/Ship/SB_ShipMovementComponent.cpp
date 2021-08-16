@@ -64,7 +64,7 @@ void USB_ShipMovementComponent::MoveForward(float AxisValue)
 	if (OwningShip->GetLocalRole() < ROLE_Authority)
 		MoveForward_Server(AxisValue);
 
-	if (AxisValue > 0 && OwningShip->ThrusterModule_Back->GetState() == ESB_ModuleState::Ready)
+	if (AxisValue > 0 /*&& OwningShip->ThrusterModule_Back->GetState() == ESB_ModuleState::Ready*/)
 	{
 		const FRotator Rotation = OwningShip->GetActorRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
@@ -72,7 +72,7 @@ void USB_ShipMovementComponent::MoveForward(float AxisValue)
 		OwningShip->AddMovementInput(Direction);
 		ForwardAxisValue = AxisValue;
 	}
-	else if (AxisValue < 0 && OwningShip->ThrusterModule_Front->GetState() == ESB_ModuleState::Ready)
+	else if (AxisValue < 0 /*&& OwningShip->ThrusterModule_Front->GetState() == ESB_ModuleState::Ready*/)
 	{
 		const FRotator Rotation = OwningShip->GetActorRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
@@ -104,8 +104,8 @@ void USB_ShipMovementComponent::TurnRight(float AxisValue)
 		TurnRight_Server(AxisValue);
 	}
 
-	if ((AxisValue > 0 && OwningShip->ThrusterModule_Right->GetState() == ESB_ModuleState::Ready) ||
-		(AxisValue < 0 && OwningShip->ThrusterModule_Left->GetState() == ESB_ModuleState::Ready))
+	if (AxisValue > 0 /*&& OwningShip->ThrusterModule_Right->GetState() == ESB_ModuleState::Ready)*/ ||
+		AxisValue < 0 /*&& OwningShip->ThrusterModule_Left->GetState() == ESB_ModuleState::Ready)*/)
 	{
 		RightAxisValue = AxisValue;
 

@@ -28,20 +28,19 @@ void USB_HomeWidget::NativeOnInitialized()
 
 void USB_HomeWidget::OnPlayerNameChanged(const FText& PlayerNameText)
 {
-	GInstance->GetSaveGame()->PlayerName = PlayerNameText.ToString();
-	GInstance->ApplySaveGame();
+	GInstance->SavePlayerName(PlayerNameText.ToString());
 }
 
 void USB_HomeWidget::OnMapNameChanged(const FText& MapNameText)
 {
-	GInstance->GetSaveGame()->MapName = MapNameText.ToString();
-	GInstance->ApplySaveGame();
+	//GInstance->GetSaveGame()->MapName = MapNameText.ToString();
+	//GInstance->ApplySaveGame();
 }
 
 void USB_HomeWidget::OnJoinIPChanged(const FText& JoinIPText)
 {
-	GInstance->GetSaveGame()->JoinIP = JoinIPText.ToString();
-	GInstance->ApplySaveGame();
+	//GInstance->GetSaveGame()->JoinIP = JoinIPText.ToString();
+	//GInstance->ApplySaveGame();
 }
 
 void USB_HomeWidget::OnLoadMapButtonPressed(uint8 ButtonID)

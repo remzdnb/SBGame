@@ -27,9 +27,9 @@ void USB_ShipCameraManager::BeginPlay()
 	MainCameraArm = NewObject<USpringArmComponent>(GetOwner(), FName("MainCameraArm"));
 	if (MainCameraArm)
 	{
-		MainCameraArm->SetupAttachment(OwningShip->GetMesh());
+		MainCameraArm->SetupAttachment(OwningShip->GetRootComponent());
 		MainCameraArm->RegisterComponent();
-		MainCameraArm->bDoCollisionTest = true;
+		MainCameraArm->bDoCollisionTest = false;
 		MainCameraArm->ProbeChannel = ECC_Camera;
 		MainCameraArm->TargetArmLength = DEFAULTARMLENGTH;
 		MainCameraArm->SetRelativeLocation(FVector(0.0f, 0.0f, 5000.0f));
@@ -40,6 +40,7 @@ void USB_ShipCameraManager::BeginPlay()
 	{
 		MainCamera->SetupAttachment(MainCameraArm);
 		MainCamera->RegisterComponent();
+		MainCamera->SetAutoActivate(true);
 	}
 
 	TargetArmLength = DEFAULTARMLENGTH;

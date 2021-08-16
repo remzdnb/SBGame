@@ -24,12 +24,8 @@ USB_BaseModule::USB_BaseModule()
 	State = ESB_ModuleState::Ready;
 }
 
-void USB_BaseModule::Init(
-	const ASB_DataManager* const NewDataManager,
-	const FSB_ModuleSlotData& NewModuleSlotData,
-	const FName& NewModuleRowName)
+void USB_BaseModule::Init(const FSB_ModuleSlotData& NewModuleSlotData, const FName& NewModuleRowName)
 {
-	//DataManager = NewDataManager;
 	ModuleSlotData = NewModuleSlotData;
 	ModuleRowName = NewModuleRowName;
 
@@ -42,32 +38,6 @@ void USB_BaseModule::Init(
 		Durability = BaseModuleData->MaxDurability;
 		SetWorldScale3D(BaseModuleData->WorldScale);
 	}
-}
-
-void USB_BaseModule::InitializeComponent()
-{
-	Super::InitializeComponent();
-	
-	/*if (GetWorld()->IsGameWorld() == false)
-		return;
-
-	OwningShip = Cast<ASB_Ship>(GetOwner());
-	DataManager = OwningShip->GetDataManager();
-	BaseModuleData = DataManager->GetBaseModuleDataFromRow(ModuleName);
-	if (BaseModuleData)
-	{
-		SetSkeletalMesh(BaseModuleData->SkeletalMesh);
-		SkeletalMesh->bEnablePerPolyCollision = true;
-		SetAnimInstanceClass(BaseModuleData->AnimInstance);
-		Durability = BaseModuleData->MaxDurability;
-
-		SetWorldScale3D(BaseModuleData->WorldScale);
-	}*/
-}
-
-void USB_BaseModule::BeginPlay()
-{
-	Super::BeginPlay();
 }
 
 void USB_BaseModule::OnHoverStart()
@@ -100,21 +70,16 @@ void USB_BaseModule::OnHoverStop()
 	bIsHovered = false;
 }
 
-void USB_BaseModule::OnSelect()
+void USB_BaseModule::ToggleHighlight(bool bNewIsEnabled)
 {
-	SetCustomDepthStencilValue(2);
-	SetRenderCustomDepth(true);
-	bIsSelected = true;
+	SetCustomDepthStencilValue(3);
+	
+	SetRenderCustomDepth(bNewIsEnabled);
+	bIsSelected = bNewIsEnabled;
+	
 	bIsHovered = false;
-	OnSelectionUpdated.Broadcast(true);
-}
-
-void USB_BaseModule::OnUnselect()
-{
-	SetRenderCustomDepth(false);
-	bIsSelected = false;
-	bIsHovered = false;
-	OnSelectionUpdated.Broadcast(false);
+	
+	OnSelectionUpdated.Broadcast(bNewIsEnabled);
 }
 
 void USB_BaseModule::ApplyDamageFromProjectile(float Damage, const FVector& HitLocation, AController* const InstigatorController)

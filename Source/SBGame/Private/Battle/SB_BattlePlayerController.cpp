@@ -2,7 +2,9 @@
 #include "Battle/SB_BattlePlayerController.h"
 #include "Ship/SB_Ship.h"
 #include "Ship/SB_ShipMovementComponent.h"
+#include "Ship/SB_ShipCameraManager.h"
 #include "Module/SB_ShieldModule.h"
+#include "SB_GameMode.h"
 #include "SB_DataManager.h"
 // UIPlugin
 #include "RZ_UIManager.h"
@@ -10,11 +12,37 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 
+void ASB_BattlePlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		GMode->QueryRespawn(this);
+	}
+	
+	UWidgetBlueprintLibrary::SetInputMode_GameOnly(this);
+	bShowMouseCursor = false;
+	bEnableMouseOverEvents = false;
+	bEnableClickEvents = false;
+}
+
 void ASB_BattlePlayerController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
 	UpdateViewTarget(DeltaTime);
+}
+
+void ASB_BattlePlayerController::OnRep_Pawn()
+{
+	Super::OnRep_Pawn();
+
+	if (OwnedShip)
+	{
+		OwnedShip->GetShipCameraManager()->SetArmRotation(FRotator(-25.0f, OwnedShip->GetActorRotation().Yaw - 145.0f, 0.0f), false);
+		OwnedShip->GetShipCameraManager()->SetMaxTargetArmLength();
+	}
 }
 
 void ASB_BattlePlayerController::UpdateViewTarget(float DeltaTime) const
@@ -38,11 +66,11 @@ void ASB_BattlePlayerController::UpdateViewTarget(float DeltaTime) const
 			OwnedShip->UpdateOwnerViewData(/*GetControlRotation(), */Hit.Location, Hit.Actor.Get());
 		}
 
-		if (DataManager->GameSettings.bIsDebugEnabled_PlayerController)
+		/*if (DataManager->GameSettings.bIsDebugEnabled_PlayerController)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::White, *("ASB_PlayerController::UpdateViewTarget // Actor : " + Hit.Actor->GetName() + " // Component : " + Hit.Component->GetName()));
 			UKismetSystemLibrary::DrawDebugSphere(GetWorld(), Hit.Location, 500.0f, 10, FColor::Green, DeltaTime + 0.01f, 20.0f);
-		}
+		}*/
 	}
 }
 
@@ -61,14 +89,13 @@ void ASB_BattlePlayerController::LeftMouseButtonPressed()
 {
 	if (OwnedShip)
 	{
-		if (OwnedShip->ShieldModule->GetIsSetupMode() == 1)
+		/*if (OwnedShip->ShieldModule->GetIsSetupMode() == 1)
 		{
 			OwnedShip->ShieldModule->Deploy();
-		}
-		else
-		{
+		}*/
+
 			OwnedShip->StartFireSelectedWeapons();
-		}
+
 	}
 }
 

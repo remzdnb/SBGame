@@ -21,36 +21,29 @@ void ASB_CampaignPlayerController::BeginPlay()
 	if (IsLocalController())
 	{
 		// Ship
-
-		TSubclassOf<ASB_Ship> ShipClassToSpawn;
-		const FSB_ShipData* const ShipData = DataManager->GetShipDataFromRow(GInstance->GetSaveGame()->ShipDataRowName);
+		
+		const FSB_ShipData* const ShipData = GInstance->GetShipDataFromRow(GInstance->GetSaveGame()->ShipDataRowName);
 		if (ShipData)
-			ShipClassToSpawn = ShipData->ShipBP;	
-		else
-			ShipClassToSpawn = DataManager->GetShipDataFromRow(DataManager->ShipDT->GetRowNames()[0])->ShipBP;
-		
-		const FTransform SpawnTransform = FTransform(FVector::ZeroVector);
-		ASB_Ship* NewShip = GetWorld()->SpawnActorDeferred<ASB_Ship>(ShipClassToSpawn, SpawnTransform, this, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
-		if (NewShip)
 		{
-			UGameplayStatics::FinishSpawningActor(NewShip, SpawnTransform);
-			OnPossess(NewShip);
-			OnRep_Pawn();
+			const FTransform SpawnTransform = FTransform(FVector::ZeroVector);
+			ASB_Ship* NewShip = GetWorld()->SpawnActorDeferred<ASB_Ship>(ShipData->ShipBP, SpawnTransform, this, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+			if (NewShip)
+			{
+				UGameplayStatics::FinishSpawningActor(NewShip, SpawnTransform);
+				OnPossess(NewShip);
+				OnRep_Pawn();
+			}
 		}
-		
-		//if (GMode)
-		//{
-			//GMode->QueryRespawn(this);
-		//}
 
 		// UI
 		
-		for (auto& MapRow : DataManager->UISettings.CampaignMenuWidgets)
+		for (auto& MapRow : GInstance->UISettings.CampaignMenuWidgets)
 		{
 			UIManager->GetMenuLayoutWidget()->CreateMenuWidget(MapRow.Key, MapRow.Value);
 		}
 
 		UIManager->OnNewMenuWidgetSelected.AddUniqueDynamic(this, &ASB_CampaignPlayerController::OnNewMenuWidgetSelected);
+		UIManager->ToggleMenu(true);
 
 		// Controller
 		
@@ -76,7 +69,7 @@ void ASB_CampaignPlayerController::SelectShip(const FName& NewShipDataRowName)
 {
 	UE_LOG(LogTemp, Log, TEXT("ASB_CampaignPlayerController::NewShipDataRowName : %s"), *NewShipDataRowName.ToString());
 	
-	const FSB_ShipData* const NewShipData = DataManager->GetShipDataFromRow(NewShipDataRowName);
+	const FSB_ShipData* const NewShipData = GInstance->GetShipDataFromRow(NewShipDataRowName);
 	if (NewShipData)
 	{
 		if (OwnedShip)
@@ -85,8 +78,7 @@ void ASB_CampaignPlayerController::SelectShip(const FName& NewShipDataRowName)
 			OwnedShip->Destroy();
 		}
 
-		GInstance->GetSaveGame()->ShipDataRowName = NewShipDataRowName;
-		GInstance->ApplySaveGame();
+		GInstance->SaveSelectedShip(NewShipDataRowName);
 		
 		const FTransform SpawnTransform = FTransform(FVector::ZeroVector);
 		ASB_Ship* NewShip = GetWorld()->SpawnActorDeferred<ASB_Ship>(NewShipData->ShipBP, SpawnTransform, this, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
@@ -97,11 +89,6 @@ void ASB_CampaignPlayerController::SelectShip(const FName& NewShipDataRowName)
 			OnRep_Pawn();
 		}
 	}
-}
-
-void ASB_CampaignPlayerController::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
 }
 
 void ASB_CampaignPlayerController::OnNewMenuWidgetSelected(const FName& WidgetName, UUserWidget* SelectedWidget)
@@ -125,7 +112,7 @@ void ASB_CampaignPlayerController::OnNewMenuWidgetSelected(const FName& WidgetNa
 
 		if (OwnedShip)
 		{
-			OwnedShip->SelectModule(nullptr);
+			//OwnedShip->SelectModule(nullptr);
 			OwnedShip->GetShipCameraManager()->SetArmRotation(FRotator(-25.0f, OwnedShip->GetActorRotation().Yaw - 145.0f, 0.0f), true);
 			OwnedShip->GetShipCameraManager()->SetMaxTargetArmLength();
 		}
@@ -134,11 +121,11 @@ void ASB_CampaignPlayerController::OnNewMenuWidgetSelected(const FName& WidgetNa
 		//bEnableClickEvents = false;
 	}
 
-	if (GEngine)
+	/*if (GEngine)
 	{
 		const FString StringToPrint = "ASB_CampaignPlayerController::OnNewMenuWidgetSelected : Name " + WidgetName.ToString();
 		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Cyan, StringToPrint);
-	}
+	}*/
 }
 
 #pragma region +++++ Input ...
@@ -156,7 +143,7 @@ void ASB_CampaignPlayerController::OnLeftMouseButtonPressed()
 {
 	if (OwnedShip)
 	{
-		OwnedShip->SelectModule(OwnedShip->GetHoveredModule());
+		//OwnedShip->SelectModule(OwnedShip->GetHoveredModule());
 	}
 }
 

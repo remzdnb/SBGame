@@ -20,13 +20,8 @@ public:
 
 	USB_BaseModule();
 
-	virtual void Init(
-		const class ASB_DataManager* const NewDataManager,
-		const FSB_ModuleSlotData& NewModuleSlotData,
-		const FName& NewModuleRowName);
+	virtual void Init(const FSB_ModuleSlotData& NewModuleSlotData, const FName& NewModuleRowName);
 	
-	virtual void InitializeComponent() override;
-	virtual void BeginPlay() override;
 	virtual void ApplyDamageFromProjectile(float Damage, const FVector& HitLocation, AController* const InstigatorController) override;
 
 	//
@@ -38,10 +33,7 @@ public:
 	void OnHoverStop();
 
 	UFUNCTION()
-	void OnSelect();
-
-	UFUNCTION()
-	void OnUnselect();
+	void ToggleHighlight(bool bNewIsEnabled = true);
 	
 	//
 
