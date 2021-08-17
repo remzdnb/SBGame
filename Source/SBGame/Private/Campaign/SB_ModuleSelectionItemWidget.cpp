@@ -1,16 +1,15 @@
-#include "Campaign/SB_ModuleListItemWidget.h"
-#include "Module/SB_BaseModule.h"
+#include "Campaign/SB_ModuleSelectionItemWidget.h"
 #include "SB_GameInstance.h"
 //
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
 #include "Kismet/GameplayStatics.h"
 
-FReply USB_ModuleListItemWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+FReply USB_ModuleSelectionItemWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
 	Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
 	
-	OnModuleListItemPressed.Broadcast(ModuleDataRowName);
+	OnModuleSelectionItemPressed.Broadcast(ModuleDataRowName);
 
 	return FReply::Handled();
 
@@ -22,7 +21,7 @@ FReply USB_ModuleListItemWidget::NativeOnMouseButtonDown(const FGeometry& InGeom
 	}*/
 }
 
-void USB_ModuleListItemWidget::Update(const FName& NewModuleDataRowName)
+void USB_ModuleSelectionItemWidget::Update(const FName& NewModuleDataRowName)
 {
 	ModuleDataRowName = NewModuleDataRowName;
 	

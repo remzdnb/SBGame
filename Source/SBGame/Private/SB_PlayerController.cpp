@@ -5,16 +5,12 @@
 #include "SB_GameState.h"
 #include "Ship/SB_Ship.h"
 #include "Ship/SB_ShipMovementComponent.h"
-#include "Ship/SB_ShipCameraManager.h"
-#include "Battle/SB_ShipOTMWidget.h"
-#include "Module/SB_ShieldModule.h"
-#include "Battle/SB_SpectatorPawn.h"
-#include "RZ_UIManager.h"
-#include "Battle/SB_BattleHUDWidget.h"
-#include "SB_CursorWidget.h"
-#include "RZ_DamageMarkerWidget.h"
 #include "SB_PlayerSaveGame.h"
-//
+// UtilityPlugin
+#include "RZ_CameraActor.h"
+// UIPlugin
+#include "RZ_UIManager.h"
+// Engine
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
@@ -44,17 +40,23 @@ void ASB_PlayerController::BeginPlay()
 	
 	if (IsLocalController())
 	{
+		CameraActor = GetWorld()->SpawnActorDeferred<ARZ_CameraActor>(
+			ARZ_CameraActor::StaticClass(),
+			FTransform(),
+			this,
+			nullptr,
+			ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn
+		);
+		if (CameraActor)
+		{
+			UGameplayStatics::FinishSpawningActor(CameraActor, FTransform());
+			SetViewTargetWithBlend(CameraActor, 0.0f);
+		}
+		
 		/*CursorWidget = CreateWidget<USB_CursorWidget>(GetWorld(), DataManager->UISettings.Cursor_WBP);
 		if (CursorWidget)
 		{
 			SetMouseCursorWidget(EMouseCursor::Default, Cast<UUserWidget>(CursorWidget));
-		}*/
-		
-		// Spectator setup
-		/*OwnedSpectatorPawn = GetWorld()->SpawnActorDeferred<ASB_SpectatorPawn>(ASB_SpectatorPawn::StaticClass(), FTransform(FVector()), this, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
-		if (OwnedSpectatorPawn)
-		{
-			UGameplayStatics::FinishSpawningActor(OwnedSpectatorPawn, FTransform(FVector()));
 		}*/
 	}
 }
@@ -154,10 +156,11 @@ void ASB_PlayerController::SetupInputComponent()
 
 	InputComponent->BindAxis("LookUp", this, &ASB_PlayerController::LookUpAxis).bConsumeInput = false;
 	InputComponent->BindAxis("LookRight", this, &ASB_PlayerController::LookRightAxis).bConsumeInput = false;
+	InputComponent->BindAxis("MouseWheel", this, &ASB_PlayerController::ZoomAxis).bConsumeInput = false;
+	
 	InputComponent->BindAxis("MoveForward", this, &ASB_PlayerController::MoveForwardAxis).bConsumeInput = false;
 	InputComponent->BindAxis("MoveRight", this, &ASB_PlayerController::MoveRightAxis).bConsumeInput = false;
-	InputComponent->BindAxis("MouseWheel", this, &ASB_PlayerController::MouseWheelAxis).bConsumeInput = false;
-
+	
 	InputComponent->BindAction("RightMouseButton", IE_Pressed, this, &ASB_PlayerController::RightMouseButtonPressed).bConsumeInput = false;
 	InputComponent->BindAction("RightMouseButton", IE_Released, this, &ASB_PlayerController::RightMouseButtonReleased).bConsumeInput = false;
 	InputComponent->BindAction("Shift", IE_Pressed, this, &ASB_PlayerController::ShiftKeyPressed).bConsumeInput = false;
@@ -174,22 +177,31 @@ void ASB_PlayerController::SetupInputComponent()
 
 void ASB_PlayerController::LookUpAxis(float AxisValue)
 {
-	if (OwnedShip && OwnedShip == GetPawn())
+	if (CameraActor)
 	{
-		if (OwnedShip->GetShipCameraManager())
-		{
-			OwnedShip->GetShipCameraManager()->AddPitchInput(AxisValue);
-		}
+		CameraActor->AddPitchInput(AxisValue);	
 	}
 }
 
 void ASB_PlayerController::LookRightAxis(float AxisValue)
 {
-	if (OwnedShip && OwnedShip == GetPawn())
+	if (CameraActor)
 	{
-		if (OwnedShip->GetShipCameraManager())
+		CameraActor->AddYawInput(AxisValue);
+	}
+}
+
+void ASB_PlayerController::ZoomAxis(float AxisValue)
+{
+	if (CameraActor)
+	{
+		if (AxisValue > 0)
 		{
-			OwnedShip->GetShipCameraManager()->AddYawInput(AxisValue);
+			CameraActor->AddZoomInput(true);	
+		}
+		else
+		{
+			CameraActor->AddZoomInput(false);
 		}
 	}
 }
@@ -212,26 +224,6 @@ void ASB_PlayerController::MoveRightAxis(float AxisValue)
 		if (OwnedShip->GetShipMovement())
 		{
 			OwnedShip->GetShipMovement()->TurnRight(AxisValue);
-		}
-	}
-}
-
-
-void ASB_PlayerController::MouseWheelAxis(float AxisValue)
-{
-	if (OwnedShip && OwnedShip == GetPawn())
-	{
-		if (OwnedShip->GetShipCameraManager())
-		{
-			if (AxisValue > 0)
-			{
-				OwnedShip->GetShipCameraManager()->Zoom(true);
-			}
-
-			if (AxisValue < 0)
-			{
-				OwnedShip->GetShipCameraManager()->Zoom(false);
-			}
 		}
 	}
 }
@@ -279,7 +271,7 @@ void ASB_PlayerController::ShiftKeyReleased()
 
 void ASB_PlayerController::SpaceBarKeyPressed()
 {
-	if (OwnedShip)
+	/*if (OwnedShip)
 	{
 		if (OwnedShip->GetState() == ESB_ShipState::Ready)
 		{
@@ -298,7 +290,7 @@ void ASB_PlayerController::SpaceBarKeyPressed()
 		{
 			Respawn_Server();
 		}
-	}
+	}*/
 }
 
 void ASB_PlayerController::SelectWeapon1KeyPressed()

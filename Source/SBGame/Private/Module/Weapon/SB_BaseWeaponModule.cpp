@@ -2,7 +2,7 @@
 #include "SB_WeaponModuleAnimInstance.h"
 #include "Ship/SB_Ship.h"
 #include "SB_Projectile.h"
-#include "SB_DataManager.h"
+#include "SB_GameInstance.h"
 //
 #include "Engine/SkeletalMesh.h"
 #include "Components/SceneComponent.h"
@@ -24,15 +24,12 @@ USB_BaseWeaponModule::USB_BaseWeaponModule()
 	LastFireTime = 0.0f;
 }
 
-void USB_BaseWeaponModule::InitializeComponent()
+void USB_BaseWeaponModule::Init(const FSB_ModuleSlotData& NewModuleSlotData, const FName& NewModuleRowName)
 {
-	Super::InitializeComponent();
-
-	if (GetWorld()->IsGameWorld() == false)
-		return;
+	Super::Init(NewModuleSlotData, NewModuleRowName);
 	
-	//WeaponModuleData = DataManager->GetWeaponModuleDataFromRow(ModuleRowName);
-	//WeaponAnimInstance = Cast<USB_WeaponModuleAnimInstance>(GetAnimInstance());
+	WeaponModuleData = GInstance->GetWeaponModuleDataFromRow(NewModuleRowName);
+	WeaponAnimInstance = Cast<USB_WeaponModuleAnimInstance>(GetAnimInstance());
 }
 
 #pragma endregion
@@ -49,9 +46,9 @@ void USB_BaseWeaponModule::TickComponent(float DeltaTime, ELevelTick TickType, F
 	//SelectAutoLockCT();
 	//FireTick();
 
-	if (WeaponAnimInstance)
+	if (WeaponAnimInstance && OwningShip->GetState() == ESB_ShipState::Ready)
 	{
-		//WeaponAnimInstance->UpdateInstance(GetComponentLocation(), OwningShip->GetOwnerViewLocation());
+		WeaponAnimInstance->UpdateInstance(GetComponentLocation(), OwningShip->GetOwnerViewLocation());
 	}
 
 	//Debug(DeltaTime);
@@ -82,6 +79,85 @@ void USB_BaseWeaponModule::SetIsWeaponSelected(bool bToggleSelection, bool bNewI
 void USB_BaseWeaponModule::ToggleSniperView(bool bNewIsSniperView)
 {
 	bIsSniperView = bNewIsSniperView;
+}
+
+#pragma endregion
+
+#pragma region +++++ Fire ...
+
+void USB_BaseWeaponModule::SetWantsToFire(bool bNewWantsToFire)
+{
+	if (TargetShip)
+	{
+		TargetShip->ToggleOutline(false);
+		TargetShip = nullptr;
+		TargetAutoLockCT = nullptr;
+	}
+
+	bWantsToFire = bNewWantsToFire;
+}
+
+void USB_BaseWeaponModule::FireTick()
+{
+	if (OwningShip->GetLocalRole() < ROLE_Authority)
+		return;
+
+	float CurrentTime = GetWorld()->GetTimeSeconds();
+
+	if ((CurrentTime - LastFireTime) >= WeaponModuleData->FireRate)
+	{
+		if (bIsFiring)
+		{
+			bIsFiring = false;
+		}
+	}
+
+	if (bWantsToFire && !bIsFiring)
+	{
+		FireOnce();
+		bIsFiring = true;
+		LastFireTime = CurrentTime;
+	}
+}
+
+void USB_BaseWeaponModule::FireOnce()
+{
+	for (uint8 MuzzleIndex = 1; MuzzleIndex <= WeaponModuleData->MuzzleCount; MuzzleIndex++)
+	{
+		const FName MuzzleSocketName = *("MuzzleSocket_0" + FString::FromInt(MuzzleIndex));
+		const FVector StartLocation = GetSocketLocation(MuzzleSocketName);
+		const FVector TargetLocation = TargetAutoLockCT ? TargetAutoLockCT->GetComponentLocation() : OwningShip->GetOwnerViewLocation();
+		const FRotator SpawnRotation = UKismetMathLibrary::FindLookAtRotation(StartLocation, TargetLocation);
+		const FTransform SpawnTransform(SpawnRotation, StartLocation, FVector(1.0f));
+		const FActorSpawnParameters SpawnParameters;
+
+		ASB_Projectile* const Projectile = GetWorld()->SpawnActorDeferred<ASB_Projectile>(WeaponModuleData->ProjectileBP, SpawnTransform, GetOwner(), nullptr);
+		if (Projectile)
+		{
+			//Projectile->Init(WeaponModuleData, (ASB_Ship*)GetOwner());
+			Projectile->GetProjectileShipMovement()->InitialSpeed = 100000.0f;
+			Projectile->GetProjectileShipMovement()->MaxSpeed = 100000.0f;
+			UGameplayStatics::FinishSpawningActor(Projectile, SpawnTransform);
+
+			//if (DataManager->GameSettings.bIsDebugEnabled_WeaponModule)
+				//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, "USB_BaseWeaponModule::FireOnce : Projectile spawned");
+		}
+
+		if (WeaponModuleData->MuzzleParticle && bHiddenInGame == false)
+		{
+			MuzzleParticle = UGameplayStatics::SpawnEmitterAttached(
+				WeaponModuleData->MuzzleParticle,
+				this,
+				MuzzleSocketName,
+				FVector(0.0f),
+				FRotator(0.0f),
+				EAttachLocation::SnapToTarget
+			);
+
+			if (MuzzleParticle) // crash on dedicated obv
+				MuzzleParticle->SetWorldScale3D(FVector(WeaponModuleData->MuzzleParticleScale));
+		}
+	}
 }
 
 #pragma endregion
@@ -145,96 +221,11 @@ void USB_BaseWeaponModule::SelectAutoLockCT()
 
 #pragma endregion
 
-#pragma region +++++ Fire ...
-
-void USB_BaseWeaponModule::SetWantsToFire(bool bNewWantsToFire)
-{
-	if (TargetShip)
-	{
-		TargetShip->ToggleOutline(false);
-		TargetShip = nullptr;
-		TargetAutoLockCT = nullptr;
-	}
-
-	bWantsToFire = bNewWantsToFire;
-}
-
-void USB_BaseWeaponModule::FireTick()
-{
-	if (OwningShip->GetLocalRole() < ROLE_Authority)
-		return;
-
-	float CurrentTime = GetWorld()->GetTimeSeconds();
-
-	if ((CurrentTime - LastFireTime) >= WeaponModuleData->FireRate)
-	{
-		if (bIsFiring)
-		{
-			bIsFiring = false;
-		}
-	}
-
-	if (bWantsToFire && !bIsFiring)
-	{
-		FireOnce();
-		bIsFiring = true;
-		LastFireTime = CurrentTime;
-	}
-}
-
-void USB_BaseWeaponModule::FireOnce()
-{
-	for (uint8 MuzzleIndex = 1; MuzzleIndex <= WeaponModuleData->MuzzleCount; MuzzleIndex++)
-	{
-		const FName MuzzleSocketName = *("MuzzleSocket_0" + FString::FromInt(MuzzleIndex));
-		const FVector StartLocation = GetSocketLocation(MuzzleSocketName);
-		const FVector TargetLocation = TargetAutoLockCT ? TargetAutoLockCT->GetComponentLocation() : OwningShip->GetOwnerViewLocation();
-		const FRotator SpawnRotation = UKismetMathLibrary::FindLookAtRotation(StartLocation, TargetLocation);
-		const FTransform SpawnTransform(SpawnRotation, StartLocation, FVector(1.0f));
-		const FActorSpawnParameters SpawnParameters;
-
-		ASB_Projectile* const Projectile = GetWorld()->SpawnActorDeferred<ASB_Projectile>(WeaponModuleData->ProjectileBP, SpawnTransform, GetOwner(), nullptr);
-		if (Projectile)
-		{
-			//Projectile->Init(WeaponModuleData, (ASB_Ship*)GetOwner());
-			Projectile->GetProjectileShipMovement()->InitialSpeed = 100000.0f;
-			Projectile->GetProjectileShipMovement()->MaxSpeed = 100000.0f;
-			UGameplayStatics::FinishSpawningActor(Projectile, SpawnTransform);
-
-			if (DataManager->GameSettings.bIsDebugEnabled_WeaponModule)
-				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, "USB_BaseWeaponModule::FireOnce : Projectile spawned");
-		}
-
-		if (WeaponModuleData->MuzzleParticle && bHiddenInGame == false)
-		{
-			MuzzleParticle = UGameplayStatics::SpawnEmitterAttached(
-				WeaponModuleData->MuzzleParticle,
-				this,
-				MuzzleSocketName,
-				FVector(0.0f),
-				FRotator(0.0f),
-				EAttachLocation::SnapToTarget
-			);
-
-			if (MuzzleParticle) // crash on dedicated obv
-				MuzzleParticle->SetWorldScale3D(FVector(WeaponModuleData->MuzzleParticleScale));
-		}
-	}
-}
-
-#pragma endregion
-
 #pragma region +++++ Network / Debug ...
 
 void USB_BaseWeaponModule::Debug(float DeltaTime)
 {
 	if (OwningShip == nullptr)
-		return;
-
-	if (DataManager == nullptr)
-		return;
-
-	if (DataManager->GameSettings.bIsDebugEnabled_WeaponModule == false)
 		return;
 
 	FString RoleString = "None";

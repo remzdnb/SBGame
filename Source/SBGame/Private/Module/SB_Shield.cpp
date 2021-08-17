@@ -1,7 +1,6 @@
 #include "Module/SB_Shield.h"
 #include "Module/SB_ShieldModule.h"
 #include "Ship/SB_Ship.h"
-#include "SB_DataManager.h"
 //
 #include "Components/StaticMeshComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -26,17 +25,11 @@ void ASB_Shield::BeginPlay()
 {
 	Super::BeginPlay();
 
-	for (TActorIterator<ASB_DataManager> NewDataManager(GetWorld()); NewDataManager; ++NewDataManager)
-	{
-		DataManager = *NewDataManager;
-		break;
-	}
-
 	OwningShip = Cast<ASB_Ship>(GetOwner());
 	//OwningShieldModule = OwningShip->ShieldModule;
 
 	ShieldMesh->IgnoreActorWhenMoving(GetOwner()->GetOwner(), true);
-	ShieldMesh->SetRelativeScale3D(DataManager->ShieldSettings.ShieldMeshScale);
+	//ShieldMesh->SetRelativeScale3D(DataManager->ShieldSettings.ShieldMeshScale);
 }
 
 void ASB_Shield::OnDeployedBPN_Implementation()

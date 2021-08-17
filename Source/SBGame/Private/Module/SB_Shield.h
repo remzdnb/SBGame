@@ -34,8 +34,6 @@ private:
 	class UStaticMeshComponent* ShieldMesh;
 
 	//
-
-	const class ASB_DataManager* DataManager;
 	
 	TWeakObjectPtr<class ASB_Ship> OwningShip;
 	TWeakObjectPtr<class USB_ShieldModule> OwningShieldModule;

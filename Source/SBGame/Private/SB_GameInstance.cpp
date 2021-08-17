@@ -1,5 +1,4 @@
 #include "SB_GameInstance.h"
-#include "SB_DataManager.h"
 #include "SB_PlayerSaveGame.h"
 //
 #include "Kismet/GameplayStatics.h"
@@ -18,12 +17,6 @@ void USB_GameInstance::OnStart()
 void USB_GameInstance::Init()
 {
 	Super::Init();
-
-	for (TActorIterator<ASB_DataManager> NewDataManager(GetWorld()); NewDataManager; ++NewDataManager)
-	{
-		//DataManager = *NewDataManager;
-		break;
-	}
 
 	CreateNewSaveGame();
 	//Debug();
@@ -82,6 +75,20 @@ void USB_GameInstance::ResetShipConfig()
 	}
 }
 
+const FSB_VehicleData* const USB_GameInstance::GetVehicleDataFromRow(const FName& RowName) const
+{
+	if (VehicleDT == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("USB_GameInstance::GetVehicleDataFromRow : Missing VehicleDT."));
+		return nullptr;
+	}
+
+	const FString ContextString;
+	const FSB_VehicleData* const VehicleData = VehicleDT->FindRow<FSB_VehicleData>(RowName, ContextString);
+	
+	return VehicleData;
+}
+
 const FSB_ShipData* const USB_GameInstance::GetShipDataFromRow(const FName& RowName) const
 {
 	if (ShipDT == nullptr)
@@ -100,18 +107,56 @@ const FSB_BaseModuleData* const USB_GameInstance::GetBaseModuleDataFromRow(const
 {
 	if (BaseModuleDT == nullptr)
 	{
-		UE_LOG(LogTemp, Error, TEXT("ASB_DataManager::GetShipDataFromRow : Missing BaseModuleDT."));
+		UE_LOG(LogTemp, Error, TEXT("ASB_DataManager::GetBaseModuleDataFromRow : Missing BaseModuleDT."));
 		return nullptr;
 	}
 	
 	const FString ContextString;
 	const FSB_BaseModuleData* BaseModuleData = BaseModuleDT->FindRow<FSB_BaseModuleData>(RowName, ContextString);
-	if (BaseModuleData)
+	
+	return BaseModuleData;
+}
+
+const FSB_ThrusterModuleData* const USB_GameInstance::GetThrusterModuleDataFromRow(const FName& RowName) const
+{
+	if (ThrusterModuleDT == nullptr)
 	{
-		return BaseModuleData;
+		UE_LOG(LogTemp, Error, TEXT("ASB_DataManager::GetThrusterModuleDataFromRow : Missing ThrusterModuleDT."));
+		return nullptr;
+	}
+	
+	const FString ContextString;
+	const FSB_ThrusterModuleData* const ThrusterModuleData = ThrusterModuleDT->FindRow<FSB_ThrusterModuleData>(RowName, ContextString);
+	
+	return ThrusterModuleData;
+}
+
+const FSB_BaseWeaponModuleData* const USB_GameInstance::GetWeaponModuleDataFromRow(const FName& RowName) const
+{
+	if (WeaponModuleDT == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("ASB_DataManager::GetWeaponModuleDataFromRow : Missing WeaponModuleDT."));
+		return nullptr;
 	}
 
-	return nullptr;
+	const FString ContextString;
+	const FSB_BaseWeaponModuleData* WeaponModuleData = WeaponModuleDT->FindRow<FSB_BaseWeaponModuleData>(RowName, ContextString);
+	
+	return WeaponModuleData;
+}
+
+const FSB_ProjectileData* const USB_GameInstance::GetProjectileDataFromRow(const FName& RowName) const
+{
+	if (ProjectileDT == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("ASB_DataManager::GetProjectileDataFromRow : Missing ProjectileDT."));
+		return nullptr;
+	}
+	
+	const FString ContextString;
+	const FSB_ProjectileData* const ProjectileData = ProjectileDT->FindRow<FSB_ProjectileData>(RowName, ContextString);
+	
+	return ProjectileData;
 }
 
 void USB_GameInstance::Debug()

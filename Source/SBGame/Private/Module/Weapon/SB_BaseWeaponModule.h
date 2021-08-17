@@ -1,6 +1,3 @@
-///// SB_BaseWeaponModule.h - RemzDNB
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 #pragma once
 
 #include "SB_Types.h"
@@ -10,7 +7,6 @@
 #include "SB_BaseWeaponModule.generated.h"
 
 class ASB_Ship;
-class ASB_DataManager;
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class USB_BaseWeaponModule : public USB_BaseModule
@@ -21,7 +17,7 @@ public:
 
 	USB_BaseWeaponModule();
 
-	virtual void InitializeComponent() override;
+	virtual void Init(const FSB_ModuleSlotData& NewModuleSlotData, const FName& NewModuleRowName) override;
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	//
@@ -40,6 +36,7 @@ public:
 
 	//
 
+	FORCEINLINE UFUNCTION() const FSB_BaseWeaponModuleData* const GetWeaponModuleData() const { return WeaponModuleData; }
 	FORCEINLINE UFUNCTION() bool GetIsSelected() const { return bIsSelected; }
 
 private:

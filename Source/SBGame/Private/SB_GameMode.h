@@ -35,7 +35,8 @@ public:
 
 private:
 
-	const class ASB_DataManager* DataManager;
+	class USB_GameInstance* GInstance;
+	
 	TArray<class ASB_ShipStart*> ShipStarts;
 	FTimerHandle SpawnTimer;
 

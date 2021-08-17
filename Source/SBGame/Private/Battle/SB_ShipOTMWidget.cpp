@@ -3,7 +3,6 @@
 #include "Module/SB_ShieldModule.h"
 #include "RZ_UIManager.h"
 #include "SB_PlayerController.h"
-#include "SB_DataManager.h"
 #include "RZ_ProgressBarWidget.h"
 //
 #include "Components/PanelWidget.h"
@@ -11,10 +10,8 @@
 #include "Components/CanvasPanelSlot.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 
-void USB_ShipOTMWidget::Init(const ASB_DataManager* const NewDataManager, ASB_Ship* const NewOwnedShip)
+void USB_ShipOTMWidget::Init(ASB_Ship* const NewOwnedShip)
 {
-	DataManager = NewDataManager;
-
 	ASB_PlayerController* const OwningPC = Cast<ASB_PlayerController>(GetOwningPlayer());
 	if (OwningPC)
 	{

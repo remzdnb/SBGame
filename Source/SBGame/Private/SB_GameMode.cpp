@@ -5,7 +5,6 @@
 #include "Battle/SB_AIController.h"
 #include "Ship/SB_ShipStart.h"
 #include "RZ_UIManager.h"
-#include "SB_DataManager.h"
 //
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
@@ -29,14 +28,7 @@ void ASB_GameMode::PostInitializeComponents()
 	if (GetWorld()->IsGameWorld() == false)
 		return;
 
-	for (TActorIterator<ASB_DataManager> NewDataManager(GetWorld()); NewDataManager; ++NewDataManager)
-	{
-		DataManager = *NewDataManager;
-		break;
-	}
-
-	if (DataManager == nullptr)
-		UE_LOG(LogTemp, Error, TEXT("ARZ_BaseGameMode::PostInitializeComponents - Missing DataManager."));
+	GInstance = Cast<USB_GameInstance>(GetGameInstance());
 
 	for (TActorIterator<ASB_ShipStart> NewShipStart(GetWorld()); NewShipStart; ++NewShipStart)
 	{
@@ -112,7 +104,7 @@ void ASB_GameMode::QueryRespawn(AController* const NewController)
 		{
 			RegisteredPlayerControllers.Add(PlayerController);
 
-			if (DataManager->GameSettings.bIsDebugEnabled_GameMode)
+			if (GInstance->GameSettings.bIsDebugEnabled_GameMode)
 				UE_LOG(LogTemp, Warning, TEXT("ARZ_BaseGameMode::QueryRespawn - Player : %s added to the spawn queue."), *NewController->GetName());
 		}
 	}
@@ -125,7 +117,7 @@ void ASB_GameMode::QueryRespawn(AController* const NewController)
 			{
 				RegisteredAIControllers.Add(AIController);
 
-				if (DataManager->GameSettings.bIsDebugEnabled_GameMode)
+				if (GInstance->GameSettings.bIsDebugEnabled_GameMode)
 					UE_LOG(LogTemp, Warning, TEXT("ARZ_BaseGameMode::QueryRespawn - AI : %s added to the spawn queue."), *NewController->GetName());
 			}
 		}
@@ -151,7 +143,7 @@ void ASB_GameMode::SpawnAIController(uint8 TeamID)
 {
 	FActorSpawnParameters SpawnParameters;
 
-	ASB_AIController* const NewAIController = GetWorld()->SpawnActorDeferred<ASB_AIController>(DataManager->GameSettings.AIControllerClass, FTransform(), this);
+	ASB_AIController* const NewAIController = GetWorld()->SpawnActorDeferred<ASB_AIController>(GInstance->GameSettings.AIControllerClass, FTransform(), this);
 	if (NewAIController)
 	{
 		NewAIController->bWantsPlayerState = true;

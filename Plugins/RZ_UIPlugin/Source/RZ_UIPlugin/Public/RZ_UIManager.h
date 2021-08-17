@@ -6,8 +6,6 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FNewMenuWidgetSelectedDelegate, const FName&, WidgetName, UUserWidget*, SelectedWidget);
 
-class URZ_MenuLayoutWidget;
-
 UCLASS()
 class RZ_UIPLUGIN_API ARZ_UIManager : public AHUD
 {
@@ -29,7 +27,7 @@ public:
 
 	//
 
-	UFUNCTION() FORCEINLINE URZ_MenuLayoutWidget* GetMenuLayoutWidget() const { return MenuLayoutWidget; }
+	UFUNCTION() FORCEINLINE class URZ_MenuLayoutWidget* GetMenuLayoutWidget() const { return MenuLayoutWidget; }
 	UFUNCTION() FORCEINLINE bool IsMenuOpen() const { return bIsMenuOpen; }
 	UFUNCTION() FORCEINLINE bool IsHUDOpen() const { return bIsHUDOpen; }
 
@@ -39,15 +37,14 @@ public:
 
 private:
 
-	// Editor BP references.
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<UUserWidget> MenuLayoutWBP;
-
-	//
+	TSubclassOf<class URZ_MenuLayoutWidget> MenuLayoutWBP;
 	
 	UPROPERTY()
-	URZ_MenuLayoutWidget* MenuLayoutWidget;
+	class URZ_MenuLayoutWidget* MenuLayoutWidget;
+
+	UPROPERTY()
+	TArray<UUserWidget*> HUDWidgets;
 	
 	bool bIsMenuOpen;
 	bool bIsHUDOpen;

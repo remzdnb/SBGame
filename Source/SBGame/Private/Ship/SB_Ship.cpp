@@ -1,6 +1,5 @@
 #include "Ship/SB_Ship.h"
 #include "Ship/SB_ShipMovementComponent.h"
-#include "Ship/SB_ShipCameraManager.h"
 #include "Module/SB_ModuleSlotComponent.h"
 #include "Module/SB_ThrusterModule.h"
 #include "Module/SB_ShieldModule.h"
@@ -8,9 +7,9 @@
 #include "Battle/SB_ShipOTMWidget.h"
 #include "SB_PlayerController.h"
 #include "SB_PlayerState.h"
-#include "SB_DataManager.h"
 #include "SB_GameInstance.h"
 #include "SB_PlayerSaveGame.h"
+#include "SB_UtilityLibrary.h"
 //
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -42,7 +41,7 @@ ASB_Ship::ASB_Ship(const FObjectInitializer& ObjectInitializer) :
 	//CircleParticleCT = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("CircleParticleCT"));
 	//CircleParticleCT->SetupAttachment(RootComponent);
 
-	ShipCameraManager = CreateDefaultSubobject<USB_ShipCameraManager>(FName("ShipCameraManager"));
+	//ShipCameraManager = CreateDefaultSubobject<USB_ShipCameraManager>(FName("ShipCameraManager"));
 	ShipMovement = Cast<USB_ShipMovementComponent>(ACharacter::GetMovementComponent());
 	
 	/*for (uint8 Index = 0; Index < MAXAUTOLOCKCOMPONENTS; Index++)
@@ -82,47 +81,41 @@ void ASB_Ship::OnConstruction(const FTransform& Transform)
 	}
 }
 
-void ASB_Ship::PreInitializeComponents()
-{
-	if (GetWorld()->IsGameWorld() == true)
-	{	
-		GInstance = Cast<USB_GameInstance>(GetGameInstance());
-		
-		for (TActorIterator<ASB_DataManager> NewDataManager(GetWorld()); NewDataManager; ++NewDataManager) // get from ginstance ?
-		{
-			DataManager = *NewDataManager;
-			break;
-		}
-	}
-	
-	Super::PreInitializeComponents();
-}
-
 void ASB_Ship::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	if (GetWorld()->IsGameWorld() == true)
+	if (GetWorld()->IsGameWorld() == false)
+		return;
+
+	GInstance = Cast<USB_GameInstance>(GetGameInstance());
+	ShipData = GInstance->GetShipDataFromRow(ShipDataRowName);
+
+	if (GInstance->GetSaveGame())
+		LoadConfig(GInstance->GetSaveGame()->ShipConfig);
+	else
+		LoadConfig(TArray<FName>());
+
+	for (const auto& ModuleSlot : ModuleSlots)
 	{
-		GetComponents(ModuleSlots);
-		GetComponents(BaseModules);
-		GetComponents(WeaponModules);
+		if (ModuleSlot->GetModuleSlotData().Type == ESB_ModuleType::PrimaryWeapon &&
+			ModuleSlot->GetSpawnedModule())
+		{
+			PrimaryWeapons.Add(Cast<USB_BaseWeaponModule>(ModuleSlot->GetSpawnedModule()));
+		}
+
+		if (ModuleSlot->GetModuleSlotData().Type == ESB_ModuleType::AuxiliaryWeapon &&
+			ModuleSlot->GetSpawnedModule())
+		{
+			AuxiliaryWeapons.Add(Cast<USB_BaseWeaponModule>(ModuleSlot->GetSpawnedModule()));
+		}
 	}
 }
 
 void ASB_Ship::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (GInstance->GetSaveGame())
-	{
-		LoadConfig(GInstance->GetSaveGame()->ShipConfig);
-	}
-	else
-	{
-		LoadConfig(TArray<FName>());
-	}
-
+	
 	// Create sniper cameras
 
 	/*uint8 Index = 0;
@@ -143,7 +136,7 @@ void ASB_Ship::BeginPlay()
 
 	// Create OTM widget
 
-	if (UKismetSystemLibrary::IsDedicatedServer(GetWorld()) == false)
+	/*if (UKismetSystemLibrary::IsDedicatedServer(GetWorld()) == false)
 	{
 		APlayerController* PC = Cast<APlayerController>(GetOwner());
 		if (PC)
@@ -154,7 +147,7 @@ void ASB_Ship::BeginPlay()
 			}
 			else
 			{
-				OTMWidget = CreateWidget<USB_ShipOTMWidget>(GetWorld(), DataManager->UISettings.ShipOTM_WBP);
+				OTMWidget = CreateWidget<USB_ShipOTMWidget>(GetWorld(), GInstance->UISettings.ShipOTM_WBP);
 				if (OTMWidget)
 				{
 					OTMWidget->Init(DataManager, this);
@@ -163,17 +156,17 @@ void ASB_Ship::BeginPlay()
 		}
 		else
 		{
-			OTMWidget = CreateWidget<USB_ShipOTMWidget>(GetWorld(), DataManager->UISettings.ShipOTM_WBP);
+			OTMWidget = CreateWidget<USB_ShipOTMWidget>(GetWorld(), GInstance->UISettings.ShipOTM_WBP);
 			if (OTMWidget)
 			{
 				OTMWidget->Init(DataManager, this);
 			}
 		}
-	}
+	}*/
 
 	//
 
-	Durability = DataManager->ShipSettings.MaxDurability;
+	Durability = 10000.0f; //DataManager->ShipSettings.MaxDurability;
 }
 
 void ASB_Ship::OnRep_PlayerState()
@@ -201,7 +194,7 @@ void ASB_Ship::Tick(float DeltaTime)
 	// Update circle particle
 	//CircleParticleCT->SetWorldRotation(UKismetMathLibrary::MakeRotFromX(ShipMovement->Velocity));
 	
-	Debug(DeltaTime);
+	//Debug(DeltaTime);
 }
 
 void ASB_Ship::UpdateOwnerViewData(const FVector& NewOwnerViewLocation, AActor* NewOwnerViewActor)
@@ -211,8 +204,7 @@ void ASB_Ship::UpdateOwnerViewData(const FVector& NewOwnerViewLocation, AActor* 
 
 	if (GetLocalRole() < ROLE_Authority)
 		UpdateOwnerViewData_Server(NewOwnerViewLocation, NewOwnerViewActor);
-
-	//OwnerViewRotation = NewOwnerViewRotation;
+	
 	OwnerViewLocation = NewOwnerViewLocation;
 	OwnerViewActor = NewOwnerViewActor;
 }
@@ -265,9 +257,9 @@ void ASB_Ship::SelectWeapon(uint8 WeaponID, bool bToggleSelection, bool bNewIsSe
 	if (GetLocalRole() < ROLE_Authority)
 		SelectWeapon_Server(WeaponID, bToggleSelection, bNewIsSelected);
 
-	if (WeaponModules.IsValidIndex(WeaponID))
+	if (PrimaryWeapons.IsValidIndex(WeaponID))
 	{
-		if (WeaponModules[WeaponID])
+		if (PrimaryWeapons[WeaponID])
 		{
 			//WeaponModules[WeaponID]->SetIsSelected(bToggleSelection, bNewIsSelected);
 		}
@@ -312,7 +304,7 @@ void ASB_Ship::StartFireSelectedWeapons()
 	if (GetLocalRole() < ROLE_Authority)
 		StartFireSelectedWeapons_Server();
 
-	for (auto& WeaponModule : WeaponModules)
+	for (auto& WeaponModule : PrimaryWeapons)
 	{
 		if (WeaponModule->GetIsSelected())
 		{
@@ -331,7 +323,7 @@ void ASB_Ship::StopFireAllWeapons()
 	if (GetLocalRole() < ROLE_Authority)
 		StopFireAllWeapons_Server();
 
-	for (auto& WeaponModule : WeaponModules)
+	for (auto& WeaponModule : PrimaryWeapons)
 	{
 		WeaponModule->SetWantsToFire(false);
 	}
@@ -405,8 +397,8 @@ void ASB_Ship::UpdateState_Multicast_Implementation(ESB_ShipState NewState)
 	{
 		GetCapsuleComponent()->SetCollisionProfileName("IgnoreAll");
 		GetMesh()->SetCollisionProfileName("IgnoreAll");
-		for (const auto& BaseModule : BaseModules)
-			BaseModule->SetCollisionProfileName("IgnoreAll");
+		//for (const auto& BaseModule : BaseModules)
+			//BaseModule->SetCollisionProfileName("IgnoreAll");
 		SetActorHiddenInGame(true);
 
 		/*AActor* DestructibleShip = GetWorld()->SpawnActorDeferred<AActor>(DataManager->GameSettings.DestructibleShipClass, GetMesh()->GetComponentTransform(), this, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
@@ -422,10 +414,10 @@ void ASB_Ship::UpdateState_Multicast_Implementation(ESB_ShipState NewState)
 
 		UGameplayStatics::SpawnEmitterAtLocation(
 			GetWorld(),
-			DataManager->ShipSettings.DestroyedParticle,
+			GInstance->ShipSettings.DestroyedParticle,
 			GetActorLocation(),
 			GetActorRotation(),
-			FVector(DataManager->ShipSettings.DestroyedParticleScale),
+			FVector(GInstance->ShipSettings.DestroyedParticleScale),
 			true,
 			EPSCPoolMethod::None,
 			true);
@@ -453,22 +445,18 @@ void ASB_Ship::ToggleOutline(bool bNewIsVisible, int32 StencilValue)
 void ASB_Ship::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(ASB_Ship, OwnerViewRotation);
+	
 	DOREPLIFETIME(ASB_Ship, OwnerViewLocation);
 	DOREPLIFETIME(ASB_Ship, Durability);
 }
 
 void ASB_Ship::OnRep_Durability()
 {
-	OnDurabilityUpdated.Broadcast(Durability, DataManager->ShipSettings.MaxDurability);
+	OnDurabilityUpdated.Broadcast(Durability, ShipData->MaxDurability);
 }
 
 void ASB_Ship::Debug(float DeltaTime)
 {
-	if (DataManager->GameSettings.bIsDebugEnabled_Ship == false)
-		return;
-
 	FString RoleString = "None";
 	FColor Color = FColor::White;
 

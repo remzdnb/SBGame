@@ -1,7 +1,6 @@
 #include "Ship/SB_ShipMovementComponent.h"
 #include "Ship/SB_Ship.h"
 #include "Module/SB_ThrusterModule.h"
-#include "SB_DataManager.h"
 #include "SB_UtilityLibrary.h"
 //
 #include "EngineUtils.h"
@@ -29,9 +28,8 @@ void USB_ShipMovementComponent::BeginPlay()
 	OwningShip = Cast<ASB_Ship>(GetOwner());
 	if (OwningShip.IsValid())
 	{
-		DataManager = OwningShip->GetDataManager();
 		TargetRotationYaw = OwningShip->GetActorRotation().Yaw;
-		MaxWalkSpeed = DataManager->ShipSettings.MoveSpeed;
+		MaxWalkSpeed = OwningShip->GetShipData()->MoveSpeed;
 		//OwningShip->GetReplicatedMovement()->
 	}
 
@@ -55,7 +53,7 @@ void USB_ShipMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 
 void USB_ShipMovementComponent::MoveForward(float AxisValue)
 {
-	if (DataManager == nullptr || OwningShip == nullptr)
+	if (OwningShip == nullptr)
 		return;
 
 	if (OwningShip->GetState() == ESB_ShipState::Destroyed)
@@ -93,7 +91,7 @@ void USB_ShipMovementComponent::MoveForward_Server_Implementation(float AxisValu
 
 void USB_ShipMovementComponent::TurnRight(float AxisValue)
 {
-	if (DataManager == nullptr || OwningShip == nullptr)
+	if (OwningShip == nullptr)
 		return;
 
 	if (OwningShip->GetState() == ESB_ShipState::Destroyed)
@@ -111,7 +109,7 @@ void USB_ShipMovementComponent::TurnRight(float AxisValue)
 
 		if (OwningPlayerController.IsValid())
 		{
-			OwningPlayerController->AddYawInput(AxisValue * DataManager->ShipSettings.TurnRate * GetWorld()->GetDeltaSeconds());
+			OwningPlayerController->AddYawInput(AxisValue * OwningShip->GetShipData()->TurnRate * GetWorld()->GetDeltaSeconds());
 			//TargetRotationYaw = TargetRotationYaw + AxisValue * DataManager->ShipSettings.TurnSpeed;// * DeltaLol;//GetWorld()->GetDeltaSeconds();
 		}
 	}
@@ -149,7 +147,7 @@ void USB_ShipMovementComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 
 void USB_ShipMovementComponent::Debug(float DeltaTime)
 {
-	if (OwningShip == nullptr || DataManager->GameSettings.bIsDebugEnabled_ShipMovement == false)
+	if (OwningShip == nullptr)
 		return;
 
 	FString RoleString = "None";

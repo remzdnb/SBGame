@@ -4,6 +4,17 @@
 #include "Blueprint/UserWidget.h"
 #include "SB_ShipConfigWidget.generated.h"
 
+class UPanelWidget;
+class UTextBlock;
+class UImage;
+class UWidgetSwitcher;
+//
+class USB_VehicleSelectionItemWidget;
+class USB_SlotSelectionItemWidget;
+class USB_ModuleSelectionItemWidget;
+class URZ_ButtonWidget;
+class URZ_StatWidget;
+
 UCLASS()
 class USB_ShipConfigWidget : public UUserWidget
 {
@@ -14,70 +25,86 @@ public:
 	virtual void NativeOnInitialized() override;
 
 private:
+	
+	class USB_GameInstance* GInstance;
+	class ASB_CampaignPlayerController* OwningPC;
+	TWeakObjectPtr<class ASB_Ship> OwnedShip;
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///// Main
+
+public:
+
+	UFUNCTION(BlueprintNativeEvent)
+	void OnVehicleSelectionButtonPressedBPN(uint8 ButtonID);
+
+	UFUNCTION(BlueprintNativeEvent)
+	void OnSlotSelectionButtonPressedBPN(uint8 ButtonID);
+
+private:
 
 	UFUNCTION()
 	void OnNewOwnedShip(class ASB_Ship* const NewOwnedShip);
 
-	//
-
-	class ASB_DataManager* DataManager;
-	class USB_GameInstance* GInstance;
-	class ASB_CampaignPlayerController* OwningPC;
-	
-	TWeakObjectPtr<class ASB_Ship> OwnedShip;
-
-	FRotator DefaultArmRotation;
-	float DefaultArmLength;
-	FRotator SelectedArmRotation;
-	float SelectedArmLength;
+	UFUNCTION()
+	void OnNewMenuWidgetSelected(const FName& WidgetName, UUserWidget* SelectedWidget);
 
 	//
 
-	UPROPERTY(meta = (BindWidget)) class UCanvasPanel* MainCanvas;
+	UPROPERTY(meta = (BindWidget)) UPanelWidget* MainCanvas;
+	UPROPERTY(meta = (BindWidget)) URZ_ButtonWidget* VehicleSelectionButton;
+	UPROPERTY(meta = (BindWidget)) URZ_ButtonWidget* SlotSelectionButton;
+	UPROPERTY(meta = (BindWidget)) UWidgetSwitcher* VehicleToSlotSwitcher;
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	///// Ship Selection
+	///// Vehicle selection panel
 
 private:
 	
 	UFUNCTION()
-	void OnPrevShipButtonPressed();
+	void UpdateVehicleSelectionPanel();
 
 	UFUNCTION()
-	void OnNextShipButtonPressed();
-
-	//
-
-	UPROPERTY(meta = (BindWidget)) class UTextBlock* ShipNameText;
-	UPROPERTY(meta = (BindWidget)) class UButton* PrevShipButton;
-	UPROPERTY(meta = (BindWidget)) class UButton* NextShipButton;
-	
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	///// Slot list : Lists all available slots of currently selected ship.
-
-private:
-
-	UFUNCTION()
-	void UpdateSlotList();
-
-	UFUNCTION()
-	void OnSlotListItemPressed(uint8 SlotID);
+	void OnVehicleSelectionItemPressed(const FName& VehicleDataRowName);
 
 	//
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<class USB_ModuleWidget> SlotListItemWBP;
+	TSubclassOf<USB_VehicleSelectionItemWidget> VehicleSelectionItemWBP;
+	
+	UPROPERTY(meta = (BindWidget)) UPanelWidget* VehicleSelectionContainerPanel;
+	UPROPERTY(meta = (BindWidget)) UTextBlock* SelectedVehicleNameText;
+	UPROPERTY(meta = (BindWidget)) UImage* SelectedVehicleImage;
+	UPROPERTY(meta = (BindWidget)) URZ_StatWidget* SelectedVehicleDurabilityStat;
+	UPROPERTY(meta = (BindWidget)) URZ_StatWidget* SelectedVehicleMoveSpeedStat;
+	UPROPERTY(meta = (BindWidget)) URZ_StatWidget* SelectedVehicleTurnSpeedStat;
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///// Slot selection panel
+
+private:
+
+	UFUNCTION()
+	void UpdateSlotSelectionPanel();
+
+	UFUNCTION()
+	void OnSlotSelectionItemPressed(uint8 SlotID);
+
+	//
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<USB_SlotSelectionItemWidget> SlotSelectionItemWBP;
 
 	UPROPERTY()
 	class USB_ModuleSlotComponent* SelectedSlot;
 	
 	//
-
+	
 	UPROPERTY(meta = (BindWidget)) class UPanelWidget* SlotListContainerPanel;
+	UPROPERTY(meta = (BindWidget)) class UTextBlock* ShipNameText;
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	///// Module info : Infos about currently selected module.
-	///// Module list : Lists all available modules of currently selected slot.
+	///// Module selection panel
 
 public:
 
@@ -87,40 +114,25 @@ public:
 private:
 	
 	UFUNCTION()
-	void UpdateModuleList();
+	void UpdateModuleSelectionPanel();
 
 	UFUNCTION()
-	void OnModuleListItemPressed(const FName& ModuleDataRowName);
+	void OnModuleSelectionItemPressed(const FName& ModuleDataRowName);
 
 	//
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<class USB_ModuleListItemWidget> ModuleListItemWBP;
+	TSubclassOf<USB_ModuleSelectionItemWidget> ModuleSelectionItemWBP;
 
 	//
 
-	UPROPERTY(meta = (BindWidget)) class UPanelWidget* ModuleListMainPanel;
-	UPROPERTY(meta = (BindWidget)) class UPanelWidget* ModuleListContainerPanel;
-	UPROPERTY(meta = (BindWidget)) class UTextBlock* ShopSlotTypeText;
-	UPROPERTY(meta = (BindWidget)) class UTextBlock* ShopModuleNameText;
-	UPROPERTY(meta = (BindWidget)) class UImage* ShopModuleImage;
-	UPROPERTY(meta = (BindWidget)) class URZ_StatWidget* ShopDurabilityStat;
-	UPROPERTY(meta = (BindWidget)) class URZ_StatWidget* ShopArmorStat;
-
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	///// Slots - Deprecated
-
-private:
-
-	UFUNCTION()
-	void UpdateSlots();
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<class USB_ShipConfig_Slot_Widget> ShipConfig_Slot_WBP;
-
-	//
-	
-	UPROPERTY(meta = (BindWidget)) class UCanvasPanel* SlotsContainerCanvas;
+	UPROPERTY(meta = (BindWidget)) UPanelWidget* ModuleListMainPanel;
+	UPROPERTY(meta = (BindWidget)) UPanelWidget* ModuleListContainerPanel;
+	UPROPERTY(meta = (BindWidget)) UTextBlock* ShopSlotTypeText;
+	UPROPERTY(meta = (BindWidget)) UTextBlock* ShopModuleNameText;
+	UPROPERTY(meta = (BindWidget)) UImage* ShopModuleImage;
+	UPROPERTY(meta = (BindWidget)) URZ_StatWidget* ShopDurabilityStat;
+	UPROPERTY(meta = (BindWidget)) URZ_StatWidget* ShopArmorStat;
 };
 
 

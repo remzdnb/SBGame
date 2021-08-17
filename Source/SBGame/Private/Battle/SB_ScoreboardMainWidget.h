@@ -14,8 +14,7 @@ public:
 	virtual void NativeOnInitialized() override;
 
 private:
-
-	const class ASB_DataManager* DataManager;
+	
 	class ASB_GameState* GameState;
 
 	//

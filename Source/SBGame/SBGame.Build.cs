@@ -16,7 +16,8 @@ public class SBGame : ModuleRules
 			"UMG",
 			"AIModule",
 			"ApexDestruction",
-			"RZ_UIPlugin"
+			"RZ_UIPlugin",
+			"RZ_UtilityPlugin"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

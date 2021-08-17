@@ -2,13 +2,13 @@
 #include "Battle/SB_BattlePlayerController.h"
 #include "Ship/SB_Ship.h"
 #include "Ship/SB_ShipMovementComponent.h"
-#include "Ship/SB_ShipCameraManager.h"
 #include "Module/SB_ShieldModule.h"
 #include "SB_GameMode.h"
-#include "SB_DataManager.h"
 // UIPlugin
 #include "RZ_UIManager.h"
 // Engine
+#include "SB_BattleHUDWidget.h"
+#include "SB_GameInstance.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 
@@ -20,6 +20,10 @@ void ASB_BattlePlayerController::BeginPlay()
 	{
 		GMode->QueryRespawn(this);
 	}
+
+	USB_BattleHUDWidget* BattleHUDWidget = CreateWidget<USB_BattleHUDWidget>(this, GInstance->UISettings.BattleHUD_WBP);
+	UIManager->AddHUDWidget(BattleHUDWidget);
+	UIManager->ToggleHUD(true);
 	
 	UWidgetBlueprintLibrary::SetInputMode_GameOnly(this);
 	bShowMouseCursor = false;
@@ -40,8 +44,8 @@ void ASB_BattlePlayerController::OnRep_Pawn()
 
 	if (OwnedShip)
 	{
-		OwnedShip->GetShipCameraManager()->SetArmRotation(FRotator(-25.0f, OwnedShip->GetActorRotation().Yaw - 145.0f, 0.0f), false);
-		OwnedShip->GetShipCameraManager()->SetMaxTargetArmLength();
+		//OwnedShip->GetShipCameraManager()->SetArmRotation(FRotator(-25.0f, OwnedShip->GetActorRotation().Yaw - 145.0f, 0.0f), false);
+		//OwnedShip->GetShipCameraManager()->SetMaxTargetArmLength();
 	}
 }
 
@@ -63,7 +67,7 @@ void ASB_BattlePlayerController::UpdateViewTarget(float DeltaTime) const
 	{
 		if (OwnedShip)
 		{
-			OwnedShip->UpdateOwnerViewData(/*GetControlRotation(), */Hit.Location, Hit.Actor.Get());
+			OwnedShip->UpdateOwnerViewData(Hit.Location, Hit.Actor.Get());
 		}
 
 		/*if (DataManager->GameSettings.bIsDebugEnabled_PlayerController)

@@ -5,6 +5,7 @@
 #include "Ship/SB_Ship.h"
 #include "SB_GameInstance.h"
 //
+#include "SB_ThrusterModule.h"
 #include "Kismet/GameplayStatics.h"
 #include "UObject/ConstructorHelpers.h"
 
@@ -41,6 +42,10 @@ void USB_ModuleSlotComponent::SpawnModule(const FName& NewModuleDataRowName)
 			BaseModuleData->ModuleType == ESB_ModuleType::AuxiliaryWeapon)
 		{
 			NewModule = NewObject<USB_BaseWeaponModule>(this, *ComponentName);
+		}
+		else if (BaseModuleData->ModuleType == ESB_ModuleType::Thruster)
+		{
+			NewModule = NewObject<USB_ThrusterModule>(this, *ComponentName);
 		}
 		else
 		{

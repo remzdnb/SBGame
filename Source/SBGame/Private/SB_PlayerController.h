@@ -5,6 +5,14 @@
 #include "GameFramework/PlayerController.h"
 #include "SB_PlayerController.generated.h"
 
+class USB_GameInstance;
+class ASB_GameMode;
+class ASB_GameState;
+class ASB_PlayerState;
+class ARZ_UIManager;
+class ASB_Ship;
+class ARZ_CameraActor;
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FNewOwnedShipDelegate, class ASB_Ship* const, NewShip);
 
 UCLASS()
@@ -32,9 +40,10 @@ public:
 
 	//
 
-	FORCEINLINE UFUNCTION() class ASB_PlayerState* const GetPlayerState() const { return PState; }
-	FORCEINLINE UFUNCTION() class ARZ_UIManager* const GetUIManager() const { return UIManager; }
-	FORCEINLINE UFUNCTION() class ASB_Ship* const GetOwnedShip() const { return OwnedShip; }
+	FORCEINLINE UFUNCTION() ASB_PlayerState* const GetPlayerState() const { return PState; }
+	FORCEINLINE UFUNCTION() ARZ_UIManager* const GetUIManager() const { return UIManager; }
+	FORCEINLINE UFUNCTION() ASB_Ship* const GetOwnedShip() const { return OwnedShip; }
+	FORCEINLINE UFUNCTION() ARZ_CameraActor* const GetCameraActor() const { return CameraActor; }
 
 	//
 
@@ -42,23 +51,21 @@ public:
 
 protected:
 	
-	class USB_GameInstance* GInstance;
-	class ASB_GameMode* GMode;
-	class ASB_GameState* GState;
-	class ASB_PlayerState* PState;
-	class ARZ_UIManager* UIManager;
+	USB_GameInstance* GInstance;
+	ASB_GameMode* GMode;
+	ASB_GameState* GState;
+	ASB_PlayerState* PState;
+	ARZ_UIManager* UIManager;
 
 	//
-
-	UPROPERTY()
-	class ADefaultPawn* OwnedSpectatorPawn;
 
 	UPROPERTY() 
-	class ASB_Ship* OwnedShip;
+	ASB_Ship* OwnedShip;
+
+	UPROPERTY()
+	ARZ_CameraActor* CameraActor;
 
 	//
-
-
 
 	UFUNCTION()
 	void OnOwnedShipDestroyed(const class APlayerState* const InstigatorPS);
@@ -79,9 +86,9 @@ private:
 
 	UFUNCTION() void LookUpAxis(float AxisValue);
 	UFUNCTION() void LookRightAxis(float AxisValue);
+	UFUNCTION() void ZoomAxis(float AxisValue);
 	UFUNCTION() void MoveForwardAxis(float AxisValue);
 	UFUNCTION() void MoveRightAxis(float AxisValue);
-	UFUNCTION() void MouseWheelAxis(float AxisValue);
 	UFUNCTION() void RightMouseButtonPressed();
 	UFUNCTION() void RightMouseButtonReleased();
 	UFUNCTION() void ShiftKeyPressed();

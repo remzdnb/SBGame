@@ -8,10 +8,11 @@
 #include "Blueprint/UserWidget.h"
 #include "SB_BattleHUDWidget.generated.h"
 
+class USB_GameInstance;
+//
 class UCanvasPanel;
 class UPanelWidget;
 class UProgressBar;
-class ASB_DataManager;
 class USB_ModuleWidget;
 class URZ_ProgressBarWidget;
 
@@ -53,7 +54,7 @@ public:
 
 private:
 
-	const ASB_DataManager* DataManager;
+	USB_GameInstance* GInstance;
 	class ASB_PlayerController* OwnerPC; //remove
 
 	//

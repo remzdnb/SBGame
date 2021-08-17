@@ -1,6 +1,3 @@
-///// SB_ShipOTMWidget.h - RemzDNB
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -19,7 +16,7 @@ public:
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 	UFUNCTION()
-	void Init(const class ASB_DataManager* const NewDataManager, class ASB_Ship* const NewOwnedShip);
+	void Init(class ASB_Ship* const NewOwnedShip);
 
 	UFUNCTION()
 	void OnShipDurabilityUpdated(float NewDurability, float MaxDurability);

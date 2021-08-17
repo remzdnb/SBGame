@@ -1,29 +1,27 @@
 // SBGame
 #include "Campaign/SB_ShipConfigWidget.h"
-#include "Campaign/SB_ShipConfig_Slot_Widget.h"
-#include "Campaign/SB_ModuleListItemWidget.h"
+#include "Campaign/SB_VehicleSelectionItemWidget.h"
+#include "Campaign/SB_SlotSelectionItemWidget.h"
+#include "Campaign/SB_ModuleSelectionItemWidget.h"
 #include "Campaign/SB_CampaignPlayerController.h"
-#include "Module/SB_ModuleWidget.h"
 #include "Ship/SB_Ship.h"
-#include "Ship/SB_ShipCameraManager.h"
+#include "Module/SB_ModuleSlotComponent.h"
 #include "Module/SB_BaseModule.h"
-#include "SB_DataManager.h"
 #include "SB_GameInstance.h"
 #include "SB_PlayerSaveGame.h"
 #include "SB_UtilityLibrary.h"
-// UIPlugin
+// Plugins
+#include "RZ_UIManager.h"
 #include "RZ_ButtonWidget.h"
+#include "RZ_StatWidget.h"
+#include "RZ_CameraActor.h"
 // Engine
 #include "Components/PanelWidget.h"
-#include "Components/CanvasPanel.h"
-#include "Components/CanvasPanelSlot.h"
-#include "Components/Button.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
 #include "EngineUtils.h"
-#include "Blueprint/WidgetLayoutLibrary.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
-#include "Module/SB_ModuleSlotComponent.h"
+#include "Components/WidgetSwitcher.h"
 
 #pragma region +++++ Main ...
 
@@ -33,24 +31,19 @@ void USB_ShipConfigWidget::NativeOnInitialized()
 
 	GInstance = Cast<USB_GameInstance>(GetGameInstance());
 	
-	for (TActorIterator<ASB_DataManager> NewDataManager(GetWorld()); NewDataManager; ++NewDataManager)
-	{
-		DataManager = *NewDataManager;
-		break;
-	}
-	
 	OwningPC = Cast<ASB_CampaignPlayerController>(GetOwningPlayer());
 	if (OwningPC)
 	{
-		// If ships references are already set, initialize now. If not, wait for PlayerController events.
-
-		//OwnedShip = OwningPC->GetOwnedShip();
 		OnNewOwnedShip(OwningPC->GetOwnedShip());
+		
 		OwningPC->OnNewOwnedShip.AddUniqueDynamic(this, &USB_ShipConfigWidget::OnNewOwnedShip);
+		OwningPC->GetUIManager()->OnNewMenuWidgetSelected.AddUniqueDynamic(this, &USB_ShipConfigWidget::OnNewMenuWidgetSelected);
 	}
 
-	PrevShipButton->OnPressed.AddUniqueDynamic(this, &USB_ShipConfigWidget::OnPrevShipButtonPressed);
-	NextShipButton->OnPressed.AddUniqueDynamic(this, &USB_ShipConfigWidget::OnNextShipButtonPressed);
+	VehicleSelectionButton->OnButtonPressed.AddUniqueDynamic(this, &USB_ShipConfigWidget::OnVehicleSelectionButtonPressedBPN);
+	SlotSelectionButton->OnButtonPressed.AddUniqueDynamic(this, &USB_ShipConfigWidget::OnSlotSelectionButtonPressedBPN);
+
+	OnVehicleSelectionButtonPressedBPN(0);
 }
 
 void USB_ShipConfigWidget::OnNewOwnedShip(ASB_Ship* const NewOwnedShip)
@@ -58,120 +51,145 @@ void USB_ShipConfigWidget::OnNewOwnedShip(ASB_Ship* const NewOwnedShip)
 	OwnedShip = NewOwnedShip;
 	if (OwnedShip == nullptr)
 		return;
-
-	DefaultArmRotation = FRotator(-25.0f, OwnedShip->GetActorRotation().Yaw - 110.0f, 0.0f);
-	DefaultArmLength = 20000.0f;
-	SelectedArmRotation = FRotator(-45.0f, OwnedShip->GetActorRotation().Yaw - 145.0f, 0.0f);
-	SelectedArmLength = 2500.0f;
 	
-	UpdateModuleList();
-	UpdateSlotList();
+	SelectedSlot = nullptr;
+
+	UpdateVehicleSelectionPanel();
+	UpdateSlotSelectionPanel();
+	UpdateModuleSelectionPanel();
+}
+
+void USB_ShipConfigWidget::OnNewMenuWidgetSelected(const FName& WidgetName, UUserWidget* SelectedWidget)
+{
+	if (SelectedWidget != this)
+	{
+		if (SelectedSlot)
+		{
+			SelectedSlot->GetSpawnedModule()->ToggleHighlight(false);
+			SelectedSlot = nullptr;
+		}
+
+		UpdateSlotSelectionPanel();
+		UpdateModuleSelectionPanel();
+	}
+}
+
+void USB_ShipConfigWidget::OnVehicleSelectionButtonPressedBPN_Implementation(uint8 ButtonID)
+{
+	if (SelectedSlot)
+	{
+		SelectedSlot->GetSpawnedModule()->ToggleHighlight(false);
+		SelectedSlot = nullptr;
+	}
+
+	UpdateSlotSelectionPanel();
+	UpdateModuleSelectionPanel();
+	
+	SlotSelectionButton->SetIsSelected_BPN(false);
+	VehicleSelectionButton->SetIsSelected_BPN(true);
+	VehicleToSlotSwitcher->SetActiveWidgetIndex(0);
+}
+
+void USB_ShipConfigWidget::OnSlotSelectionButtonPressedBPN_Implementation(uint8 ButtonID)
+{
+	VehicleSelectionButton->SetIsSelected_BPN(false);
+	SlotSelectionButton->SetIsSelected_BPN(true);
+	VehicleToSlotSwitcher->SetActiveWidgetIndex(1);
 }
 
 #pragma endregion
 
-#pragma region +++++ Ship selection ...
+#pragma region +++++ Vehicle selection panel ...
 
-void USB_ShipConfigWidget::OnPrevShipButtonPressed()
+void USB_ShipConfigWidget::UpdateVehicleSelectionPanel()
 {
-	const FName& SavedShipRowName = GInstance->GetSaveGame()->ShipDataRowName;
-
-	for (int32 Index = 0; Index != DataManager->ShipDT->GetRowNames().Num(); ++Index)
+	const FSB_VehicleData* const VehicleData = GInstance->GetVehicleDataFromRow(GInstance->GetSaveGame()->ShipDataRowName);
+	if (VehicleData)
 	{
-		if (DataManager->ShipDT->GetRowNames()[Index] == SavedShipRowName)
+		SelectedVehicleNameText->SetText(FText::FromString(VehicleData->DisplayName));
+		SelectedVehicleImage->SetBrushFromTexture(VehicleData->DisplayTexture);
+		SelectedVehicleDurabilityStat->Init(VehicleData->MaxDurability);
+		SelectedVehicleMoveSpeedStat->Init(VehicleData->MoveSpeed);
+		SelectedVehicleTurnSpeedStat->Init(VehicleData->TurnRate);
+	}
+	
+	VehicleSelectionContainerPanel->ClearChildren();
+	for (const auto& VehicleDataRowName : GInstance->VehicleDT->GetRowNames())
+	{
+		USB_VehicleSelectionItemWidget* const ItemWidget = CreateWidget<USB_VehicleSelectionItemWidget>(
+			GetWorld(),
+			VehicleSelectionItemWBP
+		);
+		if (ItemWidget)
 		{
-			if (DataManager->ShipDT->GetRowNames().IsValidIndex(Index - 1) == false)
-			{
-				OwningPC->SelectShip(DataManager->ShipDT->GetRowNames()[DataManager->ShipDT->GetRowNames().Num() - 1]);
-				return;
-			}
+			ItemWidget->Update(VehicleDataRowName);
+			ItemWidget->OnVehicleSelectionItemPressed.AddDynamic(this, &USB_ShipConfigWidget::OnVehicleSelectionItemPressed);
+			
+			VehicleSelectionContainerPanel->AddChild(ItemWidget);
 
-			GInstance->ResetShipConfig();
-			OwningPC->SelectShip(DataManager->ShipDT->GetRowNames()[Index - 1]);
-			return;
+			if (VehicleDataRowName == GInstance->GetSaveGame()->ShipDataRowName)
+				ItemWidget->OnSelectionUpdatedBPI(true);
 		}
 	}
 }
 
-void USB_ShipConfigWidget::OnNextShipButtonPressed()
+void USB_ShipConfigWidget::OnVehicleSelectionItemPressed(const FName& VehicleDataRowName)
 {
-	const FName& SavedShipRowName = GInstance->GetSaveGame()->ShipDataRowName;
-	
-	for (int32 Index = 0; Index != DataManager->ShipDT->GetRowNames().Num(); ++Index)
-	{
-		if (DataManager->ShipDT->GetRowNames()[Index] == SavedShipRowName)
-		{
-			if (DataManager->ShipDT->GetRowNames().IsValidIndex(Index + 1) == false)
-			{
-				OwningPC->SelectShip(DataManager->ShipDT->GetRowNames()[0]);
-				return;
-			}
-
-			GInstance->ResetShipConfig();
-			OwningPC->SelectShip(DataManager->ShipDT->GetRowNames()[Index + 1]);
-			return;
-		}
-	}
+	GInstance->ResetShipConfig();
+	OwningPC->SelectShip(VehicleDataRowName);
+	UpdateVehicleSelectionPanel();
 }
 
 #pragma endregion
 
-#pragma region +++++ Slot list ...
+#pragma region +++++ Slot selection panel ...
 
-void USB_ShipConfigWidget::UpdateSlotList()
+void USB_ShipConfigWidget::UpdateSlotSelectionPanel()
 {
 	ShipNameText->SetText(FText::FromString(GInstance->GetSaveGame()->ShipDataRowName.ToString()));
 
 	SlotListContainerPanel->ClearChildren();
-
 	for (const auto& ModuleSlot : OwnedShip->GetModuleSlots())
 	{
-		USB_ModuleWidget* const ModuleWidget = CreateWidget<USB_ModuleWidget>(GetWorld(), SlotListItemWBP);
-		if (ModuleWidget)
+		USB_SlotSelectionItemWidget* const ItemWidget = CreateWidget<USB_SlotSelectionItemWidget>(GetWorld(), SlotSelectionItemWBP);
+		if (ItemWidget)
 		{
-			SlotListContainerPanel->AddChild(ModuleWidget);
+			SlotListContainerPanel->AddChild(ItemWidget);
 			
-			ModuleWidget->Update(ModuleSlot->GetModuleSlotData(), ModuleSlot->GetSpawnedModule());
-			ModuleWidget->OnPressed.AddUniqueDynamic(this, &USB_ShipConfigWidget::OnSlotListItemPressed);
+			ItemWidget->Update(ModuleSlot->GetModuleSlotData(), ModuleSlot->GetSpawnedModule());
+			ItemWidget->OnSlotSelectionItemPressed.AddUniqueDynamic(this, &USB_ShipConfigWidget::OnSlotSelectionItemPressed);
 
             if (SelectedSlot)
             {			
                 if (ModuleSlot->GetModuleSlotData().UniqueID == SelectedSlot->GetModuleSlotData().UniqueID)
-             		ModuleWidget->OnSelectionUpdatedBPI(true);
+             		ItemWidget->OnSelectionUpdatedBPI(true);
             }
 		}
 	}
 }
 
-void USB_ShipConfigWidget::OnSlotListItemPressed(uint8 SlotID)
+void USB_ShipConfigWidget::OnSlotSelectionItemPressed(uint8 SlotID)
 {
+	if (SelectedSlot)
+	{
+		SelectedSlot->GetSpawnedModule()->ToggleHighlight(false);
+	}
+	
 	SelectedSlot = OwnedShip->GetModuleSlots()[SlotID];
+	SelectedSlot->GetSpawnedModule()->ToggleHighlight(true);
 
-	for (const auto& ModuleSlot : OwnedShip->GetModuleSlots())
-	{
-		USB_BaseModule* const Module = ModuleSlot->GetSpawnedModule();
-		if (Module)
-		{
-			Module->ToggleHighlight(false);
-		}
-	}
-
-	USB_BaseModule* const SelectedModule = SelectedSlot->GetSpawnedModule();
-	if (SelectedModule)
-	{
-		SelectedModule->ToggleHighlight(true);
-	}
-
-	UpdateSlotList();
-	UpdateModuleList();
+	UpdateSlotSelectionPanel();
+	UpdateModuleSelectionPanel();
 	OnModuleListOpenedBPI();
+
+	OwningPC->GetCameraActor()->SetNewLocation(SelectedSlot->GetSpawnedModule()->GetComponentLocation(), true);
 }
 
 #pragma endregion
 
-#pragma region +++++ Module list & Module info ...
+#pragma region +++++ Module selection panel ...
 
-void USB_ShipConfigWidget::UpdateModuleList()
+void USB_ShipConfigWidget::UpdateModuleSelectionPanel()
 {
 	if (SelectedSlot == nullptr)
 	{
@@ -201,17 +219,17 @@ void USB_ShipConfigWidget::UpdateModuleList()
 			if (BaseModuleData->ModuleType == SelectedSlot->GetModuleSlotData().Type ||
 				BaseModuleData->DisplayName == "Empty")
 			{
-				USB_ModuleListItemWidget* const ModuleListItemWidget = CreateWidget<USB_ModuleListItemWidget>(GetWorld(), ModuleListItemWBP);
-				if (ModuleListItemWidget)
+				USB_ModuleSelectionItemWidget* const ItemWidget = CreateWidget<USB_ModuleSelectionItemWidget>(GetWorld(), ModuleSelectionItemWBP);
+				if (ItemWidget)
 				{
-					ModuleListItemWidget->Update(RowName);
-					ModuleListItemWidget->OnModuleListItemPressed.AddUniqueDynamic(this, &USB_ShipConfigWidget::OnModuleListItemPressed);
+					ItemWidget->Update(RowName);
+					//ItemWidget->OnModuleListItemPressed.AddUniqueDynamic(this, &USB_ShipConfigWidget::OnModuleSelectionItemPressed);
 					
-					ModuleListContainerPanel->AddChild(ModuleListItemWidget);
+					ModuleListContainerPanel->AddChild(ItemWidget);
 
 					if (SelectedSlot->GetSpawnedModule()->GetModuleRowName() == RowName)
 					{
-						ModuleListItemWidget->OnSelectionUpdatedBPI(true);
+						ItemWidget->OnSelectionUpdatedBPI(true);
 					}
 				}
 			}
@@ -219,47 +237,15 @@ void USB_ShipConfigWidget::UpdateModuleList()
 	}
 }
 
-void USB_ShipConfigWidget::OnModuleListItemPressed(const FName& ModuleDataRowName)
+void USB_ShipConfigWidget::OnModuleSelectionItemPressed(const FName& ModuleDataRowName)
 {
 	SelectedSlot->SpawnModule(ModuleDataRowName);
 	SelectedSlot->GetSpawnedModule()->ToggleHighlight();
 
 	OwnedShip->SaveConfig();
 	
-	UpdateSlotList();
-	UpdateModuleList();
-}
-
-#pragma endregion
-
-#pragma region +++++ Slots ...
-
-void USB_ShipConfigWidget::UpdateSlots()
-{
-	if (OwnedShip.IsValid() == false)
-		return;
-
-	//if (OwnedShip->GetSelectedModule()->ModuleID == ModuleRef-)
-	
-	/*SlotsContainerCanvas->ClearChildren();
-
-	uint8 Index = 0;
-	for (auto& ModuleRef : OwnedShip->GetAllModules())
-	{
-	if (ModuleRef->GetBaseModuleData()->bIsSelectable)
-	{
-	USB_ShipConfig_Slot_Widget* const SlotWidget = CreateWidget<USB_ShipConfig_Slot_Widget>(GetWorld(), ShipConfig_Slot_WBP);
-	if (SlotWidget)
-	{
-	SlotWidget->Init(OwnedShip.Get(), ModuleRef);
-	SlotsContainerCanvas->AddChild(SlotWidget);
-	}
-	}
-
-	Index++;
-	}*/
-
-	//UE_LOG(LogTemp, Warning, TEXT("USB_ShipConfigWidget::UpdateSlots"));
+	UpdateSlotSelectionPanel();
+	UpdateModuleSelectionPanel();
 }
 
 #pragma endregion

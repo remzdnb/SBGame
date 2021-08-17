@@ -3,13 +3,12 @@
 //
 #include "Components/PanelWidget.h"
 #include "Components/CanvasPanel.h"
+#include "Components/CanvasPanelSlot.h"
 #include "Kismet/GameplayStatics.h"
 #include "Blueprint/UserWidget.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
-#include "EngineUtils.h"
-
-#include "Components/CanvasPanelSlot.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
+#include "EngineUtils.h"
 
 ARZ_UIManager::ARZ_UIManager() :
 	bIsMenuOpen(false),
@@ -25,8 +24,7 @@ void ARZ_UIManager::PostInitializeComponents()
 		return;
 
 	MenuLayoutWidget = CreateWidget<URZ_MenuLayoutWidget>(GetOwningPlayerController(), MenuLayoutWBP);
-	if (MenuLayoutWidget)
-		MenuLayoutWidget->Init(this);
+	MenuLayoutWidget->Init(this);
 }
 
 void ARZ_UIManager::BeginPlay()
@@ -36,6 +34,8 @@ void ARZ_UIManager::BeginPlay()
 
 void ARZ_UIManager::AddHUDWidget(UUserWidget* NewWidget)
 {
+	HUDWidgets.Add(NewWidget);
+	
 	/*if (BattleHUDWidget == nullptr)
 	return;
 	
@@ -76,23 +76,21 @@ void ARZ_UIManager::ToggleMenu(bool bNewIsOpen)
 
 void ARZ_UIManager::ToggleHUD(bool bNewIsOpen)
 {
-	/*if (BattleHUDWidget == nullptr)
-		return;
-
-	if (bNewIsOpen == true)
+	if (bNewIsOpen == true && IsHUDOpen() == false)
 	{
-		if (bIsHUDOpen == false)
+		for (const auto& HUDWidget : HUDWidgets)
 		{
-			BattleHUDWidget->AddToViewport();
+			HUDWidget->AddToViewport();
 			bIsHUDOpen = true;
 		}
 	}
-	else
+	
+	if (bNewIsOpen == false && IsHUDOpen() == true)
 	{
-		if (bIsHUDOpen == true)
+		for (const auto& HUDWidget : HUDWidgets)
 		{
-			BattleHUDWidget->RemoveFromParent();
+			HUDWidget->RemoveFromParent();
 			bIsHUDOpen = false;
 		}
-	}*/
+	}
 }

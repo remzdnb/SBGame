@@ -5,9 +5,9 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
+#include "SB_GameInstance.h"
 #include "SB_AIController.generated.h"
 
-class ASB_DataManager;
 class ASB_GameMode;
 class ASB_GameState;
 class ASB_PlayerState;
@@ -39,7 +39,7 @@ public:
 
 private:
 
-	ASB_DataManager* DataManager;
+	USB_GameInstance* GInstance;
 	ASB_GameMode* GMode;
 	ASB_GameState* GState;
 	ASB_PlayerState* PState;

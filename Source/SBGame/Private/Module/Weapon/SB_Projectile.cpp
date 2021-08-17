@@ -2,7 +2,6 @@
 #include "Ship/SB_Ship.h"
 #include "Module/SB_BaseModule.h"
 #include "SB_Interfaces.h"
-#include "SB_DataManager.h"
 //
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -59,7 +58,7 @@ void ASB_Projectile::BeginPlay()
 {
 	Super::BeginPlay();
 
-	OwningShip = Cast<ASB_Ship>(GetOwner());
+	/*OwningShip = Cast<ASB_Ship>(GetOwner());
 	if (OwningShip.IsValid())
 	{
 		OwningController = Cast<AController>(OwningShip->GetOwner());
@@ -69,7 +68,7 @@ void ASB_Projectile::BeginPlay()
 		{
 			Destroy();
 		}
-	}
+	}*/
 }
 
 void ASB_Projectile::Destroyed()
@@ -119,35 +118,10 @@ void ASB_Projectile::SpawnImpactFX_Multicast_Implementation(AActor* HitActor, FV
 		return;
 
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ProjectileData->ImpactParticle, ImpactPoint, UKismetMathLibrary::MakeRotFromZ(ImpactNormal), FVector(ProjectileData->ImpactParticleScale), true, EPSCPoolMethod::None, true);
-
-	if (OwningShip->GetDataManager()->GameSettings.bIsDebugEnabled_Projectile == false)
-		return;
-
-	FString RoleString = "None";
-	FColor Color = FColor::White;
-
-	if (GetLocalRole() == ROLE_Authority)
-	{
-		RoleString = "Authority // ";
-		Color = FColor::Cyan;
-	}
-	if (GetLocalRole() == ROLE_AutonomousProxy)
-	{
-		RoleString = "AutonomousProxy // ";
-		Color = FColor::Yellow;
-	}
-	if (GetLocalRole() == ROLE_SimulatedProxy)
-	{
-		RoleString = "SimulatedProxy // ";
-		Color = FColor::Orange;
-	}
 }
 
 void ASB_Projectile::Debug(AActor* Actor)
 {
-	if (OwningShip->GetDataManager()->GameSettings.bIsDebugEnabled_Projectile == false)
-		return;
-
 	FString RoleString = "None";
 	FColor Color = FColor::White;
 

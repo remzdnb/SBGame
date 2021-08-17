@@ -10,7 +10,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "SB_ShipMovementComponent.generated.h"
 
-class ASB_DataManager;
 class USB_ThrusterModule;
 
 UCLASS()
@@ -47,8 +46,7 @@ public:
 	FORCEINLINE UFUNCTION() float GetTargetRotationYaw() const { return TargetRotationYaw; }
 
 private:
-
-	const ASB_DataManager* DataManager;
+	
 	TWeakObjectPtr<ASB_Ship> OwningShip;
 	TWeakObjectPtr<APlayerController> OwningPlayerController;
 

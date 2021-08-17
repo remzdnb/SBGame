@@ -21,7 +21,6 @@ public:
 	USB_BaseModule();
 
 	virtual void Init(const FSB_ModuleSlotData& NewModuleSlotData, const FName& NewModuleRowName);
-	
 	virtual void ApplyDamageFromProjectile(float Damage, const FVector& HitLocation, AController* const InstigatorController) override;
 
 	//
@@ -65,20 +64,17 @@ protected:
 	//
 
 	const class USB_GameInstance* GInstance;
-	const class ASB_DataManager* DataManager;
+	//const class ASB_DataManager* DataManager;
 	
-	//const FSB_ModuleSlotData* ModuleSlotData; // local ? can get gced ?
-	const FSB_BaseModuleData* BaseModuleData;
+	FSB_ModuleSlotData ModuleSlotData;
 	FName ModuleRowName;
-
+	const FSB_BaseModuleData* BaseModuleData;
+	
 	TWeakObjectPtr<ASB_Ship> OwningShip;
 
 	FTimerHandle RepairTimer;
 
 	//
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	FSB_ModuleSlotData ModuleSlotData;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true")) // why visibleanywhere ?
 	bool bIsHovered;

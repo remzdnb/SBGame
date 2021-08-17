@@ -7,27 +7,6 @@
 #define TRACE_OVERLAP ECC_GameTraceChannel2
 
 UENUM(BlueprintType)
-enum class ESB_GameType : uint8
-{
-	Campaign,
-	Battle
-};
-
-/*UENUM(BlueprintType)
-enum class ESB_ModuleSlotType : uint8
-{
-	Hull,
-	Command,
-	Thruster_Back,
-	Thruster_Front,
-	Thruster_Left,
-	Thruster_Right,
-	Weapon_Primary,
-	Weapon_Auxiliary,
-	Shield
-};*/
-
-UENUM(BlueprintType)
 enum class ESB_ModuleType : uint8
 {
 	Hull,
@@ -36,15 +15,6 @@ enum class ESB_ModuleType : uint8
 	PrimaryWeapon,
 	AuxiliaryWeapon,
 	Shield
-};
-
-UENUM(BlueprintType)
-enum class ESB_ThrusterType : uint8
-{
-	Back,
-	Front,
-	Left,
-	Right
 };
 
 UENUM(BlueprintType)
@@ -69,7 +39,8 @@ UENUM(BlueprintType)
 enum class ESB_ShipState : uint8
 {
 	Ready,
-	Destroyed
+	Destroyed,
+	Demo // Disable turret rotation
 };
 
 UENUM(BlueprintType)
@@ -144,21 +115,6 @@ struct FSB_ShipSettings
 {
 	GENERATED_USTRUCT_BODY()
 
-	//UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	//TArray<FSB_ModuleSlotData> CarrierShipConfig;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float MoveSpeed;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float TurnRate;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float TurnInertia;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float MaxDurability;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	class UMaterialInterface* DestroyedMaterial;
 
@@ -170,10 +126,6 @@ struct FSB_ShipSettings
 
 	FSB_ShipSettings()
 	{
-		MoveSpeed = 5000.0f;
-		TurnRate = 2.0f;
-		TurnInertia = 0.1f;
-		MaxDurability = 10000.0f;
 		DestroyedMaterial = nullptr;
 		DestroyedParticle = nullptr;
 		DestroyedParticleScale = 10.0f;
@@ -242,6 +194,9 @@ struct FSB_UISettings
 	TMap<FName, TSubclassOf<class UUserWidget>> CampaignMenuWidgets;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class UUserWidget> BattleHUD_WBP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<class UUserWidget> Cursor_WBP;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -249,9 +204,6 @@ struct FSB_UISettings
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<class UUserWidget> ScoreboardPlayer_WBP;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class UUserWidget> BattleHUD_WBP;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<class UUserWidget> Module_WBP;
@@ -291,7 +243,50 @@ struct FSB_AISettings
 	}
 };
 
+#pragma endregion
+
 #pragma region +++++ Data ...
+
+USTRUCT(BlueprintType)
+struct FSB_VehicleData : public FTableRowBase
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FString DisplayName;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	class UTexture2D* DisplayTexture;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class ASB_Ship> ShipBP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<AActor> DestructibleShipBP;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float MaxDurability;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float MoveSpeed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float TurnRate;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float TurnInertia;
+ 
+	FSB_VehicleData()
+	{
+		DisplayName = "ShipName";
+		ShipBP = nullptr;
+		DestructibleShipBP = nullptr;
+		MaxDurability = 10000.0f;
+		MoveSpeed = 5000.0f;
+		TurnRate = 2.0f;
+		TurnInertia = 0.1f;
+	}
+};
 
 USTRUCT(BlueprintType)
 struct FSB_ShipData : public FTableRowBase
@@ -306,12 +301,28 @@ struct FSB_ShipData : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<AActor> DestructibleShipBP;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float MaxDurability;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float MoveSpeed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float TurnRate;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float TurnInertia;
  
 	FSB_ShipData()
 	{
 		DisplayName = "ShipName";
 		ShipBP = nullptr;
 		DestructibleShipBP = nullptr;
+		MaxDurability = 10000.0f;
+		MoveSpeed = 5000.0f;
+		TurnRate = 2.0f;
+		TurnInertia = 0.1f;
 	}
 };
 
@@ -333,7 +344,7 @@ struct FSB_ModuleSlotData : public FTableRowBase
 	FName DefaultModuleRowName;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	bool bShouldUpdateModule; // is modifiable module
+	TArray<FName> Tags;
  
 	FSB_ModuleSlotData()
 	{
@@ -341,7 +352,6 @@ struct FSB_ModuleSlotData : public FTableRowBase
 		Type = ESB_ModuleType::Hull;
 		DisplayName = "SlotName";
 		DefaultModuleRowName = "DataRowName";
-		bShouldUpdateModule = true;
 	}
 };
 

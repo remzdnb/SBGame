@@ -1,9 +1,8 @@
 #include "Module/SB_ShieldModule.h"
 #include "Module/SB_Shield.h"
 #include "Ship/SB_Ship.h"
-#include "Ship/SB_ShipCameraManager.h"
 #include "SB_PlayerController.h"
-#include "SB_DataManager.h"
+#include "SB_GameInstance.h"
 //
 #include "GameFramework/SpringArmComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -90,7 +89,7 @@ void USB_ShieldModule::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 	if (bIsSetupMode)
 	{
-		ShieldArm->SetWorldRotation(FRotator(0.0f, OwningShip->GetShipCameraManager()->GetCameraArmCT()->GetComponentRotation().Yaw - 180.0f, 0.0f)); // ToDo : Dirty af :x
+		//ShieldArm->SetWorldRotation(FRotator(0.0f, OwningShip->GetShipCameraManager()->GetCameraArmCT()->GetComponentRotation().Yaw - 180.0f, 0.0f)); // ToDo : Dirty af :x
 	}
 
 	if (ShieldState == ESB_ShieldState::Deployed)
@@ -101,12 +100,12 @@ void USB_ShieldModule::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	if (ShieldState == ESB_ShieldState::Cooldown)
 	{
 		const float CurrentTime = GetWorld()->GetTimeSeconds();
-		if ((CurrentTime - LastUndeployTime) >= DataManager->ShieldSettings.DeployCooldown)
+		if ((CurrentTime - LastUndeployTime) >= GInstance->ShieldSettings.DeployCooldown)
 		{
 			ShieldState = ESB_ShieldState::Ready;
 		}
 
-		OnShieldCooldownUpdated.Broadcast(CurrentTime - LastUndeployTime, DataManager->ShieldSettings.DeployCooldown); //
+		OnShieldCooldownUpdated.Broadcast(CurrentTime - LastUndeployTime, GInstance->ShieldSettings.DeployCooldown);
 	}
 }
 
@@ -188,9 +187,9 @@ void USB_ShieldModule::Undeploy_Multicast_Implementation()
 
 void USB_ShieldModule::ApplyShieldDamage(float Damage, const FVector& HitLocation,  AController* const InstigatorController)
 {
-	ShieldDurability = FMath::Clamp(ShieldDurability - Damage, 0.0f, DataManager->ShieldSettings.MaxDurability);
+	ShieldDurability = FMath::Clamp(ShieldDurability - Damage, 0.0f, GInstance->ShieldSettings.MaxDurability);
 	GetWorld()->GetTimerManager().ClearTimer(ShieldRegenTimer);
-	GetWorld()->GetTimerManager().SetTimer(ShieldRegenTimer, this, &USB_ShieldModule::RegenOnce, DataManager->ShieldSettings.RegenRate, true, DataManager->ShieldSettings.RegenRate);
+	GetWorld()->GetTimerManager().SetTimer(ShieldRegenTimer, this, &USB_ShieldModule::RegenOnce, GInstance->ShieldSettings.RegenRate, true, GInstance->ShieldSettings.RegenRate);
 
 	if (ShieldDurability == 0)
 		Undeploy();
@@ -201,22 +200,22 @@ void USB_ShieldModule::ApplyShieldDamage(float Damage, const FVector& HitLocatio
 		InstigatorPlayerController->OnDamageDealt(Damage, 0.0f, HitLocation, ESB_PrimaryDamageType::Shield);
 	}
 	
-	OnShieldDurabilityUpdated.Broadcast(ShieldDurability, DataManager->ShieldSettings.MaxDurability);
+	OnShieldDurabilityUpdated.Broadcast(ShieldDurability, GInstance->ShieldSettings.MaxDurability);
 }
 
 void USB_ShieldModule::RegenOnce()
 {
 	GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Green, "USB_ShieldModule::RegenOnce");
 	
-	ShieldDurability = FMath::Clamp(ShieldDurability + DataManager->ShieldSettings.RegenAmount, 0.0f, DataManager->ShieldSettings.MaxDurability);
+	ShieldDurability = FMath::Clamp(ShieldDurability + GInstance->ShieldSettings.RegenAmount, 0.0f, GInstance->ShieldSettings.MaxDurability);
 
-	if (ShieldDurability == DataManager->ShieldSettings.MaxDurability)
+	if (ShieldDurability == GInstance->ShieldSettings.MaxDurability)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Green, "USB_ShieldModule::RegenOnce - Invalidate");
 		GetWorld()->GetTimerManager().ClearTimer(ShieldRegenTimer);
 	}
 
-	OnShieldDurabilityUpdated.Broadcast(ShieldDurability, DataManager->ShieldSettings.MaxDurability);
+	OnShieldDurabilityUpdated.Broadcast(ShieldDurability, GInstance->ShieldSettings.MaxDurability);
 }
 
 void USB_ShieldModule::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -228,6 +227,6 @@ void USB_ShieldModule::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
 void USB_ShieldModule::OnRep_ShieldDurability() const
 {
-	OnShieldDurabilityUpdated.Broadcast(ShieldDurability, DataManager->ShieldSettings.MaxDurability);
+	OnShieldDurabilityUpdated.Broadcast(ShieldDurability, GInstance->ShieldSettings.MaxDurability);
 }
 

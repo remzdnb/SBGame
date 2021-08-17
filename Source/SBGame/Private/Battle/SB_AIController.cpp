@@ -5,7 +5,6 @@
 #include "SB_PlayerState.h"
 #include "Ship/SB_Ship.h"
 #include "Ship/SB_ShipMovementComponent.h"
-#include "SB_DataManager.h"
 //
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
@@ -22,13 +21,8 @@ void ASB_AIController::PostInitializeComponents()
 
 	if (GetWorld()->IsGameWorld() == false)
 		return;
-
-	for (TActorIterator<ASB_DataManager> NewDataManager(GetWorld()); NewDataManager; ++NewDataManager)
-	{
-		DataManager = *NewDataManager;
-		break;
-	}
-
+	
+	GInstance = Cast<USB_GameInstance>(GetGameInstance());
 	GMode = Cast<ASB_GameMode>(GetWorld()->GetAuthGameMode());
 	GState = Cast<ASB_GameState>(GetWorld()->GetGameState());
 	PState = Cast<ASB_PlayerState>(PlayerState);
@@ -40,14 +34,14 @@ void ASB_AIController::BeginPlay()
 
 	GMode->QueryRespawn(this);
 
-	GetWorldTimerManager().SetTimer(DetectionUpdateTimer, this, &ASB_AIController::UpdateDetection, DataManager->AISettings.DetectionUpdateRate, true, 0.0f);
+	GetWorldTimerManager().SetTimer(DetectionUpdateTimer, this, &ASB_AIController::UpdateDetection, GInstance->AISettings.DetectionUpdateRate, true, 0.0f);
 }
 
 void ASB_AIController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (DataManager == nullptr || OwnedShip == nullptr)
+	if (OwnedShip == nullptr)
 		return;
 
 	UpdateMovement();
@@ -87,7 +81,7 @@ void ASB_AIController::OnPossess(APawn* InPawn)
 
 void ASB_AIController::UpdateDetection()
 {
-	if (DataManager == nullptr || OwnedShip == nullptr)
+	if (OwnedShip == nullptr)
 		return;
 
 	CollisionActor_Right = nullptr;
@@ -103,8 +97,8 @@ void ASB_AIController::UpdateCollisionActor(bool bIsRightActor)
 {
 	const FVector StartLocation = OwnedShip->GetActorLocation();
 	const FRotator EndRotation = bIsRightActor ? OwnedShip->GetActorRotation() + FRotator(0.0f, 15.0f, 0.0f) : OwnedShip->GetActorRotation() + FRotator(0.0f, -15.0f, 0.0f);
-	const FVector EndLocation = StartLocation + (EndRotation.Vector() * DataManager->AISettings.CollisionDetectionRange);
-	FCollisionShape CollisionSphere = FCollisionShape::MakeSphere(DataManager->AISettings.CollisionDetectionSphereRadius);
+	const FVector EndLocation = StartLocation + (EndRotation.Vector() * GInstance->AISettings.CollisionDetectionRange);
+	FCollisionShape CollisionSphere = FCollisionShape::MakeSphere(GInstance->AISettings.CollisionDetectionSphereRadius);
 	FCollisionQueryParams TraceParams;
 	TraceParams.AddIgnoredActor(OwnedShip.Get());
 	TArray<FHitResult> Hits;
@@ -115,20 +109,20 @@ void ASB_AIController::UpdateCollisionActor(bool bIsRightActor)
 		{
 			bIsRightActor ? CollisionActor_Right = Hit.Actor.Get() : CollisionActor_Left = Hit.Actor.Get();
 
-			if (DataManager->GameSettings.bIsDebugEnabled_AI)
+			if (GInstance->GameSettings.bIsDebugEnabled_AI)
 			{
 				FString ActorRight = bIsRightActor ? "Right : " : "Left : ";
-				GEngine->AddOnScreenDebugMessage(-1, DataManager->AISettings.DetectionUpdateRate, FColor::Purple, *(ActorRight + Hit.Actor->GetName()));
-				UKismetSystemLibrary::DrawDebugSphere(GetWorld(), Hit.Location, DataManager->AISettings.CollisionDetectionSphereRadius, 10, FColor::Red, DataManager->AISettings.DetectionUpdateRate + 0.05f, 50.0f);
+				GEngine->AddOnScreenDebugMessage(-1, GInstance->AISettings.DetectionUpdateRate, FColor::Purple, *(ActorRight + Hit.Actor->GetName()));
+				UKismetSystemLibrary::DrawDebugSphere(GetWorld(), Hit.Location, GInstance->AISettings.CollisionDetectionSphereRadius, 10, FColor::Red, GInstance->AISettings.DetectionUpdateRate + 0.05f, 50.0f);
 			}
 
 			break;
 		}
 	}
 
-	if (DataManager->GameSettings.bIsDebugEnabled_AI)
+	if (GInstance->GameSettings.bIsDebugEnabled_AI)
 	{
-		UKismetSystemLibrary::DrawDebugSphere(GetWorld(), EndLocation, DataManager->AISettings.CollisionDetectionSphereRadius, 10, FColor::Green, DataManager->AISettings.DetectionUpdateRate + 0.05f, 50.0f);
+		UKismetSystemLibrary::DrawDebugSphere(GetWorld(), EndLocation, GInstance->AISettings.CollisionDetectionSphereRadius, 10, FColor::Green, GInstance->AISettings.DetectionUpdateRate + 0.05f, 50.0f);
 	}
 }
 
@@ -201,15 +195,15 @@ void ASB_AIController::UpdateTargetShip()
 			{
 				TargetShip = LocalTargetShip;
 				
-				if (DataManager->GameSettings.bIsDebugEnabled_AI)
-					UKismetSystemLibrary::DrawDebugLine(GetWorld(), Start, End, FColor::Green, DataManager->AISettings.DetectionUpdateRate, 50.0f);
+				if (GInstance->GameSettings.bIsDebugEnabled_AI)
+					UKismetSystemLibrary::DrawDebugLine(GetWorld(), Start, End, FColor::Green, GInstance->AISettings.DetectionUpdateRate, 50.0f);
 
 				return;
 			}
 			else
 			{
-				if (DataManager->GameSettings.bIsDebugEnabled_AI)
-					UKismetSystemLibrary::DrawDebugLine(GetWorld(), Start, Hit.Location, FColor::Red, DataManager->AISettings.DetectionUpdateRate, 50.0f);
+				if (GInstance->GameSettings.bIsDebugEnabled_AI)
+					UKismetSystemLibrary::DrawDebugLine(GetWorld(), Start, Hit.Location, FColor::Red, GInstance->AISettings.DetectionUpdateRate, 50.0f);
 
 				break;
 			}

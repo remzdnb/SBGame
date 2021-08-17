@@ -1,26 +1,21 @@
 #include "Module/SB_ThrusterModule.h"
 #include "Ship/SB_Ship.h"
 #include "Ship/SB_ShipMovementComponent.h"
-#include "SB_DataManager.h"
+#include "SB_GameInstance.h"
 //
 #include "Particles/ParticleSystemComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 USB_ThrusterModule::USB_ThrusterModule()
 {
-	//UPrimitiveComponent::SetCollisionProfileName("CharacterMesh");
-	
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
-/*void USB_ThrusterModule::Init(
-	const ASB_DataManager* const NewDataManager, 
-	const FSB_ModuleSlotData* const NewModuleSlotData, 
-	const FName& NewModuleRowName)
+void USB_ThrusterModule::Init(const FSB_ModuleSlotData& NewModuleSlotData, const FName& NewModuleRowName)
 {
-	Super::Init(NewDataManager, NewModuleSlotData, NewModuleRowName);
+	Super::Init(NewModuleSlotData, NewModuleRowName);
 
-	ThrusterModuleData = DataManager->GetThrusterModuleDataFromRow(ModuleRowName);
+	ThrusterModuleData = GInstance->GetThrusterModuleDataFromRow(ModuleRowName);
 	if (ThrusterModuleData)
 	{
 		for (auto& ExhaustSocketName : ThrusterModuleData->ExhaustSocketNames)
@@ -42,7 +37,7 @@ USB_ThrusterModule::USB_ThrusterModule()
 			}
 		}
 	}
-}*/
+}
 
 void USB_ThrusterModule::InitializeComponent()
 {
@@ -63,8 +58,9 @@ void USB_ThrusterModule::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	//UpdateExhaustParticle();
-	Debug(DeltaTime);
+	UpdateExhaustParticle();
+	
+	//Debug(DeltaTime);
 }
 
 void USB_ThrusterModule::UpdateState(const ESB_ModuleState NewState)
@@ -81,12 +77,12 @@ void USB_ThrusterModule::UpdateState(const ESB_ModuleState NewState)
 	}
 }
 
-/*void USB_ThrusterModule::UpdateExhaustParticle()
+void USB_ThrusterModule::UpdateExhaustParticle()
 {
-	if (ModuleSlotData == nullptr || ShipMovement == nullptr)
+	if (ShipMovement == nullptr)
 		return;
 
-	if (ModuleSlotData->Type == ESB_ModuleSlotType::Thruster_Left)
+	if (ModuleSlotData.Tags.Contains("LeftThruster"))
 	{
 		if (ShipMovement->GetRightAxisValue() < 0)
 		{
@@ -97,7 +93,7 @@ void USB_ThrusterModule::UpdateState(const ESB_ModuleState NewState)
 			SetExhaustParticlesVisibility(false);
 		}
 	}
-	else if (ModuleSlotData->Type == ESB_ModuleSlotType::Thruster_Right)
+	else if (ModuleSlotData.Tags.Contains("RightThruster"))
 	{
 		if (ShipMovement->GetRightAxisValue() > 0)
 		{
@@ -108,7 +104,7 @@ void USB_ThrusterModule::UpdateState(const ESB_ModuleState NewState)
 			SetExhaustParticlesVisibility(false);
 		}
 	}
-	else if (ModuleSlotData->Type == ESB_ModuleSlotType::Thruster_Back)
+	else if (ModuleSlotData.Tags.Contains("BackThruster"))
 	{
 		if (ShipMovement->GetForwardAxisValue() > 0)
 		{
@@ -119,7 +115,7 @@ void USB_ThrusterModule::UpdateState(const ESB_ModuleState NewState)
 			SetExhaustParticlesVisibility(false);
 		}
 	}
-	else if (ModuleSlotData->Type == ESB_ModuleSlotType::Thruster_Front)
+	else if (ModuleSlotData.Tags.Contains("FrontThruster"))
 	{
 		if (ShipMovement->GetForwardAxisValue() < 0)
 		{
@@ -130,11 +126,11 @@ void USB_ThrusterModule::UpdateState(const ESB_ModuleState NewState)
 			SetExhaustParticlesVisibility(false);
 		}
 	}
-}*/
+}
 
 void USB_ThrusterModule::SetExhaustParticlesVisibility(bool bNewIsVisible)
 {
-	for (auto& ExhaustParticle : ExhaustParticles)
+	for (const auto& ExhaustParticle : ExhaustParticles)
 	{
 		ExhaustParticle->SetHiddenInGame(!bNewIsVisible);
 	}
@@ -142,10 +138,7 @@ void USB_ThrusterModule::SetExhaustParticlesVisibility(bool bNewIsVisible)
 
 void USB_ThrusterModule::Debug(float DeltaTime)
 {
-	if (DataManager == nullptr)
-		return;
-	
-	if (DataManager->GameSettings.bIsDebugEnabled_ThrusterModule == false || OwningShip == nullptr || ShipMovement == nullptr)
+	if (OwningShip == nullptr || ShipMovement == nullptr)
 		return;
 
 	FString RoleString = "None";

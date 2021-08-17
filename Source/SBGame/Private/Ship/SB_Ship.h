@@ -16,6 +16,10 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDestroyedDelegate, const APlayerSta
 
 class USB_ShipCameraManager;
 class USB_ShipMovementComponent;
+class USB_ModuleSlotComponent;
+class USB_BaseModule;
+class USB_BaseWeaponModule;
+class USB_ThrusterModule;
 class USB_ShieldModule;
 class USB_ShipOTMWidget;
 
@@ -29,30 +33,37 @@ public:
 	ASB_Ship(const FObjectInitializer& ObjectInitializer);
 
 	virtual void OnConstruction(const FTransform& Transform) override;
-	virtual void PreInitializeComponents() override;
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void OnRep_PlayerState() override;
+	
 	//
 
+	FORCEINLINE UFUNCTION() const FSB_ShipData* const GetShipData() const { return ShipData; }
 	FORCEINLINE UFUNCTION() USB_ShipMovementComponent* const GetShipMovement() const { return ShipMovement; }
-	FORCEINLINE UFUNCTION() USB_ShipCameraManager* const GetShipCameraManager() const { return ShipCameraManager; }
+	//FORCEINLINE UFUNCTION() USB_ShipCameraManager* const GetShipCameraManager() const { return ShipCameraManager; }
 
 private:
-
-	class ASB_DataManager* DataManager;
+	
 	class USB_GameInstance* GInstance;
 	class ASB_PlayerState* PState;
+
+	//
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	FName ShipDataRowName;
+
+	const FSB_ShipData* ShipData;
+
+	//
+	
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class USB_ShipMovementComponent* ShipMovement;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	USB_ShipCameraManager* ShipCameraManager;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	FName ShipDataRowName;
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	//USB_ShipCameraManager* ShipCameraManager;
 	
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	///// Modules
@@ -67,15 +78,11 @@ public:
 	
 	//
 	
-	FORCEINLINE UFUNCTION() TInlineComponentArray<class USB_ModuleSlotComponent*> GetModuleSlots() const { return ModuleSlots; }
-	FORCEINLINE UFUNCTION() TInlineComponentArray<class USB_BaseModule*> GetAllModules() const { return BaseModules; }
-	FORCEINLINE UFUNCTION() TInlineComponentArray<class USB_BaseWeaponModule*> GetWeaponModules() const { return WeaponModules; }
+	FORCEINLINE UFUNCTION() TInlineComponentArray<USB_ModuleSlotComponent*> GetModuleSlots() const { return ModuleSlots; }
 
 private:
 
-	TInlineComponentArray<class USB_ModuleSlotComponent*> ModuleSlots;
-	TInlineComponentArray<class USB_BaseModule*> BaseModules;
-	TInlineComponentArray<class USB_BaseWeaponModule*> WeaponModules;
+	TInlineComponentArray<USB_ModuleSlotComponent*> ModuleSlots;
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	///// Weapons
@@ -106,7 +113,18 @@ public:
 	UFUNCTION()
 	void StopAutoLockSelectedWeapon();
 
+	//
+
+	FORCEINLINE UFUNCTION() TArray<USB_BaseWeaponModule*> GetPrimaryWeapons() const { return PrimaryWeapons; }
+	FORCEINLINE UFUNCTION() TArray<USB_BaseWeaponModule*> GetAuxiliaryWeapons() const { return AuxiliaryWeapons; }
+
 private:
+
+	UPROPERTY()
+	TArray<USB_BaseWeaponModule*> PrimaryWeapons;
+
+	UPROPERTY()
+	TArray<USB_BaseWeaponModule*> AuxiliaryWeapons;
 
 	UPROPERTY()
 	uint8 SelectedWeaponID;
@@ -158,14 +176,10 @@ public:
 	void UpdateOwnerViewData_Server(const FVector& NewOwnerViewLocation, AActor* NewOwnerViewActor);
 
 	//
-
-	FORCEINLINE UFUNCTION() const FRotator& GetOwnerViewRotation() const { return OwnerViewRotation; }
+	
 	FORCEINLINE UFUNCTION() const FVector& GetOwnerViewLocation() const { return OwnerViewLocation; }
 
 private:
-
-	UPROPERTY(Replicated)
-	FRotator OwnerViewRotation; // ToDo : Delete, useless, did it for shield setup. // Lol
 
 	UPROPERTY(Replicated)
 	FVector OwnerViewLocation;
@@ -191,7 +205,6 @@ private:
 
 public:
 	
-	FORCEINLINE UFUNCTION() const ASB_DataManager* const GetDataManager() const { return DataManager; }
 	FORCEINLINE UFUNCTION() TArray<USceneComponent*> GetAutoLockCTs() const { return AutoLockCTs; }
 
 

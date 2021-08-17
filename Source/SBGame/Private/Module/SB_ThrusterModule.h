@@ -13,10 +13,7 @@ public:
 
 	USB_ThrusterModule();
 
-	/*virtual void Init(
-		const ASB_DataManager* const NewDataManager,
-		const FSB_ModuleSlotData* const NewModuleSlotData,
-		const FName& NewModuleRowName) override;*/
+	virtual void Init(const FSB_ModuleSlotData& NewModuleSlotData, const FName& NewModuleRowName);
 	
 	virtual void InitializeComponent() override;
 	virtual void BeginPlay() override;
@@ -28,18 +25,8 @@ protected:
 
 private:
 
-	const FSB_ThrusterModuleData* ThrusterModuleData;
-	const class USB_ShipMovementComponent* ShipMovement;
-
-	//
-
-	UPROPERTY()
-	TArray<UParticleSystemComponent*> ExhaustParticles;
-
-	//
-
-	/*UFUNCTION()
-	void UpdateExhaustParticle();*/
+	UFUNCTION()
+	void UpdateExhaustParticle();
 	
 	UFUNCTION()
 	void SetExhaustParticlesVisibility(bool bNewIsVisible);
@@ -47,4 +34,14 @@ private:
 	UFUNCTION()
 	void Debug(float DeltaTime);
 
+	//
+	
+	const FSB_ThrusterModuleData* ThrusterModuleData;
+	const class USB_ShipMovementComponent* ShipMovement;
+
+	//
+
+	UPROPERTY()
+	TArray<UParticleSystemComponent*> ExhaustParticles;
+	
 };

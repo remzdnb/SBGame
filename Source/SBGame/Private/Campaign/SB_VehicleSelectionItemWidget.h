@@ -1,14 +1,13 @@
 #pragma once
 
-#include "SB_Types.h"
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "SB_ModuleListItemWidget.generated.h"
+#include "SB_VehicleSelectionItemWidget.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FModuleListItemPressedDelegate, const FName&, ModuleName);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FVehicleSelectionItemPressed, const FName&, VehicleDataRowName);
 
 UCLASS()
-class USB_ModuleListItemWidget : public UUserWidget
+class USB_VehicleSelectionItemWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
@@ -22,19 +21,19 @@ protected:
 public:
 
 	UFUNCTION()
-	void Update(const FName& NewModuleDataRowName);
+	void Update(const FName& NewVehicleDataRowName);
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnSelectionUpdatedBPI(bool bNewIsSelected);
 
 	//
 
-	FModuleListItemPressedDelegate OnModuleListItemPressed;
+	FVehicleSelectionItemPressed OnVehicleSelectionItemPressed;
 
 private:
 
-	FName ModuleDataRowName;
+	FName VehicleDataRowName;
 	
-	UPROPERTY(meta = (BindWidget)) class UTextBlock* ModuleNameText;
-	UPROPERTY(meta = (BindWidget)) class UImage* ModuleImage;
+	UPROPERTY(meta = (BindWidget)) class UTextBlock* VehicleNameText;
+	UPROPERTY(meta = (BindWidget)) class UImage* VehicleImage;
 };

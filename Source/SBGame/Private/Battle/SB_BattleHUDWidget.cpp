@@ -6,8 +6,10 @@
 #include "Module/SB_ThrusterModule.h"
 #include "Module/SB_ShieldModule.h"
 #include "Module/Weapon/SB_BaseWeaponModule.h"
+#include "SB_GameInstance.h"
 #include "SB_PlayerController.h"
-#include "SB_DataManager.h"
+#include "SB_UtilityLibrary.h"
+//
 #include "RZ_ProgressBarWidget.h"
 //
 #include "Components/PanelWidget.h"
@@ -19,12 +21,8 @@ void USB_BattleHUDWidget::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
-	for (TActorIterator<ASB_DataManager> NewDataManager(GetWorld()); NewDataManager; ++NewDataManager)
-	{
-		DataManager = *NewDataManager;
-		break;
-	}
-
+	GInstance = Cast<USB_GameInstance>(GetGameInstance());
+	
 	OwnerPC = Cast<ASB_PlayerController>(GetOwningPlayer());
 	if (OwnerPC)
 	{
@@ -64,20 +62,21 @@ void USB_BattleHUDWidget::OnNewOwnedShip(ASB_Ship* const NewOwnedShip)
 			//ModuleWidget->Update(Cast<USB_BaseModule>(ThrusterModule));
 			ThrusterModulesContainer->AddChild(ModuleWidget);
 		}
-	}
+	}*/
 	
 	WeaponModulesContainer->ClearChildren();
-	for (auto& WeaponModule : NewOwnedShip->GetWeaponModules())
+	for (const auto& WeaponModule : NewOwnedShip->GetPrimaryWeapons())
 	{
-		USB_ModuleWidget* ModuleWidget = CreateWidget<USB_ModuleWidget>(GetWorld(), DataManager->UISettings.Module_WBP);
+		SB_UtilityLibrary::PrintStringToScreen("USB_BattleHUDWidget::OnNewOwnedShip : ", WeaponModule->GetName(), FColor::Red, -1, 5.0f);
+		USB_ModuleWidget* ModuleWidget = CreateWidget<USB_ModuleWidget>(GetWorld(), GInstance->UISettings.Module_WBP);
 		if (ModuleWidget)
 		{
-			//ModuleWidget->Update(Cast<USB_BaseModule>(WeaponModule));
+			ModuleWidget->Update(WeaponModule->GetModuleSlotData(), WeaponModule);
 			WeaponModulesContainer->AddChild(ModuleWidget);
 		}
 	}
 
-	if (NewOwnedShip->ShieldModule)
+	/*if (NewOwnedShip->ShieldModule)
 	{
 		//ShieldModuleWidget->Update(Cast<USB_BaseModule>(NewOwnedShip->ShieldModule));
 	}*/
@@ -87,7 +86,7 @@ void USB_BattleHUDWidget::OnNewOwnedShip(ASB_Ship* const NewOwnedShip)
 
 void USB_BattleHUDWidget::OnShipDurabilityUpdated(float NewDurability, float MaxDurability)
 {
-	ShipDurabilityProgressBar->Update(NewDurability, DataManager->ShipSettings.MaxDurability);
+	ShipDurabilityProgressBar->Update(NewDurability, MaxDurability);
 }
 
 void USB_BattleHUDWidget::OnShieldDurabilityUpdated(float NewDurability, float MaxDurability)

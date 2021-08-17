@@ -9,7 +9,7 @@
 #include "Engine/GameInstance.h"
 #include "SB_GameInstance.generated.h"
 
-class ASB_DataManager;
+class UDataTable;
 class USB_PlayerSaveGame;
 
 UCLASS()
@@ -23,7 +23,59 @@ public:
 	virtual void OnStart() override;
 	virtual void Init() override;
 
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///// Data
+
+public:
+
+	const FSB_VehicleData* const GetVehicleDataFromRow(const FName& RowName) const;
+	const FSB_ShipData* const GetShipDataFromRow(const FName& RowName) const;
+	const FSB_BaseModuleData* const GetBaseModuleDataFromRow(const FName& RowName) const;
+	const FSB_ThrusterModuleData* const GetThrusterModuleDataFromRow(const FName& RowName) const;
+	const FSB_BaseWeaponModuleData* const GetWeaponModuleDataFromRow(const FName& RowName) const;
+	const FSB_ProjectileData* const GetProjectileDataFromRow(const FName& RowName) const;
+
 	//
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UDataTable* VehicleDT;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UDataTable* ShipDT;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UDataTable* BaseModuleDT;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UDataTable* ThrusterModuleDT;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UDataTable* WeaponModuleDT;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UDataTable* ProjectileDT;
+
+	//
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FSB_GameSettings GameSettings;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FSB_ShipSettings ShipSettings;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FSB_ShieldSettings ShieldSettings;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FSB_UISettings UISettings;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FSB_AISettings AISettings;
+	
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///// Save Game
+
+public:
 
 	UFUNCTION()
 	void CreateNewSaveGame();
@@ -41,32 +93,20 @@ public:
 	void ResetShipConfig();
 
 	//
-	
-	const FSB_ShipData* const GetShipDataFromRow(const FName& RowName) const;
-	const FSB_BaseModuleData* const GetBaseModuleDataFromRow(const FName& RowName) const;
-	
-	//
-	
+
 	FORCEINLINE UFUNCTION() const USB_PlayerSaveGame* const GetSaveGame() const { return SaveGame; }
 
-	//
+private:
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	class UDataTable* ShipDT;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	class UDataTable* BaseModuleDT;
+	UPROPERTY()
+	USB_PlayerSaveGame* SaveGame;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FSB_UISettings UISettings;
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////
 
 private:
 
 	UFUNCTION()
 	void Debug();
-
-	//
 	
-	UPROPERTY()
-	USB_PlayerSaveGame* SaveGame;
 };
