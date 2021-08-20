@@ -2,12 +2,12 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "SB_ShipOTMWidget.generated.h"
+#include "SB_HUDVehicleOTMWidget.generated.h"
 
 #define OTM_ZOFFSET 7500.0f
 
 UCLASS()
-class USB_ShipOTMWidget : public UUserWidget
+class USB_HUDVehicleOTMWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	

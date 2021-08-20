@@ -64,13 +64,12 @@ protected:
 	//
 
 	const class USB_GameInstance* GInstance;
-	//const class ASB_DataManager* DataManager;
 	
 	FSB_ModuleSlotData ModuleSlotData;
 	FName ModuleRowName;
 	const FSB_BaseModuleData* BaseModuleData;
 	
-	TWeakObjectPtr<ASB_Ship> OwningShip;
+	//TWeakObjectPtr<ASB_Ship> OwningShip;
 
 	FTimerHandle RepairTimer;
 

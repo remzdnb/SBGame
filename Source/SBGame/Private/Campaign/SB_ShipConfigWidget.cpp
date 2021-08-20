@@ -9,7 +9,7 @@
 #include "Module/SB_BaseModule.h"
 #include "SB_GameInstance.h"
 #include "SB_PlayerSaveGame.h"
-#include "SB_UtilityLibrary.h"
+#include "RZ_UtilityLibrary.h"
 // Plugins
 #include "RZ_UIManager.h"
 #include "RZ_ButtonWidget.h"
@@ -199,14 +199,13 @@ void USB_ShipConfigWidget::UpdateModuleSelectionPanel()
 
 	ModuleListMainPanel->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 	
-	ShopSlotTypeText->SetText(FText::FromString(SB_UtilityLibrary::GetEnumAsString("ESB_ModuleType", SelectedSlot->GetModuleSlotData().Type)));
+	ShopSlotTypeText->SetText(FText::FromString(RZ_UtilityLibrary::GetEnumAsString("ESB_ModuleType", SelectedSlot->GetModuleSlotData().Type)));
 	ShopModuleNameText->SetText(FText::FromString(SelectedSlot->GetSpawnedModule()->GetBaseModuleData()->DisplayName.ToString()));
 	ShopModuleImage->SetBrushFromTexture(SelectedSlot->GetSpawnedModule()->GetBaseModuleData()->DisplayTexture);
 	
 	ModuleListContainerPanel->ClearChildren();
 
-	if (SelectedSlot->GetModuleSlotData().Type != ESB_ModuleType::PrimaryWeapon &&
-		SelectedSlot->GetModuleSlotData().Type != ESB_ModuleType::AuxiliaryWeapon)
+	if (SelectedSlot->GetModuleSlotData().Type != ESB_ModuleType::Weapon)
 	{
 		return;
 	}
@@ -223,7 +222,7 @@ void USB_ShipConfigWidget::UpdateModuleSelectionPanel()
 				if (ItemWidget)
 				{
 					ItemWidget->Update(RowName);
-					//ItemWidget->OnModuleListItemPressed.AddUniqueDynamic(this, &USB_ShipConfigWidget::OnModuleSelectionItemPressed);
+					ItemWidget->OnModuleSelectionItemPressed.AddUniqueDynamic(this, &USB_ShipConfigWidget::OnModuleSelectionItemPressed);
 					
 					ModuleListContainerPanel->AddChild(ItemWidget);
 
@@ -239,7 +238,7 @@ void USB_ShipConfigWidget::UpdateModuleSelectionPanel()
 
 void USB_ShipConfigWidget::OnModuleSelectionItemPressed(const FName& ModuleDataRowName)
 {
-	SelectedSlot->SpawnModule(ModuleDataRowName);
+	SelectedSlot->SpawnModule(ModuleDataRowName, true);
 	SelectedSlot->GetSpawnedModule()->ToggleHighlight();
 
 	OwnedShip->SaveConfig();

@@ -4,16 +4,26 @@
 #include "Engine/DataTable.h"
 #include "SB_Types.generated.h"
 
-#define TRACE_OVERLAP ECC_GameTraceChannel2
+UENUM(BlueprintType)
+enum class ESB_GamePhase : uint8
+{
+	WaitingForPlayers,
+	Ready,
+	Starting,
+	Playing,
+	Stopping
+};
+
+//
 
 UENUM(BlueprintType)
 enum class ESB_ModuleType : uint8
 {
+	Empty,
 	Hull,
 	Command,
 	Thruster,
-	PrimaryWeapon,
-	AuxiliaryWeapon,
+	Weapon,
 	Shield
 };
 
@@ -61,56 +71,6 @@ enum class ESB_ShieldState : uint8
 #pragma region +++++ Settings ...
 
 USTRUCT(BlueprintType)
-struct FSB_GameSettings
-{
-	GENERATED_USTRUCT_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class AAIController> AIControllerClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	bool bIsDebugEnabled_GameMode;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	bool bIsDebugEnabled_PlayerController;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	bool bIsDebugEnabled_AI;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	bool bIsDebugEnabled_Ship;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	bool bIsDebugEnabled_ShipCamera;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	bool bIsDebugEnabled_ShipMovement;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	bool bIsDebugEnabled_ThrusterModule;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	bool bIsDebugEnabled_WeaponModule;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	bool bIsDebugEnabled_Projectile;
-
-	FSB_GameSettings()
-	{
-		AIControllerClass = nullptr;
-		bIsDebugEnabled_GameMode = false;
-		bIsDebugEnabled_PlayerController = false;
-		bIsDebugEnabled_AI = false;
-		bIsDebugEnabled_Ship = false;
-		bIsDebugEnabled_ShipCamera = false;
-		bIsDebugEnabled_ShipMovement = false;
-		bIsDebugEnabled_ThrusterModule = false;
-		bIsDebugEnabled_WeaponModule = false;
-		bIsDebugEnabled_Projectile = false;
-	}
-};
-
-USTRUCT(BlueprintType)
 struct FSB_ShipSettings
 {
 	GENERATED_USTRUCT_BODY()
@@ -138,7 +98,7 @@ struct FSB_ShieldSettings
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class ASB_Shield> ShieldBP;
+	TSubclassOf<AActor> ShieldBP;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	class UStaticMesh* ShieldMesh;
@@ -194,37 +154,37 @@ struct FSB_UISettings
 	TMap<FName, TSubclassOf<class UUserWidget>> CampaignMenuWidgets;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class UUserWidget> BattleHUD_WBP;
+	TSubclassOf<class UUserWidget> HUDMain_WBP;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class UUserWidget> HUDWeapon_WBP;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class UUserWidget> HUDVehicleOTM_WBP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class UUserWidget> HUDDamageMarker_WBP;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<class UUserWidget> Cursor_WBP;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class UUserWidget> ScoreboardMain_WBP;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class UUserWidget> ScoreboardPlayer_WBP;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class UUserWidget> Module_WBP;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class UUserWidget> ShipOTM_WBP;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class UUserWidget> DamageMarker_WBP;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class UUserWidget> Button_Small_WBP;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class UUserWidget> Button_Large_WBP;
 };
 
 USTRUCT(BlueprintType)
 struct FSB_AISettings
 {
 	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class AAIController> AIControllerClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<AActor> AIShipClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	uint8 DefaultBotNum_Team1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	uint8 DefaultBotNum_Team2;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	float DetectionUpdateRate;
@@ -237,9 +197,59 @@ struct FSB_AISettings
 
 	FSB_AISettings()
 	{
+		AIControllerClass = nullptr;
+		AIShipClass = nullptr;
+		DefaultBotNum_Team1 = 0;
+		DefaultBotNum_Team2 = 0;
 		DetectionUpdateRate = 0.5f;
 		CollisionDetectionRange = 35000.0f;
 		CollisionDetectionSphereRadius = 1000.0f;
+	}
+};
+
+USTRUCT(BlueprintType)
+struct FSB_DebugSettings
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool bIsDebugEnabled_GameMode;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool bIsDebugEnabled_PlayerController;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool bIsDebugEnabled_AI;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool bIsDebugEnabled_Ship;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool bIsDebugEnabled_ShipCamera;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool bIsDebugEnabled_ShipMovement;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool bIsDebugEnabled_ThrusterModule;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool bIsDebugEnabled_WeaponModule;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool bIsDebugEnabled_Projectile;
+
+	FSB_DebugSettings()
+	{
+		bIsDebugEnabled_GameMode = false;
+		bIsDebugEnabled_PlayerController = false;
+		bIsDebugEnabled_AI = false;
+		bIsDebugEnabled_Ship = false;
+		bIsDebugEnabled_ShipCamera = false;
+		bIsDebugEnabled_ShipMovement = false;
+		bIsDebugEnabled_ThrusterModule = false;
+		bIsDebugEnabled_WeaponModule = false;
+		bIsDebugEnabled_Projectile = false;
 	}
 };
 
@@ -259,7 +269,7 @@ struct FSB_VehicleData : public FTableRowBase
 	class UTexture2D* DisplayTexture;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class ASB_Ship> ShipBP;
+	TSubclassOf<AActor> ShipBP;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<AActor> DestructibleShipBP;
@@ -279,6 +289,7 @@ struct FSB_VehicleData : public FTableRowBase
 	FSB_VehicleData()
 	{
 		DisplayName = "ShipName";
+		DisplayTexture = nullptr;
 		ShipBP = nullptr;
 		DestructibleShipBP = nullptr;
 		MaxDurability = 10000.0f;
@@ -306,7 +317,13 @@ struct FSB_ShipData : public FTableRowBase
 	float MaxDurability;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float MoveSpeed;
+	float MaxMoveSpeed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float MaxAcceleration;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float MoveInertia;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	float TurnRate;
@@ -320,7 +337,9 @@ struct FSB_ShipData : public FTableRowBase
 		ShipBP = nullptr;
 		DestructibleShipBP = nullptr;
 		MaxDurability = 10000.0f;
-		MoveSpeed = 5000.0f;
+		MaxMoveSpeed = 5000.0f;
+		MaxAcceleration = 1024.0f;
+		MoveInertia = 1.0;
 		TurnRate = 2.0f;
 		TurnInertia = 0.1f;
 	}
@@ -394,7 +413,7 @@ struct FSB_BaseModuleData : public FTableRowBase
 	{
 		DisplayName = "Default";
 		DisplayTexture = nullptr;
-		ModuleType = ESB_ModuleType::PrimaryWeapon;
+		ModuleType = ESB_ModuleType::Empty;
 		bIsSelectable = false;
 		SkeletalMesh = nullptr;
 		WorldScale = FVector(1.0f);
@@ -427,78 +446,92 @@ struct FSB_ThrusterModuleData : public FTableRowBase
 };
 
 USTRUCT(BlueprintType)
-struct FSB_BaseWeaponModuleData : public FTableRowBase
+struct FSB_WeaponModuleData : public FTableRowBase
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	bool bIsPrimary;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base")
 	ESB_WeaponType Type;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base")
+	float Damage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base")
+	float Range;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base")
+	float FireRate;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base")
 	float RotationRate;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float FireRate;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TSubclassOf<AActor> ProjectileBP;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base")
 	uint8 MuzzleCount;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base")
 	class UParticleSystem* MuzzleParticle;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base")
 	float MuzzleParticleScale;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base")
 	class USoundCue* FireSound;
 
-	FSB_BaseWeaponModuleData()
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base")
+	class UParticleSystem* ImpactParticle;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base")
+	float ImpactParticleScale;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base")
+	class USoundCue* ImpactSound;
+
+	//
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile")
+	TSubclassOf<AActor> ProjectileBP;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile")
+	float ProjectileLifeSpan;
+
+	//
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Beam")
+	TSubclassOf<AActor> BeamBP;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Beam")
+	UParticleSystem* BeamParticle;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Beam")
+	FVector BeamScale;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Beam")
+	float BeamSpeed;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Beam")
+	float BeamTickRate;
+
+	FSB_WeaponModuleData()
 	{
-		bIsPrimary = true;
 		Type = ESB_WeaponType::Projectile;
-		RotationRate = 1.0f;
+		Damage = 10.0f;
+		Range = 10000.0f;
 		FireRate = 0.5f;
-		ProjectileBP = nullptr;
+		RotationRate = 0.1f;
 		MuzzleCount = 1;
 		MuzzleParticle = nullptr;
 		MuzzleParticleScale = 10.0f;
 		FireSound = nullptr;
-	}
-};
-
-USTRUCT(BlueprintType)
-struct FSB_ProjectileData : public FTableRowBase
-{
-	GENERATED_USTRUCT_BODY()
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float Damage;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float LifeSpan;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	class UParticleSystem* ImpactParticle;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float ImpactParticleScale;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	class USoundCue* ImpactSound;
-
-	FSB_ProjectileData()
-	{
-		Damage = 10.0f;
-		LifeSpan = 5.0f;
 		ImpactParticle = nullptr;
 		ImpactParticleScale = 10.0f;
 		ImpactSound = nullptr;
+		ProjectileBP = nullptr;
+		ProjectileLifeSpan = 5.0f;
+		BeamBP = nullptr;
+		BeamParticle = nullptr;
+		BeamScale = FVector(5.0f);
+		BeamSpeed = 2.0;
+		BeamTickRate = 0.2f;
 	}
 };
 

@@ -17,8 +17,7 @@ public:
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 	virtual void Destroyed() override;
-
-
+	
 	//
 
 	FORCEINLINE UFUNCTION() class UProjectileMovementComponent* const GetProjectileShipMovement() const { return ProjectileMovement; }
@@ -44,10 +43,12 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	FName DataRowName;
 
-	const FSB_ProjectileData* ProjectileData;
+	const FSB_WeaponModuleData* WeaponModuleData;
 
 	//
 
+	class USB_GameInstance* GInstance;
+	
 	TWeakObjectPtr<AController> OwningController;
 	TWeakObjectPtr<ASB_Ship> OwningShip;
 

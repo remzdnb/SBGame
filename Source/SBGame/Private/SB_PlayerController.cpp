@@ -1,8 +1,5 @@
 #include "SB_PlayerController.h"
-#include "SB_PlayerState.h"
 #include "SB_GameInstance.h"
-#include "SB_GameMode.h"
-#include "SB_GameState.h"
 #include "Ship/SB_Ship.h"
 #include "Ship/SB_ShipMovementComponent.h"
 #include "SB_PlayerSaveGame.h"
@@ -16,8 +13,6 @@
 #include "EngineUtils.h"
 #include "GameFramework/PlayerStart.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
-#include "DrawDebugHelpers.h"
-#include "GameFramework/SpectatorPawn.h"
 
 void ASB_PlayerController::PostInitializeComponents()
 {
@@ -27,9 +22,6 @@ void ASB_PlayerController::PostInitializeComponents()
 		return;
 
 	GInstance = Cast<USB_GameInstance>(GetGameInstance());
-	GMode = Cast<ASB_GameMode>(GetWorld()->GetAuthGameMode());
-	GState = Cast<ASB_GameState>(GetWorld()->GetGameState());
-	PState = Cast<ASB_PlayerState>(PlayerState);
 }
 
 void ASB_PlayerController::BeginPlay()
@@ -75,38 +67,6 @@ void ASB_PlayerController::Tick(float DeltaTime)
 	}
 }
 
-void ASB_PlayerController::Respawn_Server_Implementation()
-{
-	if (OwnedShip)
-	{
-		if (OwnedShip->GetState() == ESB_ShipState::Destroyed)
-		{
-			UnPossess();
-			OwnedShip->Destroy();
-			OwnedShip = nullptr;
-			GMode->QueryRespawn(this);
-		}
-	}
-}
-
-void ASB_PlayerController::SpawnAndPossessShip(const FTransform& SpawnTransform)
-{
-	if (GetLocalRole() < ROLE_Authority || GetPawn() != nullptr)
-		return;
-
-	const FSB_ShipData* const ShipData = GInstance->GetShipDataFromRow(GInstance->GetSaveGame()->ShipDataRowName);
-	if (ShipData)
-	{
-		ASB_Ship* NewShip = GetWorld()->SpawnActorDeferred<ASB_Ship>(ShipData->ShipBP, SpawnTransform, this, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
-		if (NewShip)
-		{
-			UGameplayStatics::FinishSpawningActor(NewShip, SpawnTransform);
-			OnPossess(NewShip);
-			OnRep_Pawn();
-		}
-	}
-}
-
 void ASB_PlayerController::OnRep_Pawn()
 {
 	Super::OnRep_Pawn();
@@ -114,36 +74,10 @@ void ASB_PlayerController::OnRep_Pawn()
 	OwnedShip = Cast<ASB_Ship>(GetPawn());
 	if (OwnedShip)
 	{
-		OwnedShip->OnDestroyed.AddUniqueDynamic(this, &ASB_PlayerController::OnOwnedShipDestroyed);
+		//OwnedShip->OnDestroyed.AddUniqueDynamic(this, &ASB_PlayerController::OnOwnedShipDestroyed);
 		OnNewOwnedShip.Broadcast(OwnedShip);
-		SetControlRotation(FRotator(-45.0f, OwnedShip->GetActorRotation().Yaw, 0.0f));
+		//SetControlRotation(FRotator(-45.0f, OwnedShip->GetActorRotation().Yaw, 0.0f));
 	}
-}
-
-void ASB_PlayerController::OnOwnedShipDestroyed(const APlayerState* const InstigatorPS)
-{
-	
-}
-
-void ASB_PlayerController::OnDamageDealt(float PrimaryDamage, float SecondaryDamage, const FVector& HitLocation, ESB_PrimaryDamageType PrimaryDamageType)
-{
-	OnDamageDealt_Client(PrimaryDamage, SecondaryDamage, HitLocation, PrimaryDamageType);
-}
-
-void ASB_PlayerController::OnDamageDealt_Client_Implementation(float PrimaryDamage, float SecondaryDamage, const FVector& HitLocation, ESB_PrimaryDamageType PrimaryDamageType)
-{
-	FLinearColor NewColor = FLinearColor::White;
-	if (PrimaryDamageType == ESB_PrimaryDamageType::Ship)
-		NewColor = FLinearColor::Red;
-	if (PrimaryDamageType == ESB_PrimaryDamageType::Shield)
-		NewColor = FLinearColor::Blue;
-	
-	/*URZ_DamageMarkerWidget* const NewDamageMarker = CreateWidget<URZ_DamageMarkerWidget>(GetWorld(), DataManager->UISettings.DamageMarker_WBP);
-	if (NewDamageMarker)
-	{
-		NewDamageMarker->Init(PrimaryDamage, SecondaryDamage, HitLocation, NewColor);
-		UIManager->AddHUDWidget(NewDamageMarker);
-	}*/
 }
 
 #pragma region +++++ Input ...
@@ -199,7 +133,8 @@ void ASB_PlayerController::ZoomAxis(float AxisValue)
 		{
 			CameraActor->AddZoomInput(true);	
 		}
-		else
+
+		if (AxisValue < 0)
 		{
 			CameraActor->AddZoomInput(false);
 		}

@@ -35,6 +35,12 @@ void ARZ_UIManager::BeginPlay()
 void ARZ_UIManager::AddHUDWidget(UUserWidget* NewWidget)
 {
 	HUDWidgets.Add(NewWidget);
+
+	if (IsHUDOpen())
+	{
+		ToggleHUD(false);
+		ToggleHUD(true);
+	}
 	
 	/*if (BattleHUDWidget == nullptr)
 	return;
@@ -42,10 +48,7 @@ void ARZ_UIManager::AddHUDWidget(UUserWidget* NewWidget)
 	BattleHUDWidget->GetMainCanvas()->AddChild(NewWidget);
 
 	UCanvasPanelSlot* const CanvasPanelSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot(NewWidget);
-	CanvasPanelSlot->bAutoSize = true;
-
-	ToggleHUD(false);
-	ToggleHUD(true);*/ // ?? Refresh
+	CanvasPanelSlot->bAutoSize = true;*/ // ?? Refresh
 }
 
 void ARZ_UIManager::BroadcastMenuWidgetSelected(const FName& WidgetName, UUserWidget* WidgetRef)

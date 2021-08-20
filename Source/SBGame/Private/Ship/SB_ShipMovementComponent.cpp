@@ -1,7 +1,7 @@
 #include "Ship/SB_ShipMovementComponent.h"
 #include "Ship/SB_Ship.h"
 #include "Module/SB_ThrusterModule.h"
-#include "SB_UtilityLibrary.h"
+#include "RZ_UtilityLibrary.h"
 //
 #include "EngineUtils.h"
 #include "Net/UnrealNetwork.h"
@@ -29,7 +29,9 @@ void USB_ShipMovementComponent::BeginPlay()
 	if (OwningShip.IsValid())
 	{
 		TargetRotationYaw = OwningShip->GetActorRotation().Yaw;
-		MaxWalkSpeed = OwningShip->GetShipData()->MoveSpeed;
+		MaxWalkSpeed = OwningShip->GetShipData()->MaxMoveSpeed;
+		MaxAcceleration = OwningShip->GetShipData()->MaxAcceleration;
+		GroundFriction = OwningShip->GetShipData()->MoveInertia;
 		//OwningShip->GetReplicatedMovement()->
 	}
 

@@ -33,22 +33,23 @@ void ARZ_CameraActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (SpringArm)
+	if (TargetActor == nullptr && TargetComponent == nullptr)
 	{
 		if (GetActorLocation() != TargetLocation)
 		{
 			SetActorLocation(FMath::Lerp(GetActorLocation(), TargetLocation, LERPSPEED * DeltaTime));
 		}
+	}
+	
+	if (SpringArm->GetComponentRotation() != TargetArmRotation)
+	{
+		SpringArm->SetWorldRotation(FMath::Lerp(SpringArm->GetComponentRotation(), TargetArmRotation,
+		                                        LERPSPEED * DeltaTime));
+	}
 
-		if (SpringArm->GetComponentRotation() != TargetArmRotation)
-		{
-			SpringArm->SetWorldRotation(FMath::Lerp(SpringArm->GetComponentRotation(), TargetArmRotation, LERPSPEED * DeltaTime));
-		}
-
-		if (SpringArm->TargetArmLength != TargetArmLength)
-		{
-			//SpringArm->TargetArmLength = FMath::Lerp(SpringArm->TargetArmLength, TargetArmLength, ARMLENGTHLERPSPEED * DeltaTime);
-		}
+	if (SpringArm->TargetArmLength != TargetArmLength)
+	{
+		SpringArm->TargetArmLength = FMath::Lerp(SpringArm->TargetArmLength, TargetArmLength, LERPSPEED * DeltaTime);
 	}
 }
 
@@ -99,6 +100,21 @@ void ARZ_CameraActor::AddZoomInput(bool bZoomIn)
 	TargetArmLength = bZoomIn
 		                  ? FMath::Clamp(TargetArmLength - ARMLENGTHSTEP, MINARMLENGTH, MAXARMLENGTH)
 		                  : FMath::Clamp(TargetArmLength + ARMLENGTHSTEP, MINARMLENGTH, MAXARMLENGTH);
+}
+
+void ARZ_CameraActor::SetNewTargetActor(AActor* NewTargetActor, FVector RelativeOffset)
+{
+	TargetComponent = nullptr;
+	
+	TargetActor = NewTargetActor;
+	AttachToActor(TargetActor, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	SpringArm->SetRelativeLocation(RelativeOffset);
+}
+
+void ARZ_CameraActor::SetNewTargetComponent(USceneComponent* NewTargetComponent)
+{
+	TargetActor = nullptr;
+	TargetComponent = NewTargetComponent;
 }
 
 void ARZ_CameraActor::SetNewLocation(const FVector& NewLocation, bool bWithLerp)

@@ -1,12 +1,11 @@
 #pragma once
 
-#include "SB_GameMode.h"
-//
 #include "CoreMinimal.h"
+#include "GameFramework/GameModeBase.h"
 #include "SB_CampaignGameMode.generated.h"
 
 UCLASS()
-class ASB_CampaignGameMode : public ASB_GameMode
+class ASB_CampaignGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 

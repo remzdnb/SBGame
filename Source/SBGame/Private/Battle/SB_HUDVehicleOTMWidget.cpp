@@ -1,4 +1,4 @@
-#include "Battle/SB_ShipOTMWidget.h"
+#include "Battle/SB_HUDVehicleOTMWidget.h"
 #include "Ship/SB_Ship.h"
 #include "Module/SB_ShieldModule.h"
 #include "RZ_UIManager.h"
@@ -10,7 +10,7 @@
 #include "Components/CanvasPanelSlot.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 
-void USB_ShipOTMWidget::Init(ASB_Ship* const NewOwnedShip)
+void USB_HUDVehicleOTMWidget::Init(ASB_Ship* const NewOwnedShip)
 {
 	ASB_PlayerController* const OwningPC = Cast<ASB_PlayerController>(GetOwningPlayer());
 	if (OwningPC)
@@ -19,11 +19,11 @@ void USB_ShipOTMWidget::Init(ASB_Ship* const NewOwnedShip)
 	}
 
 	OwnedShip = NewOwnedShip;
-	OwnedShip->OnDurabilityUpdated.AddUniqueDynamic(this, &USB_ShipOTMWidget::OnShipDurabilityUpdated);
-	//OwnedShip->ShieldModule->OnShieldDurabilityUpdated.AddUniqueDynamic(this, &USB_ShipOTMWidget::OnShieldDurabilityUpdated);
+	OwnedShip->OnDurabilityUpdated.AddUniqueDynamic(this, &USB_HUDVehicleOTMWidget::OnShipDurabilityUpdated);
+	//OwnedShip->ShieldModule->OnShieldDurabilityUpdated.AddUniqueDynamic(this, &USB_HUDVehicleOTMWidget::OnShieldDurabilityUpdated);
 }
 
-void USB_ShipOTMWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+void USB_HUDVehicleOTMWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
 
@@ -38,12 +38,12 @@ void USB_ShipOTMWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTim
 	MainPanel->SetRenderTranslation(TargetScreenPosition);
 }
 
-void USB_ShipOTMWidget::OnShipDurabilityUpdated(float NewDurability, float MaxDurability)
+void USB_HUDVehicleOTMWidget::OnShipDurabilityUpdated(float NewDurability, float MaxDurability)
 {
 	ShipDurabilityProgressBar->Update(NewDurability, MaxDurability);
 }
 
-void USB_ShipOTMWidget::OnShieldDurabilityUpdated(float NewDurability, float MaxDurability)
+void USB_HUDVehicleOTMWidget::OnShieldDurabilityUpdated(float NewDurability, float MaxDurability)
 {
 	ShieldDurabilityProgressBar->Update(NewDurability, MaxDurability);
 }

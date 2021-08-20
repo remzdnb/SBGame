@@ -11,8 +11,9 @@ class USB_WeaponModuleAnimInstance : public UAnimInstance
 
 public:
 
-	FORCEINLINE UFUNCTION() void UpdateInstance(const FVector& NewOriginLocation, const FVector& NewTargetLocation)
+	FORCEINLINE UFUNCTION() void UpdateInstance(const FRotator& NewTargetRotation, const FVector& NewOriginLocation = FVector::ZeroVector, const FVector& NewTargetLocation = FVector::ZeroVector)
 	{
+		TargetRotation = NewTargetRotation;
 		OriginLocation = NewOriginLocation;
 		TargetLocation = NewTargetLocation;
 	}
@@ -24,4 +25,7 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	FVector TargetLocation;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	FRotator TargetRotation;
 };

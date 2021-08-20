@@ -1,16 +1,20 @@
+// SBGame
 #include "Ship/SB_Ship.h"
 #include "Ship/SB_ShipMovementComponent.h"
+#include "Ship/SB_TargetPoint.h"
 #include "Module/SB_ModuleSlotComponent.h"
 #include "Module/SB_ThrusterModule.h"
 #include "Module/SB_ShieldModule.h"
-#include "Module/Weapon/SB_BaseWeaponModule.h"
-#include "Battle/SB_ShipOTMWidget.h"
+#include "Module/Weapon/SB_WeaponModule.h"
+#include "Battle/SB_BattleGameMode.h"
+#include "Battle/SB_PlayerState.h"
+#include "Battle/SB_HUDVehicleOTMWidget.h"
 #include "SB_PlayerController.h"
-#include "SB_PlayerState.h"
 #include "SB_GameInstance.h"
 #include "SB_PlayerSaveGame.h"
-#include "SB_UtilityLibrary.h"
-//
+// Plugins
+#include "RZ_UtilityLibrary.h"
+// Engine
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "PhysicsEngine/BodyInstance.h"
@@ -38,19 +42,9 @@ ASB_Ship::ASB_Ship(const FObjectInitializer& ObjectInitializer) :
 	
 	GetMesh()->DestroyComponent();
 
-	//CircleParticleCT = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("CircleParticleCT"));
-	//CircleParticleCT->SetupAttachment(RootComponent);
-
-	//ShipCameraManager = CreateDefaultSubobject<USB_ShipCameraManager>(FName("ShipCameraManager"));
 	ShipMovement = Cast<USB_ShipMovementComponent>(ACharacter::GetMovementComponent());
+	//ShipCameraManager = CreateDefaultSubobject<USB_ShipCameraManager>(FName("ShipCameraManager"));
 	
-	/*for (uint8 Index = 0; Index < MAXAUTOLOCKCOMPONENTS; Index++)
-	{
-		USceneComponent* const NewAutoLockCT = CreateDefaultSubobject<USceneComponent>(FName("AutoLockCT_0" + FString::FromInt(Index)));
-		NewAutoLockCT->SetupAttachment(RootComponent);
-		AutoLockCTs.Add(NewAutoLockCT);
-	}*/
-
 	//
 
 	bUseControllerRotationPitch = false;
@@ -63,10 +57,6 @@ ASB_Ship::ASB_Ship(const FObjectInitializer& ObjectInitializer) :
 	AutoPossessPlayer = EAutoReceiveInput::Disabled;
 	bReplicates = true;
 	bAlwaysRelevant = true;
-
-	//
-
-	SelectedWeaponID = 0;
 }
 
 void ASB_Ship::OnConstruction(const FTransform& Transform)
@@ -89,94 +79,64 @@ void ASB_Ship::PostInitializeComponents()
 		return;
 
 	GInstance = Cast<USB_GameInstance>(GetGameInstance());
+	BattleGMode =  Cast<ASB_BattleGameMode>(GetWorld()->GetAuthGameMode());
 	ShipData = GInstance->GetShipDataFromRow(ShipDataRowName);
-
-	if (GInstance->GetSaveGame())
+	
+	/*if (GInstance->GetSaveGame())
 		LoadConfig(GInstance->GetSaveGame()->ShipConfig);
 	else
-		LoadConfig(TArray<FName>());
+		LoadConfig(TArray<FName>());*/
 
-	for (const auto& ModuleSlot : ModuleSlots)
-	{
-		if (ModuleSlot->GetModuleSlotData().Type == ESB_ModuleType::PrimaryWeapon &&
-			ModuleSlot->GetSpawnedModule())
-		{
-			PrimaryWeapons.Add(Cast<USB_BaseWeaponModule>(ModuleSlot->GetSpawnedModule()));
-		}
+	//
 
-		if (ModuleSlot->GetModuleSlotData().Type == ESB_ModuleType::AuxiliaryWeapon &&
-			ModuleSlot->GetSpawnedModule())
-		{
-			AuxiliaryWeapons.Add(Cast<USB_BaseWeaponModule>(ModuleSlot->GetSpawnedModule()));
-		}
-	}
+	TInlineComponentArray<USB_TargetPoint*> InlineTargetPoints;
+	GetComponents(InlineTargetPoints);
+	TargetPoints = InlineTargetPoints;
 }
 
 void ASB_Ship::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// OTM widget
+
+	bool bShouldCreateOTMWidget = false;
 	
-	// Create sniper cameras
-
-	/*uint8 Index = 0;
-	for (auto& WeaponModule : WeaponModules)
-	{
-		const FName CameraName = *("WeaponCamera_" + FString::FromInt(Index));
-		UCameraComponent* const NewWeaponCamera = NewObject<UCameraComponent>(this, CameraName);
-		if (NewWeaponCamera)
-		{
-			NewWeaponCamera->SetupAttachment(GetMesh());
-			NewWeaponCamera->SetRelativeLocation(WeaponModule->GetRelativeLocation());
-			NewWeaponCamera->RegisterComponent();
-			ShipCameraManager->AddSniperCamera(NewWeaponCamera);
-		}
-
-		Index++;
-	}*/
-
-	// Create OTM widget
-
-	/*if (UKismetSystemLibrary::IsDedicatedServer(GetWorld()) == false)
+	if (UKismetSystemLibrary::IsDedicatedServer(GetWorld()) == false)
 	{
 		APlayerController* PC = Cast<APlayerController>(GetOwner());
 		if (PC)
 		{
-			if (PC->IsLocalController())
-			{
-				//LoadModules();
-			}
-			else
-			{
-				OTMWidget = CreateWidget<USB_ShipOTMWidget>(GetWorld(), GInstance->UISettings.ShipOTM_WBP);
-				if (OTMWidget)
-				{
-					OTMWidget->Init(DataManager, this);
-				}
-			}
+			if (PC->IsLocalController() == false)
+				bShouldCreateOTMWidget = true;
 		}
 		else
 		{
-			OTMWidget = CreateWidget<USB_ShipOTMWidget>(GetWorld(), GInstance->UISettings.ShipOTM_WBP);
-			if (OTMWidget)
-			{
-				OTMWidget->Init(DataManager, this);
-			}
+			bShouldCreateOTMWidget = true;
 		}
-	}*/
+	}
+
+	if (bShouldCreateOTMWidget)
+	{
+		OTMWidget = CreateWidget<USB_HUDVehicleOTMWidget>(GetWorld(), GInstance->UISettings.HUDVehicleOTM_WBP);
+		if (OTMWidget)
+		{
+			OTMWidget->Init(this);
+		}
+	}
 
 	//
 
 	Durability = 10000.0f; //DataManager->ShipSettings.MaxDurability;
 }
 
-void ASB_Ship::OnRep_PlayerState()
+void ASB_Ship::PossessedBy(AController* NewController)
 {
-	PState = Cast<ASB_PlayerState>(GetPlayerState());
-	if (PState)
-	{
-		//LoadConfig(PState->GetPlayerSaveGame()->ShipConfig);
-	}
+	Super::PossessedBy(NewController);
+
+	PState = Cast<ASB_PlayerState>(NewController->PlayerState);
 }
+
 
 #pragma endregion
 
@@ -186,11 +146,8 @@ void ASB_Ship::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	/*for (auto& WeaponModule : WeaponModules)
-	{
-		WeaponModule->TargetModule = TargetModule;
-	}*/
-
+	UpdateSecondaryTargets();
+	
 	// Update circle particle
 	//CircleParticleCT->SetWorldRotation(UKismetMathLibrary::MakeRotFromX(ShipMovement->Velocity));
 	
@@ -218,17 +175,27 @@ void ASB_Ship::UpdateOwnerViewData_Server_Implementation(const FVector& NewOwner
 
 #pragma region +++++ Modules ...
 
-void ASB_Ship::LoadConfig(const TArray<FName>& NewConfig)
+void ASB_Ship::LoadConfig(const TArray<FName>& NewConfig, bool bSpawnEmptyModules)
 {
 	for (int32 Index = 0; Index != ModuleSlots.Num(); Index++)
 	{
+		USB_BaseModule* NewModule = nullptr;
+		
 		if (NewConfig.IsValidIndex(Index))
 		{
-			ModuleSlots[Index]->SpawnModule(NewConfig[Index]);
+			NewModule = ModuleSlots[Index]->SpawnModule(NewConfig[Index], bSpawnEmptyModules);
 		}
 		else
 		{
-			ModuleSlots[Index]->SpawnDefaultModule();
+			NewModule = ModuleSlots[Index]->SpawnDefaultModule(bSpawnEmptyModules);
+        }
+
+
+		//
+
+		if (NewModule->GetBaseModuleData()->ModuleType == ESB_ModuleType::Weapon)
+		{
+			Weapons.Add(Cast<USB_WeaponModule>(NewModule));
 		}
 	}
 }
@@ -249,105 +216,35 @@ void ASB_Ship::SaveConfig()
 
 #pragma region +++++ Weapons ...
 
-void ASB_Ship::SelectWeapon(uint8 WeaponID, bool bToggleSelection, bool bNewIsSelected)
+void ASB_Ship::SelectPriorityTarget(ASB_Ship* NewTargetShip)
 {
-	if (State != ESB_ShipState::Ready)
+}
+
+void ASB_Ship::UpdateSecondaryTargets() // update all target, since its on tick
+{
+	if (BattleGMode == nullptr || PState == nullptr)
 		return;
-
-	if (GetLocalRole() < ROLE_Authority)
-		SelectWeapon_Server(WeaponID, bToggleSelection, bNewIsSelected);
-
-	if (PrimaryWeapons.IsValidIndex(WeaponID))
+	
+	TArray<AActor*> EnemyShips;
+	for (auto& Ship : BattleGMode->GetSpawnedShips())
 	{
-		if (PrimaryWeapons[WeaponID])
+		if (Ship->PState)
 		{
-			//WeaponModules[WeaponID]->SetIsSelected(bToggleSelection, bNewIsSelected);
+			if (Ship->PState->GetTeam() != PState->GetTeam())
+			{
+				EnemyShips.Add(Ship.Get());
+			}
 		}
 	}
 
-	/*if (bToggleSelection == false)
+	ASB_Ship* const TargetShip = Cast<ASB_Ship>(
+		RZ_UtilityLibrary::GetClosestActorFromLocation(EnemyShips, GetActorLocation())
+	);
+
+	for (const auto& Weapon : Weapons)
 	{
-		for (auto& WeaponModule : WeaponModules)
-		{
-			WeaponModule->ToggleSelection(false);
-		}
+		Weapon->SetTargetShip(TargetShip);
 	}
-
-	if (WeaponModules.IsValidIndex(WeaponID - 1))
-	{
-		if (WeaponModules[WeaponID - 1])
-		{
-			WeaponModules[WeaponID - 1]->ToggleSelection(true);
-		}
-
-		SelectedWeaponID = WeaponID;
-
-		if (ShipCameraManager)
-		{
-			ShipCameraManager->SetActiveSniperCamera(WeaponID - 1);
-		}
-
-		SelectedWeaponUpdatedEvent.Broadcast(SelectedWeaponID);
-	}*/
-}
-
-void ASB_Ship::SelectWeapon_Server_Implementation(uint8 WeaponID, bool bToggleSelection, bool bNewIsSelected)
-{
-	SelectWeapon(WeaponID, bToggleSelection, bNewIsSelected);
-}
-
-void ASB_Ship::StartFireSelectedWeapons()
-{
-	if (State != ESB_ShipState::Ready)
-		return;
-
-	if (GetLocalRole() < ROLE_Authority)
-		StartFireSelectedWeapons_Server();
-
-	for (auto& WeaponModule : PrimaryWeapons)
-	{
-		if (WeaponModule->GetIsSelected())
-		{
-			WeaponModule->SetWantsToFire(true);
-		}
-	}
-}
-
-void ASB_Ship::StartFireSelectedWeapons_Server_Implementation()
-{
-	StartFireSelectedWeapons();
-}
-
-void ASB_Ship::StopFireAllWeapons()
-{
-	if (GetLocalRole() < ROLE_Authority)
-		StopFireAllWeapons_Server();
-
-	for (auto& WeaponModule : PrimaryWeapons)
-	{
-		WeaponModule->SetWantsToFire(false);
-	}
-}
-
-void ASB_Ship::StopFireAllWeapons_Server_Implementation()
-{
-	StopFireAllWeapons();
-}
-
-void ASB_Ship::StartAutoLockSelectedWeapon()
-{
-	/*if (WeaponModules.IsValidIndex(SelectedWeaponID - 1))
-	{
-		WeaponModules[SelectedWeaponID - 1]->SetTargetShip(Cast<ASB_Ship>(OwnerViewActor));
-	}*/
-}
-
-void ASB_Ship::StopAutoLockSelectedWeapon()
-{
-	/*if (WeaponModules.IsValidIndex(SelectedWeaponID - 1))
-	{
-		WeaponModules[SelectedWeaponID - 1]->SetTargetShip(nullptr);
-	}*/
 }
 
 #pragma endregion
@@ -372,7 +269,7 @@ void ASB_Ship::ApplyShipDamage(float ShipDamage, const FVector& HitLocation, ACo
 	ASB_PlayerController* const InstigatorPlayerController = Cast<ASB_PlayerController>(InstigatorController);
 	if (InstigatorPlayerController)
 	{
-		InstigatorPlayerController->OnDamageDealt(ShipDamage, FromModuleDamage, HitLocation, ESB_PrimaryDamageType::Ship);
+		//InstigatorPlayerController->OnDamageDealt(ShipDamage, FromModuleDamage, HitLocation, ESB_PrimaryDamageType::Ship);
 	}
 
 	OnRep_Durability();

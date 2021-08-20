@@ -22,7 +22,14 @@ void ASB_CampaignPlayerController::BeginPlay()
 
 		// Camera
 
-
+		CameraActor->SetNewLocation(OwnedShip->GetActorLocation(), true);
+		CameraActor->SetNewRotation(FRotator(
+										DEFAULT_CAMERAARMROTATIONPITCH,
+										OwnedShip->GetActorRotation().Yaw + DEFAULT_CAMERAARMROTATIONYAW,
+										0.0f),
+									false
+		);
+		CameraActor->SetNewArmLength(DEFAULT_CAMERAARMLENGTH, false);
 		
 		// UI
 		
@@ -36,10 +43,10 @@ void ASB_CampaignPlayerController::BeginPlay()
 
 		// Controls
 		
-		UWidgetBlueprintLibrary::SetInputMode_GameAndUIEx(this);
+		UWidgetBlueprintLibrary::SetInputMode_UIOnlyEx(this);
 		bShowMouseCursor = true;
-		bEnableMouseOverEvents = true;
-		bEnableClickEvents = true;
+		bEnableMouseOverEvents = false;
+		bEnableClickEvents = false;
 	}
 }
 
@@ -60,16 +67,9 @@ void ASB_CampaignPlayerController::SelectShip(const FName& NewShipDataRowName)
 		{
 			UGameplayStatics::FinishSpawningActor(NewShip, SpawnTransform);
 			OnPossess(NewShip);
-			OnRep_Pawn();
-
-			CameraActor->SetNewLocation(NewShip->GetModuleSlots()[0]->GetComponentLocation(), true);
-			CameraActor->SetNewRotation(FRotator(
-											DEFAULT_CAMERAARMROTATIONPITCH,
-											NewShip->GetActorRotation().Yaw + DEFAULT_CAMERAARMROTATIONYAW,
-											0.0f),
-										false
-			);
-			CameraActor->SetNewArmLength(DEFAULT_CAMERAARMLENGTH, false);
+			OwnedShip = Cast<ASB_Ship>(GetPawn());
+			OwnedShip->LoadConfig(GInstance->GetSaveGame()->ShipConfig, true);
+			OnNewOwnedShip.Broadcast(OwnedShip);
 
 			SetViewTargetWithBlend(CameraActor, 0.0f);
 		}
@@ -85,7 +85,10 @@ void ASB_CampaignPlayerController::OnNewMenuWidgetSelected(const FName& WidgetNa
 	if (WidgetName == "Ship")
 	{
 		UWidgetBlueprintLibrary::SetInputMode_GameAndUIEx(this);
-
+		bEnableMouseOverEvents = true;
+		bEnableClickEvents = true;
+		
+		CameraActor->SetNewLocation(OwnedShip->GetActorLocation(), true);
 		CameraActor->SetNewArmLength(SHIPCONFIG_CAMERAARMLENGTH, false);
 		CameraActor->SetNewRotation(FRotator(
 										SHIPCONFIG_CAMERAARMROTATIONPITCH,
@@ -93,14 +96,14 @@ void ASB_CampaignPlayerController::OnNewMenuWidgetSelected(const FName& WidgetNa
 										0.0f),
 									true
 		);
-		
-		//bEnableMouseOverEvents = true;
-		//bEnableClickEvents = true;
 	}
 	else
 	{
 		UWidgetBlueprintLibrary::SetInputMode_UIOnlyEx(this);
+		bEnableMouseOverEvents = false;
+		bEnableClickEvents = false;
 
+		CameraActor->SetNewLocation(OwnedShip->GetActorLocation(), true);
 		CameraActor->SetNewArmLength(DEFAULT_CAMERAARMLENGTH, false);
 		CameraActor->SetNewRotation(FRotator(
 										DEFAULT_CAMERAARMROTATIONPITCH,
@@ -108,9 +111,6 @@ void ASB_CampaignPlayerController::OnNewMenuWidgetSelected(const FName& WidgetNa
 										0.0f),
 									true
 		);
-		
-		//bEnableMouseOverEvents = false;
-		//bEnableClickEvents = false;
 	}
 }
 

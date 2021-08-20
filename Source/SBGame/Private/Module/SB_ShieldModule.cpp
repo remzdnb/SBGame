@@ -132,7 +132,7 @@ void USB_ShieldModule::Deploy()
 	if (ShieldState != ESB_ShieldState::Ready)
 		return;
 
-	if (OwningShip->GetLocalRole() < ROLE_Authority)
+	if (GetOwnerRole() < ROLE_Authority)
 		Deploy_Server(ShieldArm->GetComponentRotation().Yaw);
 	else
 		Deploy_Multicast(ShieldArm->GetComponentRotation().Yaw);
@@ -163,7 +163,7 @@ void USB_ShieldModule::Undeploy()
 	if (ShieldState != ESB_ShieldState::Deployed)
 		return;
 	
-	if (OwningShip->GetLocalRole() < ROLE_Authority)
+	if (GetOwnerRole() < ROLE_Authority)
 		Undeploy_Server();
 	else
 		Undeploy_Multicast();
@@ -197,7 +197,7 @@ void USB_ShieldModule::ApplyShieldDamage(float Damage, const FVector& HitLocatio
 	ASB_PlayerController* const InstigatorPlayerController = Cast<ASB_PlayerController>(InstigatorController);
 	if (InstigatorPlayerController)
 	{
-		InstigatorPlayerController->OnDamageDealt(Damage, 0.0f, HitLocation, ESB_PrimaryDamageType::Shield);
+		//InstigatorPlayerController->OnDamageDealt(Damage, 0.0f, HitLocation, ESB_PrimaryDamageType::Shield);
 	}
 	
 	OnShieldDurabilityUpdated.Broadcast(ShieldDurability, GInstance->ShieldSettings.MaxDurability);

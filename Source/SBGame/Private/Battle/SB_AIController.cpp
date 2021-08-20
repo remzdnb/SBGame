@@ -1,10 +1,10 @@
 #include "Battle/SB_AIController.h"
-#include "SB_PlayerController.h"
-#include "SB_GameMode.h"
-#include "SB_GameState.h"
-#include "SB_PlayerState.h"
+#include "Battle/SB_BattleGameMode.h"
+#include "Battle/SB_GameState.h"
+#include "Battle/SB_PlayerState.h"
 #include "Ship/SB_Ship.h"
 #include "Ship/SB_ShipMovementComponent.h"
+#include "SB_GameInstance.h"
 //
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
@@ -23,7 +23,7 @@ void ASB_AIController::PostInitializeComponents()
 		return;
 	
 	GInstance = Cast<USB_GameInstance>(GetGameInstance());
-	GMode = Cast<ASB_GameMode>(GetWorld()->GetAuthGameMode());
+	GMode = Cast<ASB_BattleGameMode>(GetWorld()->GetAuthGameMode());
 	GState = Cast<ASB_GameState>(GetWorld()->GetGameState());
 	PState = Cast<ASB_PlayerState>(PlayerState);
 }
@@ -31,8 +31,6 @@ void ASB_AIController::PostInitializeComponents()
 void ASB_AIController::BeginPlay()
 {
 	Super::BeginPlay();
-
-	GMode->QueryRespawn(this);
 
 	GetWorldTimerManager().SetTimer(DetectionUpdateTimer, this, &ASB_AIController::UpdateDetection, GInstance->AISettings.DetectionUpdateRate, true, 0.0f);
 }
@@ -44,7 +42,7 @@ void ASB_AIController::Tick(float DeltaTime)
 	if (OwnedShip == nullptr)
 		return;
 
-	UpdateMovement();
+	/*UpdateMovement();
 
 	// omg
 	if (OwnedShip.IsValid())
@@ -56,20 +54,32 @@ void ASB_AIController::Tick(float DeltaTime)
 			//SetControlRotation(FRotator(0.0f, LerpedYaw, 0.0f));
 			//SetFocus / SetFocalpoint?
 		}
-	}
+	}*/
 }
 
-void ASB_AIController::SpawnAndPossessShip(const FTransform& SpawnTransform)
+ASB_Ship* const ASB_AIController::SpawnAndPossessVehicle(const FTransform& SpawnTransform)
 {
 	if (GetPawn() != nullptr)
-		return;
-
-	/*ASB_Ship* const NewShip = GetWorld()->SpawnActorDeferred<ASB_Ship>(DataManager->GameSettings.ShipClass, SpawnTransform, this, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+		return nullptr;
+	
+	ASB_Ship* const NewShip = GetWorld()->SpawnActorDeferred<ASB_Ship>(
+		GInstance->AISettings.AIShipClass,
+		SpawnTransform,
+		this,
+		nullptr,
+		ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn
+	);
 	if (NewShip)
 	{
 		UGameplayStatics::FinishSpawningActor(NewShip, SpawnTransform);
+		const TArray<FName> EmptyConfig;
+		NewShip->LoadConfig(EmptyConfig, false);
 		OnPossess(NewShip);
-	}*/
+
+		return NewShip;
+	}
+
+	return nullptr;
 }
 
 void ASB_AIController::OnPossess(APawn* InPawn)
@@ -77,6 +87,16 @@ void ASB_AIController::OnPossess(APawn* InPawn)
 	Super::OnPossess(InPawn);
 
 	OwnedShip = Cast<ASB_Ship>(InPawn);
+}
+
+uint8 ASB_AIController::GetTeamID()
+{
+	if (PState)
+	{
+		return PState->GetTeam();
+	}
+
+	return 0;
 }
 
 void ASB_AIController::UpdateDetection()
@@ -109,21 +129,21 @@ void ASB_AIController::UpdateCollisionActor(bool bIsRightActor)
 		{
 			bIsRightActor ? CollisionActor_Right = Hit.Actor.Get() : CollisionActor_Left = Hit.Actor.Get();
 
-			if (GInstance->GameSettings.bIsDebugEnabled_AI)
+			/*if (GInstance->GameSettings.bIsDebugEnabled_AI)
 			{
 				FString ActorRight = bIsRightActor ? "Right : " : "Left : ";
 				GEngine->AddOnScreenDebugMessage(-1, GInstance->AISettings.DetectionUpdateRate, FColor::Purple, *(ActorRight + Hit.Actor->GetName()));
 				UKismetSystemLibrary::DrawDebugSphere(GetWorld(), Hit.Location, GInstance->AISettings.CollisionDetectionSphereRadius, 10, FColor::Red, GInstance->AISettings.DetectionUpdateRate + 0.05f, 50.0f);
-			}
+			}*/
 
 			break;
 		}
 	}
 
-	if (GInstance->GameSettings.bIsDebugEnabled_AI)
+	/*if (GInstance->GameSettings.bIsDebugEnabled_AI)
 	{
 		UKismetSystemLibrary::DrawDebugSphere(GetWorld(), EndLocation, GInstance->AISettings.CollisionDetectionSphereRadius, 10, FColor::Green, GInstance->AISettings.DetectionUpdateRate + 0.05f, 50.0f);
-	}
+	}*/
 }
 
 void ASB_AIController::UpdateMovement()
@@ -150,7 +170,7 @@ void ASB_AIController::UpdateMovement()
 
 void ASB_AIController::UpdateTargetShip()
 {
-	TargetShip = nullptr;
+	/*TargetShip = nullptr;
 
 	TArray<ASB_Ship*> TargetShips;
 	//ASB_Ship* ClosestTargetShip;
@@ -208,5 +228,5 @@ void ASB_AIController::UpdateTargetShip()
 				break;
 			}
 		}
-	}
+	}*/
 }

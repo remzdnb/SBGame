@@ -32,8 +32,7 @@ public:
 	const FSB_ShipData* const GetShipDataFromRow(const FName& RowName) const;
 	const FSB_BaseModuleData* const GetBaseModuleDataFromRow(const FName& RowName) const;
 	const FSB_ThrusterModuleData* const GetThrusterModuleDataFromRow(const FName& RowName) const;
-	const FSB_BaseWeaponModuleData* const GetWeaponModuleDataFromRow(const FName& RowName) const;
-	const FSB_ProjectileData* const GetProjectileDataFromRow(const FName& RowName) const;
+	const FSB_WeaponModuleData* const GetWeaponModuleDataFromRow(const FName& RowName) const;
 
 	//
 
@@ -52,13 +51,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UDataTable* WeaponModuleDT;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	UDataTable* ProjectileDT;
-
 	//
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FSB_GameSettings GameSettings;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FSB_ShipSettings ShipSettings;
@@ -71,6 +64,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FSB_AISettings AISettings;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FSB_DebugSettings DebugSettings;
 	
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	///// Save Game

@@ -30,12 +30,16 @@ public:
 	UFUNCTION() void AddYawInput(float AxisValue);
 	UFUNCTION() void AddZoomInput(bool bZoomIn);
 
+	UFUNCTION() void SetNewTargetActor(AActor* NewTargetActor, FVector RelativeOffset = FVector::ZeroVector);
+	UFUNCTION() void SetNewTargetComponent(USceneComponent* NewTargetComponent);
 	UFUNCTION() void SetNewLocation(const FVector& NewLocation, bool bWithLerp);
 	UFUNCTION() void SetNewRotation(const FRotator& NewRotation, bool bWithLerp);
 	UFUNCTION() void SetNewArmLength(float NewArmLength, bool bWithLerp);
 
 	//
-	
+
+	UPROPERTY() AActor* TargetActor;
+	UPROPERTY() USceneComponent* TargetComponent;
 	UPROPERTY() FVector TargetLocation;
 	UPROPERTY() FRotator TargetArmRotation;
 	UPROPERTY() float TargetArmLength;

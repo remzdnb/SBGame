@@ -3,18 +3,20 @@
 
 #pragma once
 
+#include "SB_Interfaces.h"
+//
 #include "CoreMinimal.h"
 #include "AIController.h"
-#include "SB_GameInstance.h"
 #include "SB_AIController.generated.h"
 
-class ASB_GameMode;
+class USB_GameInstance;
+class ASB_BattleGameMode;
 class ASB_GameState;
 class ASB_PlayerState;
 class ASB_Ship;
 
 UCLASS()
-class ASB_AIController : public AAIController
+class ASB_AIController : public AAIController, public ISB_ControllerInterface
 {
 	GENERATED_BODY()
 
@@ -27,20 +29,20 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void OnPossess(APawn* InPawn) override;
 
-	//
-
-	UFUNCTION()
-	void SpawnAndPossessShip(const FTransform& SpawnTransform);
-
+	// ControllerInterface
+	
+	virtual uint8 GetTeamID() override;
+	virtual ASB_Ship* const SpawnAndPossessVehicle(const FTransform& SpawnTransform) override;
+	
 	//
 
 	FORCEINLINE UFUNCTION() ASB_PlayerState* GetPlayerState() const { return PState; }
-	FORCEINLINE UFUNCTION() TWeakObjectPtr<ASB_Ship> GetOwnedShip() const { return OwnedShip; }
+	FORCEINLINE UFUNCTION() ASB_Ship* GetOwnedShip() const { return OwnedShip.Get(); }
 
 private:
 
 	USB_GameInstance* GInstance;
-	ASB_GameMode* GMode;
+	ASB_BattleGameMode* GMode;
 	ASB_GameState* GState;
 	ASB_PlayerState* PState;
 

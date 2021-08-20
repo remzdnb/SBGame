@@ -12,6 +12,7 @@
 USB_BaseModule::USB_BaseModule()
 {
 	UPrimitiveComponent::SetCollisionProfileName("CharacterMesh");
+	bEnablePerPolyCollision = true;
 	SetGenerateOverlapEvents(true);
 	SetCustomDepthStencilValue(1);
 	SetIsReplicatedByDefault(true);
@@ -25,6 +26,8 @@ USB_BaseModule::USB_BaseModule()
 
 void USB_BaseModule::Init(const FSB_ModuleSlotData& NewModuleSlotData, const FName& NewModuleRowName)
 {
+	//OwningShip = Cast<ASB_Ship>(GetOuter());
+	
 	ModuleSlotData = NewModuleSlotData;
 	ModuleRowName = NewModuleRowName;
 
@@ -105,7 +108,7 @@ void USB_BaseModule::ApplyDamageFromProjectile(float Damage, const FVector& HitL
 	}
 
 	// Apply ship damage.
-	OwningShip->ApplyShipDamage(Damage * BaseModuleData->ShipDamageModifier, HitLocation, InstigatorController, Damage);
+	//OwningShip->ApplyShipDamage(Damage * BaseModuleData->ShipDamageModifier, HitLocation, InstigatorController, Damage);
 
 	//
 	OnDurabilityUpdated.Broadcast(Durability);

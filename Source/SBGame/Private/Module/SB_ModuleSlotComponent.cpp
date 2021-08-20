@@ -1,7 +1,9 @@
 #include "Module/SB_ModuleSlotComponent.h"
 #include "Module/SB_ModuleSlotActor.h"
 #include "Module/SB_BaseModule.h"
-#include "Module/Weapon/SB_BaseWeaponModule.h"
+#include "Module/Weapon/SB_TraceWeaponModule.h"
+#include "Module/Weapon/SB_ProjectileWeaponModule.h"
+#include "Module/Weapon/SB_BeamWeaponModule.h"
 #include "Ship/SB_Ship.h"
 #include "SB_GameInstance.h"
 //
@@ -27,7 +29,7 @@ void USB_ModuleSlotComponent::InitializeComponent()
 	Super::InitializeComponent();
 }
 
-void USB_ModuleSlotComponent::SpawnModule(const FName& NewModuleDataRowName)
+USB_BaseModule* const USB_ModuleSlotComponent::SpawnModule(const FName& NewModuleDataRowName, bool bSpawnEmptyModule)
 {
 	if (SpawnedModule)
 		SpawnedModule->DestroyComponent();
@@ -36,12 +38,23 @@ void USB_ModuleSlotComponent::SpawnModule(const FName& NewModuleDataRowName)
 	if (BaseModuleData)
 	{
 		const FString ComponentName = NewModuleDataRowName.ToString() + FString::FromInt(ModuleSlotData.UniqueID);
-		USB_BaseModule* NewModule;
+		USB_BaseModule* NewModule = nullptr;
 		
-		if (BaseModuleData->ModuleType == ESB_ModuleType::PrimaryWeapon ||
-			BaseModuleData->ModuleType == ESB_ModuleType::AuxiliaryWeapon)
+		if (BaseModuleData->ModuleType == ESB_ModuleType::Weapon)
 		{
-			NewModule = NewObject<USB_BaseWeaponModule>(this, *ComponentName);
+			const FSB_WeaponModuleData* const WeaponData = GInstance->GetWeaponModuleDataFromRow(NewModuleDataRowName);
+			if (WeaponData->Type == ESB_WeaponType::Trace)
+			{
+				NewModule = NewObject<USB_TraceWeaponModule>(this, *ComponentName);
+			}
+			else if (WeaponData->Type == ESB_WeaponType::Projectile)
+			{
+				NewModule = NewObject<USB_ProjectileWeaponModule>(this, *ComponentName);
+			}
+			else if (WeaponData->Type == ESB_WeaponType::Beam)
+			{
+				NewModule = NewObject<USB_BeamWeaponModule>(this, *ComponentName);
+			}
 		}
 		else if (BaseModuleData->ModuleType == ESB_ModuleType::Thruster)
 		{
@@ -49,7 +62,15 @@ void USB_ModuleSlotComponent::SpawnModule(const FName& NewModuleDataRowName)
 		}
 		else
 		{
-			NewModule = NewObject<USB_BaseModule>(this, *ComponentName);
+			if (BaseModuleData->ModuleType == ESB_ModuleType::Empty && bSpawnEmptyModule)
+			{
+				if (bSpawnEmptyModule)
+					NewModule = NewObject<USB_BaseModule>(this, *ComponentName);
+			}
+			else
+			{
+				NewModule = NewObject<USB_BaseModule>(this, *ComponentName);
+			}
 		}
 		
 		NewModule->Init(ModuleSlotData, NewModuleDataRowName);
@@ -59,12 +80,15 @@ void USB_ModuleSlotComponent::SpawnModule(const FName& NewModuleDataRowName)
 		NewModule->RegisterComponent();
 
 		SpawnedModule = NewModule;
+		return SpawnedModule;
 	}
+
+	return nullptr;
 }
 
-void USB_ModuleSlotComponent::SpawnDefaultModule()
+USB_BaseModule* const USB_ModuleSlotComponent::SpawnDefaultModule(bool bSpawnEmptyModule)
 {
-	SpawnModule(ModuleSlotData.DefaultModuleRowName);
+	return SpawnModule(ModuleSlotData.DefaultModuleRowName, bSpawnEmptyModule);
 }
 
 void USB_ModuleSlotComponent::UpdateEditorMesh()

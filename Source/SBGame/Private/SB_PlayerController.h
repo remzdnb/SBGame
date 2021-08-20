@@ -6,9 +6,6 @@
 #include "SB_PlayerController.generated.h"
 
 class USB_GameInstance;
-class ASB_GameMode;
-class ASB_GameState;
-class ASB_PlayerState;
 class ARZ_UIManager;
 class ASB_Ship;
 class ARZ_CameraActor;
@@ -28,19 +25,7 @@ public:
 	virtual void OnRep_Pawn() override;
 
 	//
-
-	UFUNCTION()
-	void SpawnAndPossessShip(const FTransform& SpawnTransform);
-
-	UFUNCTION()
-	void OnDamageDealt(float PrimaryDamage, float SecondaryDamage, const FVector& HitLocation, ESB_PrimaryDamageType PrimaryDamageType);
-
-	UFUNCTION(Client, Reliable)
-	void OnDamageDealt_Client(float PrimaryDamage, float SecondaryDamage, const FVector& HitLocation, ESB_PrimaryDamageType PrimaryDamageType);
-
-	//
-
-	FORCEINLINE UFUNCTION() ASB_PlayerState* const GetPlayerState() const { return PState; }
+	
 	FORCEINLINE UFUNCTION() ARZ_UIManager* const GetUIManager() const { return UIManager; }
 	FORCEINLINE UFUNCTION() ASB_Ship* const GetOwnedShip() const { return OwnedShip; }
 	FORCEINLINE UFUNCTION() ARZ_CameraActor* const GetCameraActor() const { return CameraActor; }
@@ -52,9 +37,6 @@ public:
 protected:
 	
 	USB_GameInstance* GInstance;
-	ASB_GameMode* GMode;
-	ASB_GameState* GState;
-	ASB_PlayerState* PState;
 	ARZ_UIManager* UIManager;
 
 	//
@@ -65,22 +47,12 @@ protected:
 	UPROPERTY()
 	ARZ_CameraActor* CameraActor;
 
-	//
-
-	UFUNCTION()
-	void OnOwnedShipDestroyed(const class APlayerState* const InstigatorPS);
-
-	UFUNCTION(Server, Reliable)
-	void Respawn_Server();
-
 ///// Input
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 public:
 
 	virtual void SetupInputComponent() override;
-
-	FORCEINLINE UFUNCTION() class USB_CursorWidget* GetCursorWidget() const { return CursorWidget; }
 
 private:
 
@@ -101,8 +73,5 @@ private:
 	UFUNCTION() void SelectWeapon5KeyPressed();
 	UFUNCTION() void SelectAllWeaponsKeyPressed();
 	UFUNCTION() void UnselectAllWeaponsKeyPressed();
-
-	//
-
-	UPROPERTY() class USB_CursorWidget* CursorWidget;
+	
 };

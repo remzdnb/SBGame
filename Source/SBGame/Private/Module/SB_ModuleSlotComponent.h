@@ -9,6 +9,8 @@
 #include "Components/ChildActorComponent.h"
 #include "SB_ModuleSlotComponent.generated.h"
 
+class USB_BaseModule;
+
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class USB_ModuleSlotComponent : public UChildActorComponent
 {
@@ -23,10 +25,10 @@ public:
 	//
 
 	UFUNCTION()
-	void SpawnModule(const FName& NewModuleDataRowName);
+	USB_BaseModule* const SpawnModule(const FName& NewModuleDataRowName, bool bSpawnEmptyModule);
 	
 	UFUNCTION()
-	void SpawnDefaultModule();
+	USB_BaseModule* const SpawnDefaultModule(bool bSpawnEmptyModule);
 
 	UFUNCTION()
 	void UpdateEditorMesh();
@@ -34,7 +36,7 @@ public:
 	//
 
 	FORCEINLINE UFUNCTION() const FSB_ModuleSlotData& GetModuleSlotData() const { return ModuleSlotData; }
-	FORCEINLINE UFUNCTION() class USB_BaseModule* GetSpawnedModule() const { return SpawnedModule; }
+	FORCEINLINE UFUNCTION() USB_BaseModule* GetSpawnedModule() const { return SpawnedModule; }
 
 private:
 

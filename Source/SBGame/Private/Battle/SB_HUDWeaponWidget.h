@@ -3,18 +3,18 @@
 #include "SB_Types.h"
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "SB_ModuleWidget.generated.h"
+#include "SB_HUDWeaponWidget.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPressedDelegate, uint8, SlotID);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHUDWeaponWidgetPressedDelegate, uint8, SlotID);
 
 UCLASS()
-class USB_ModuleWidget : public UUserWidget
+class USB_HUDWeaponWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
 public:
 
-	USB_ModuleWidget(const FObjectInitializer& ObjectInitializer);
+	USB_HUDWeaponWidget(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	
@@ -36,12 +36,9 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnStateUpdatedBPI(ESB_ModuleState NewState);
 
-	UFUNCTION()
-	void OnDurabilityUpdated(float NewDurability);
-
 	//
 
-	FPressedDelegate OnPressed;
+	FHUDWeaponWidgetPressedDelegate OnHUDWeaponWidgetPressed;
 
 private:
 
@@ -53,9 +50,7 @@ private:
 	//
 
 	UPROPERTY(meta = (BindWidget)) class UTextBlock* SlotID;
-	UPROPERTY(meta = (BindWidget)) class UTextBlock* SlotName;
-	UPROPERTY(meta = (BindWidget)) class UTextBlock* ModuleName;
-	UPROPERTY(meta = (BindWidget)) class UImage* ModuleImage;
-	UPROPERTY(meta = (BindWidget)) class UProgressBar* ModuleDurabilityProgressBar;
-	UPROPERTY(meta = (BindWidget)) class UProgressBar* ModuleStatusProgressBar;
+	UPROPERTY(meta = (BindWidget)) class UTextBlock* WeaponName;
+	UPROPERTY(meta = (BindWidget)) class UImage* WeaponImage;
+	UPROPERTY(meta = (BindWidget)) class UProgressBar* WeaponStatusPBar;
 };

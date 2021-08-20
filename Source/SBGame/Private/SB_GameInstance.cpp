@@ -131,7 +131,7 @@ const FSB_ThrusterModuleData* const USB_GameInstance::GetThrusterModuleDataFromR
 	return ThrusterModuleData;
 }
 
-const FSB_BaseWeaponModuleData* const USB_GameInstance::GetWeaponModuleDataFromRow(const FName& RowName) const
+const FSB_WeaponModuleData* const USB_GameInstance::GetWeaponModuleDataFromRow(const FName& RowName) const
 {
 	if (WeaponModuleDT == nullptr)
 	{
@@ -140,23 +140,9 @@ const FSB_BaseWeaponModuleData* const USB_GameInstance::GetWeaponModuleDataFromR
 	}
 
 	const FString ContextString;
-	const FSB_BaseWeaponModuleData* WeaponModuleData = WeaponModuleDT->FindRow<FSB_BaseWeaponModuleData>(RowName, ContextString);
+	const FSB_WeaponModuleData* WeaponModuleData = WeaponModuleDT->FindRow<FSB_WeaponModuleData>(RowName, ContextString);
 	
 	return WeaponModuleData;
-}
-
-const FSB_ProjectileData* const USB_GameInstance::GetProjectileDataFromRow(const FName& RowName) const
-{
-	if (ProjectileDT == nullptr)
-	{
-		UE_LOG(LogTemp, Error, TEXT("ASB_DataManager::GetProjectileDataFromRow : Missing ProjectileDT."));
-		return nullptr;
-	}
-	
-	const FString ContextString;
-	const FSB_ProjectileData* const ProjectileData = ProjectileDT->FindRow<FSB_ProjectileData>(RowName, ContextString);
-	
-	return ProjectileData;
 }
 
 void USB_GameInstance::Debug()

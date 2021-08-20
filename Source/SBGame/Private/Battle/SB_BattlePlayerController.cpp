@@ -1,28 +1,35 @@
 // SBGame
 #include "Battle/SB_BattlePlayerController.h"
+#include "Battle/SB_BattleGameMode.h"
+#include "Battle/SB_GameState.h"
+#include "Battle/SB_PlayerState.h"
+#include "Battle/SB_HUDMainWidget.h"
 #include "Ship/SB_Ship.h"
 #include "Ship/SB_ShipMovementComponent.h"
-#include "Module/SB_ShieldModule.h"
-#include "SB_GameMode.h"
-// UIPlugin
-#include "RZ_UIManager.h"
-// Engine
-#include "SB_BattleHUDWidget.h"
 #include "SB_GameInstance.h"
+#include "SB_PlayerSaveGame.h"
+// Plugins
+#include "RZ_CameraActor.h"
+#include "RZ_UIManager.h"
+#include "RZ_LogWidget.h"
+// Engine
+#include "SB_FSGameMode.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
+#include "Kismet/GameplayStatics.h"
 
 void ASB_BattlePlayerController::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	if (GetLocalRole() == ROLE_Authority)
-	{
-		GMode->QueryRespawn(this);
-	}
 
-	USB_BattleHUDWidget* BattleHUDWidget = CreateWidget<USB_BattleHUDWidget>(this, GInstance->UISettings.BattleHUD_WBP);
+	GMode = Cast<ASB_BattleGameMode>(GetWorld()->GetAuthGameMode());
+	GState = Cast<ASB_GameState>(GetWorld()->GetGameState());
+	PState = Cast<ASB_PlayerState>(PlayerState);
+
+	USB_HUDMainWidget* BattleHUDWidget = CreateWidget<USB_HUDMainWidget>(this, GInstance->UISettings.HUDMain_WBP);
 	UIManager->AddHUDWidget(BattleHUDWidget);
+	//LogWidget = CreateWidget<URZ_LogWidget>(this, GInstance->UISettings.Log_WBP);
+	//UIManager->AddHUDWidget(LogWidget);
 	UIManager->ToggleHUD(true);
 	
 	UWidgetBlueprintLibrary::SetInputMode_GameOnly(this);
@@ -44,9 +51,76 @@ void ASB_BattlePlayerController::OnRep_Pawn()
 
 	if (OwnedShip)
 	{
+		CameraActor->SetNewTargetActor(OwnedShip, FVector(0.0f, 0.0f, 5000.0f));
+		SetViewTargetWithBlend(CameraActor, 0.0f);
 		//OwnedShip->GetShipCameraManager()->SetArmRotation(FRotator(-25.0f, OwnedShip->GetActorRotation().Yaw - 145.0f, 0.0f), false);
 		//OwnedShip->GetShipCameraManager()->SetMaxTargetArmLength();
 	}
+}
+
+
+void ASB_BattlePlayerController::Respawn_Server_Implementation()
+{
+	if (OwnedShip)
+	{
+		if (OwnedShip->GetState() == ESB_ShipState::Destroyed)
+		{
+			UnPossess();
+			OwnedShip->Destroy();
+			OwnedShip = nullptr;
+			//GMode->QueryRespawn(this);
+		}
+	}
+}
+
+ASB_Ship* const ASB_BattlePlayerController::SpawnAndPossessVehicle(const FTransform& SpawnTransform)
+{
+	if (GetLocalRole() < ROLE_Authority || GetPawn() != nullptr)
+		return nullptr;
+
+	const FSB_ShipData* const ShipData = GInstance->GetShipDataFromRow(GInstance->GetSaveGame()->ShipDataRowName);
+	if (ShipData)
+	{
+		ASB_Ship* NewShip = GetWorld()->SpawnActorDeferred<ASB_Ship>(
+			ShipData->ShipBP, SpawnTransform,
+			this,
+			nullptr,
+			ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn
+		);
+		if (NewShip)
+		{
+			UGameplayStatics::FinishSpawningActor(NewShip, SpawnTransform);
+			OnPossess(NewShip);
+			NewShip->LoadConfig(GInstance->GetSaveGame()->ShipConfig, false);
+			OnRep_Pawn();
+			
+			return NewShip;
+		}
+	}
+
+	return nullptr;
+}
+
+
+void ASB_BattlePlayerController::OnDamageDealt(float PrimaryDamage, float SecondaryDamage, const FVector& HitLocation, ESB_PrimaryDamageType PrimaryDamageType)
+{
+	OnDamageDealt_Client(PrimaryDamage, SecondaryDamage, HitLocation, PrimaryDamageType);
+}
+
+void ASB_BattlePlayerController::OnDamageDealt_Client_Implementation(float PrimaryDamage, float SecondaryDamage, const FVector& HitLocation, ESB_PrimaryDamageType PrimaryDamageType)
+{
+	FLinearColor NewColor = FLinearColor::White;
+	if (PrimaryDamageType == ESB_PrimaryDamageType::Ship)
+		NewColor = FLinearColor::Red;
+	if (PrimaryDamageType == ESB_PrimaryDamageType::Shield)
+		NewColor = FLinearColor::Blue;
+	
+	/*URZ_DamageMarkerWidget* const NewDamageMarker = CreateWidget<URZ_DamageMarkerWidget>(GetWorld(), DataManager->UISettings.DamageMarker_WBP);
+	if (NewDamageMarker)
+	{
+	NewDamageMarker->Init(PrimaryDamage, SecondaryDamage, HitLocation, NewColor);
+	UIManager->AddHUDWidget(NewDamageMarker);
+	}*/
 }
 
 void ASB_BattlePlayerController::UpdateViewTarget(float DeltaTime) const
@@ -87,6 +161,16 @@ void ASB_BattlePlayerController::SetupInputComponent()
 	InputComponent->BindAction("LeftMouseButton", IE_Pressed, this, &ASB_BattlePlayerController::LeftMouseButtonPressed).bConsumeInput = false;
 	InputComponent->BindAction("LeftMouseButton", IE_Released, this, &ASB_BattlePlayerController::LeftMouseButtonReleased).bConsumeInput = false;
 	InputComponent->BindAction("Tab", IE_Pressed, this, &ASB_BattlePlayerController::TabKeyPressed).bConsumeInput = false;
+}
+
+uint8 ASB_BattlePlayerController::GetTeamID()
+{
+	if (PState)
+	{
+		return PState->GetTeam();
+	}
+
+	return 0;
 }
 
 void ASB_BattlePlayerController::LeftMouseButtonPressed()

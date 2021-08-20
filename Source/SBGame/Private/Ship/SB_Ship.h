@@ -10,18 +10,21 @@
 #define DEFAULTRELATIVEMESHROTATION FRotator(0.0f, -90.0f, 0.0f)
 #define MAXAUTOLOCKCOMPONENTS 4
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSelectedWeaponUpdated, uint8, NewSelectedWeaponID);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FDurabilityUpdatedDelegate, float, NewDurability, float, MaxDurability);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDestroyedDelegate, const APlayerState* const, Instigator);
 
+class USB_GameInstance;
+class ASB_BattleGameMode;
+class ASB_PlayerState;
 class USB_ShipCameraManager;
 class USB_ShipMovementComponent;
 class USB_ModuleSlotComponent;
 class USB_BaseModule;
-class USB_BaseWeaponModule;
+class USB_WeaponModule;
 class USB_ThrusterModule;
 class USB_ShieldModule;
-class USB_ShipOTMWidget;
+class USB_HUDVehicleOTMWidget;
+class USB_TargetPoint;
 
 UCLASS()
 class ASB_Ship : public ACharacter
@@ -36,7 +39,7 @@ public:
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
-	virtual void OnRep_PlayerState() override;
+	virtual void PossessedBy(AController* NewController) override;
 	
 	//
 
@@ -46,8 +49,9 @@ public:
 
 private:
 	
-	class USB_GameInstance* GInstance;
-	class ASB_PlayerState* PState;
+	USB_GameInstance* GInstance;
+	ASB_BattleGameMode* BattleGMode;
+	ASB_PlayerState* PState;
 
 	//
 
@@ -71,7 +75,7 @@ private:
 public:
 	
 	UFUNCTION()
-	void LoadConfig(const TArray<FName>& NewConfig);
+	void LoadConfig(const TArray<FName>& NewConfig, bool bSpawnEmptyModules);
 
 	UFUNCTION()
 	void SaveConfig();
@@ -81,53 +85,34 @@ public:
 	FORCEINLINE UFUNCTION() TInlineComponentArray<USB_ModuleSlotComponent*> GetModuleSlots() const { return ModuleSlots; }
 
 private:
-
+	
 	TInlineComponentArray<USB_ModuleSlotComponent*> ModuleSlots;
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	///// Weapons
 
 public:
-
+	
 	UFUNCTION()
-	void SelectWeapon(uint8 WeaponID, bool bToggleSelection = true, bool bNewIsSelected = true);
-
-	UFUNCTION(Server, Reliable)
-	void SelectWeapon_Server(uint8 WeaponID, bool bToggleSelection = true, bool bNewIsSelected = true);
-
-	UFUNCTION()
-	void StartFireSelectedWeapons();
-
-	UFUNCTION(Server, Reliable)
-	void StartFireSelectedWeapons_Server();
-
-	UFUNCTION()
-	void StopFireAllWeapons();
-
-	UFUNCTION(Server, Reliable)
-	void StopFireAllWeapons_Server();
-
-	UFUNCTION()
-	void StartAutoLockSelectedWeapon();
-
-	UFUNCTION()
-	void StopAutoLockSelectedWeapon();
+	void SelectPriorityTarget(ASB_Ship* NewTargetShip);
 
 	//
 
-	FORCEINLINE UFUNCTION() TArray<USB_BaseWeaponModule*> GetPrimaryWeapons() const { return PrimaryWeapons; }
-	FORCEINLINE UFUNCTION() TArray<USB_BaseWeaponModule*> GetAuxiliaryWeapons() const { return AuxiliaryWeapons; }
+	FORCEINLINE UFUNCTION() TArray<USB_WeaponModule*> GetWeapons() const { return Weapons; }
+	FORCEINLINE UFUNCTION() TArray<USB_TargetPoint*> GetTargetPoints() const { return TargetPoints; }
 
 private:
 
+	UFUNCTION()
+	void UpdateSecondaryTargets();
+
+	//
+	
 	UPROPERTY()
-	TArray<USB_BaseWeaponModule*> PrimaryWeapons;
+	TArray<USB_WeaponModule*> Weapons;
 
 	UPROPERTY()
-	TArray<USB_BaseWeaponModule*> AuxiliaryWeapons;
-
-	UPROPERTY()
-	uint8 SelectedWeaponID;
+	TArray<USB_TargetPoint*> TargetPoints;
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	///// Combat
@@ -157,6 +142,8 @@ private:
 
 	UFUNCTION()
 	void OnRep_Durability();
+
+	//
 	
 	UPROPERTY(ReplicatedUsing = OnRep_Durability)
 	float Durability;
@@ -195,36 +182,17 @@ public:
 	UFUNCTION()
 	void ToggleOutline(bool bNewIsVisible, int32 StencilValue = 0);
 
+	//
+	
+	FORCEINLINE UFUNCTION() USB_HUDVehicleOTMWidget* const GetOTMWidget() const { return OTMWidget; }
+
 private:
 	
 	UFUNCTION()
 	void Debug(float DeltaTime);
 
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-public:
-	
-	FORCEINLINE UFUNCTION() TArray<USceneComponent*> GetAutoLockCTs() const { return AutoLockCTs; }
-
-
-	FORCEINLINE UFUNCTION() uint8 GetSelectedWeaponID() const { return SelectedWeaponID; }
-	FORCEINLINE UFUNCTION() USB_ShipOTMWidget* const GetOTMWidget() const { return OTMWidget; }
-	
-	// Delegates
-
-	FSelectedWeaponUpdated SelectedWeaponUpdatedEvent;
-
-private:
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	TArray<class USceneComponent*> AutoLockCTs;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UParticleSystemComponent* CircleParticleCT;
 	//
 
 	UPROPERTY()
-	USB_ShipOTMWidget* OTMWidget;
-
+	USB_HUDVehicleOTMWidget* OTMWidget;
 };

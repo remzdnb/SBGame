@@ -138,23 +138,23 @@ void USB_ThrusterModule::SetExhaustParticlesVisibility(bool bNewIsVisible)
 
 void USB_ThrusterModule::Debug(float DeltaTime)
 {
-	if (OwningShip == nullptr || ShipMovement == nullptr)
+	if (ShipMovement == nullptr)
 		return;
 
 	FString RoleString = "None";
 	FColor Color = FColor::White;
 
-	if (OwningShip->GetLocalRole() == ROLE_Authority)
+	if (GetOwnerRole() == ROLE_Authority)
 	{
 		RoleString = "Authority // ";
 		Color = FColor::Cyan;
 	}
-	if (OwningShip->GetLocalRole() == ROLE_AutonomousProxy)
+	if (GetOwnerRole() == ROLE_AutonomousProxy)
 	{
 		RoleString = "AutonomousProxy // ";
 		Color = FColor::Yellow;
 	}
-	if (OwningShip->GetLocalRole() == ROLE_SimulatedProxy)
+	if (GetOwnerRole() == ROLE_SimulatedProxy)
 	{
 		RoleString = "SimulatedProxy // ";
 		Color = FColor::Orange;
