@@ -4,8 +4,8 @@
 #include "Battle/SB_PlayerState.h"
 #include "Battle/SB_BattlePlayerController.h"
 #include "Battle/SB_AIController.h"
-#include "Ship/SB_Ship.h"
-#include "Ship/SB_ShipStart.h"
+#include "Vehicle/SB_Vehicle.h"
+#include "Vehicle/SB_ShipStart.h"
 #include "SB_GameInstance.h"
 // Plugins
 #include "RZ_UIManager.h"
@@ -121,12 +121,20 @@ void ASB_BattleGameMode::OnAIControllerSpawned(ASB_AIController* const NewAICont
 {
 }
 
-void ASB_BattleGameMode::RegisterShip(ASB_Ship* const ShipToRegister)
+void ASB_BattleGameMode::RegisterVehicle(AActor* const VehicleToRegister)
 {
-	SpawnedShips.Add(ShipToRegister);
+	ASB_Vehicle* const Vehicle = Cast<ASB_Vehicle>(VehicleToRegister);
+	if (Vehicle)
+	{
+		SpawnedVehicles.Add(Vehicle);
+	}
 }
 
-void ASB_BattleGameMode::UnregisterShip(ASB_Ship* const ShipToUnregister)
+void ASB_BattleGameMode::UnregisterVehicle(AActor* const VehicleToUnregister)
 {
-	SpawnedShips.Remove(ShipToUnregister);
+	ASB_Vehicle* const Vehicle = Cast<ASB_Vehicle>(VehicleToUnregister);
+	if (Vehicle)
+	{
+		SpawnedVehicles.Remove(Vehicle);
+	}
 }

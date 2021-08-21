@@ -7,7 +7,13 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "SB_BaseModule.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSelectionUpdatedDelegate, bool, bNewIsSelected);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(
+	FModuleDamaged,
+	class USB_BaseModule* const, ModuleRef,
+	float, Damage,
+	const FVector&, HitLocation,
+	class AController* const, InstigatorController
+);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FModuleStateUpdatedDelegate, ESB_ModuleState, NewState);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FModuleDurabilityUpdatedDelegate, float, NewDurability);
 
@@ -43,7 +49,7 @@ public:
 
 	//
 
-	FSelectionUpdatedDelegate OnSelectionUpdated;
+	FModuleDamaged OnModuleDamaged;
 	FModuleStateUpdatedDelegate OnStateUpdated;
 	FModuleDurabilityUpdatedDelegate OnDurabilityUpdated;
 
@@ -69,7 +75,7 @@ protected:
 	FName ModuleRowName;
 	const FSB_BaseModuleData* BaseModuleData;
 	
-	//TWeakObjectPtr<ASB_Ship> OwningShip;
+	//TWeakObjectPtr<ASB_Vehicle> OwningShip;
 
 	FTimerHandle RepairTimer;
 

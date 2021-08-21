@@ -1,7 +1,7 @@
 #include "SB_PlayerController.h"
 #include "SB_GameInstance.h"
-#include "Ship/SB_Ship.h"
-#include "Ship/SB_ShipMovementComponent.h"
+#include "Vehicle/SB_Vehicle.h"
+#include "Vehicle/SB_ShipMovementComponent.h"
 #include "SB_PlayerSaveGame.h"
 // UtilityPlugin
 #include "RZ_CameraActor.h"
@@ -57,11 +57,11 @@ void ASB_PlayerController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (OwnedShip)
+	if (OwnedVehicle)
 	{
-		if (OwnedShip->GetShipMovement())
+		if (OwnedVehicle->GetShipMovement())
 		{
-			//float LerpedYaw = FMath::Lerp(GetControlRotation().Yaw, OwnedShip->GetShipMovement()->GetTargetRotationYaw(), DataManager->ShipSettings.TurnInertia);
+			//float LerpedYaw = FMath::Lerp(GetControlRotation().Yaw, OwnedVehicle->GetShipMovement()->GetTargetRotationYaw(), DataManager->ShipSettings.TurnInertia);
 			//SetControlRotation(FRotator(0.0f, LerpedYaw, 0.0f));
 		}
 	}
@@ -71,12 +71,12 @@ void ASB_PlayerController::OnRep_Pawn()
 {
 	Super::OnRep_Pawn();
 
-	OwnedShip = Cast<ASB_Ship>(GetPawn());
-	if (OwnedShip)
+	OwnedVehicle = Cast<ASB_Vehicle>(GetPawn());
+	if (OwnedVehicle)
 	{
-		//OwnedShip->OnDestroyed.AddUniqueDynamic(this, &ASB_PlayerController::OnOwnedShipDestroyed);
-		OnNewOwnedShip.Broadcast(OwnedShip);
-		//SetControlRotation(FRotator(-45.0f, OwnedShip->GetActorRotation().Yaw, 0.0f));
+		//OwnedVehicle->OnDestroyed.AddUniqueDynamic(this, &ASB_PlayerController::OnOwnedVehicleDestroyed);
+		OnNewOwnedVehicle.Broadcast(OwnedVehicle);
+		//SetControlRotation(FRotator(-45.0f, OwnedVehicle->GetActorRotation().Yaw, 0.0f));
 	}
 }
 
@@ -143,31 +143,31 @@ void ASB_PlayerController::ZoomAxis(float AxisValue)
 
 void ASB_PlayerController::MoveForwardAxis(float AxisValue)
 {
-	if (OwnedShip && OwnedShip == GetPawn())
+	if (OwnedVehicle && OwnedVehicle == GetPawn())
 	{
-		if (OwnedShip->GetShipMovement())
+		if (OwnedVehicle->GetShipMovement())
 		{
-			OwnedShip->GetShipMovement()->MoveForward(AxisValue);
+			OwnedVehicle->GetShipMovement()->MoveForward(AxisValue);
 		}
 	}
 }
 
 void ASB_PlayerController::MoveRightAxis(float AxisValue)
 {
-	if (OwnedShip && OwnedShip == GetPawn())
+	if (OwnedVehicle && OwnedVehicle == GetPawn())
 	{
-		if (OwnedShip->GetShipMovement())
+		if (OwnedVehicle->GetShipMovement())
 		{
-			OwnedShip->GetShipMovement()->TurnRight(AxisValue);
+			OwnedVehicle->GetShipMovement()->TurnRight(AxisValue);
 		}
 	}
 }
 
 void ASB_PlayerController::RightMouseButtonPressed()
 {
-	if (OwnedShip)
+	if (OwnedVehicle)
 	{
-		OwnedShip->StartAutoLockSelectedWeapon();
+		//OwnedVehicle->StartAutoLockSelectedWeapon();
 	}
 }
 
@@ -177,17 +177,17 @@ void ASB_PlayerController::RightMouseButtonReleased()
 
 void ASB_PlayerController::ShiftKeyPressed()
 {
-	/*if (OwnedShip)
+	/*if (OwnedVehicle)
 	{
-		if (OwnedShip->ShieldModule)
+		if (OwnedVehicle->ShieldModule)
 		{
-			if (OwnedShip->ShieldModule->GetShieldState() == ESB_ShieldState::Ready)
+			if (OwnedVehicle->ShieldModule->GetShieldState() == ESB_ShieldState::Ready)
 			{
-				OwnedShip->ShieldModule->StartSetup();
+				OwnedVehicle->ShieldModule->StartSetup();
 			}
 			else
 			{
-				OwnedShip->ShieldModule->Undeploy();
+				OwnedVehicle->ShieldModule->Undeploy();
 			}
 		}
 	}*/
@@ -195,31 +195,31 @@ void ASB_PlayerController::ShiftKeyPressed()
 
 void ASB_PlayerController::ShiftKeyReleased()
 {
-	/*if (OwnedShip)
+	/*if (OwnedVehicle)
 	{
-		if (OwnedShip->ShieldModule)
+		if (OwnedVehicle->ShieldModule)
 		{
-			OwnedShip->ShieldModule->StopSetup();
+			OwnedVehicle->ShieldModule->StopSetup();
 		}
 	}*/
 }
 
 void ASB_PlayerController::SpaceBarKeyPressed()
 {
-	/*if (OwnedShip)
+	/*if (OwnedVehicle)
 	{
-		if (OwnedShip->GetState() == ESB_ShipState::Ready)
+		if (OwnedVehicle->GetState() == ESB_ShipState::Ready)
 		{
 			// If going into sniper mode without any weapon selected, select a weapon first.
-			if (OwnedShip->GetShipCameraManager()->GetIsSniperMode() == false)
+			if (OwnedVehicle->GetShipCameraManager()->GetIsSniperMode() == false)
 			{
-				if (OwnedShip->GetSelectedWeaponID() == 0)
+				if (OwnedVehicle->GetSelectedWeaponID() == 0)
 				{
-					OwnedShip->SelectWeapon(1);
+					OwnedVehicle->SelectWeapon(1);
 				}
 			}
 
-			OwnedShip->GetShipCameraManager()->ToggleSniperMode();
+			OwnedVehicle->GetShipCameraManager()->ToggleSniperMode();
 		}
 		else
 		{
@@ -230,65 +230,65 @@ void ASB_PlayerController::SpaceBarKeyPressed()
 
 void ASB_PlayerController::SelectWeapon1KeyPressed()
 {
-	if (OwnedShip)
+	if (OwnedVehicle)
 	{
-		OwnedShip->SelectWeapon(0, true);
+		//OwnedVehicle->SelectWeapon(0, true);
 	}
 }
 
 void ASB_PlayerController::SelectWeapon2KeyPressed()
 {
-	if (OwnedShip)
+	if (OwnedVehicle)
 	{
-		OwnedShip->SelectWeapon(1, true);
+		//OwnedVehicle->SelectWeapon(1, true);
 	}
 }
 
 void ASB_PlayerController::SelectWeapon3KeyPressed()
 {
-	if (OwnedShip)
+	if (OwnedVehicle)
 	{
-		OwnedShip->SelectWeapon(2, true);
+		//OwnedVehicle->SelectWeapon(2, true);
 	}
 }
 
 void ASB_PlayerController::SelectWeapon4KeyPressed()
 {
-	if (OwnedShip)
+	if (OwnedVehicle)
 	{
-		OwnedShip->SelectWeapon(3, true);
+		//OwnedVehicle->SelectWeapon(3, true);
 	}
 }
 
 void ASB_PlayerController::SelectWeapon5KeyPressed()
 {
-	if (OwnedShip)
+	if (OwnedVehicle)
 	{
-		OwnedShip->SelectWeapon(4, true);
+		//OwnedVehicle->SelectWeapon(4, true);
 	}
 }
 
 void ASB_PlayerController::SelectAllWeaponsKeyPressed()
 {
-	if (OwnedShip)
+	if (OwnedVehicle)
 	{
-		OwnedShip->SelectWeapon(0, false, true);
-		OwnedShip->SelectWeapon(1, false, true);
-		OwnedShip->SelectWeapon(2, false, true);
-		OwnedShip->SelectWeapon(3, false, true);
-		OwnedShip->SelectWeapon(4, false, true);
+		//OwnedVehicle->SelectWeapon(0, false, true);
+		//OwnedVehicle->SelectWeapon(1, false, true);
+		//OwnedVehicle->SelectWeapon(2, false, true);
+		//OwnedVehicle->SelectWeapon(3, false, true);
+		//OwnedVehicle->SelectWeapon(4, false, true);
 	}
 }
 
 void ASB_PlayerController::UnselectAllWeaponsKeyPressed()
 {
-	if (OwnedShip)
+	if (OwnedVehicle)
 	{
-		OwnedShip->SelectWeapon(0, false, false);
-		OwnedShip->SelectWeapon(1, false, false);
-		OwnedShip->SelectWeapon(2, false, false);
-		OwnedShip->SelectWeapon(3, false, false);
-		OwnedShip->SelectWeapon(4, false, false);
+		//OwnedVehicle->SelectWeapon(0, false, false);
+		//OwnedVehicle->SelectWeapon(1, false, false);
+		//OwnedVehicle->SelectWeapon(2, false, false);
+		//OwnedVehicle->SelectWeapon(3, false, false);
+		//OwnedVehicle->SelectWeapon(4, false, false);
 	}
 }
 

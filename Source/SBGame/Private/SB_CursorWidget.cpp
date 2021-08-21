@@ -4,7 +4,7 @@
 #include "Battle/SB_BattlePlayerController.h"
 #include "RZ_StatWidget.h"
 //
-#include "Ship/SB_Ship.h"
+#include "Vehicle/SB_Vehicle.h"
 #include "Components/TextBlock.h"
 
 void USB_CursorWidget::NativeOnInitialized()
@@ -12,26 +12,26 @@ void USB_CursorWidget::NativeOnInitialized()
 	CampaignPC = Cast<ASB_CampaignPlayerController>(GetOwningPlayer());
 	if (CampaignPC)
 	{
-		CampaignPC->OnNewOwnedShip.AddUniqueDynamic(this, &USB_CursorWidget::OnNewOwnedShip);
+		CampaignPC->OnNewOwnedVehicle.AddUniqueDynamic(this, &USB_CursorWidget::OnNewOwnedVehicle);
 	}
 }
 
-void USB_CursorWidget::OnNewOwnedShip(ASB_Ship* const NewOwnedShip)
+void USB_CursorWidget::OnNewOwnedVehicle(ASB_Vehicle* const NewOwnedVehicle)
 {
-	OwnedShip = NewOwnedShip;
-	if (OwnedShip.IsValid())
+	OwnedVehicle = NewOwnedVehicle;
+	if (OwnedVehicle.IsValid())
 	{
-		//OwnedShip->OnModuleHovered.AddUniqueDynamic(this, &USB_CursorWidget::OnHoveredModuleUpdated);
-		//OwnedShip->OnModuleSelected.AddUniqueDynamic(this, &USB_CursorWidget::OnSelectedModuleUpdated);
+		//OwnedVehicle->OnModuleHovered.AddUniqueDynamic(this, &USB_CursorWidget::OnHoveredModuleUpdated);
+		//OwnedVehicle->OnModuleSelected.AddUniqueDynamic(this, &USB_CursorWidget::OnSelectedModuleUpdated);
 	}
 }
 
 void USB_CursorWidget::OnHoveredModuleUpdated(const USB_BaseModule* const NewHoveredModule)
 {
-	if (OwnedShip.IsValid() == false)
+	if (OwnedVehicle.IsValid() == false)
 		return;
 
-	/*if (OwnedShip->GetSelectedModule() == nullptr)
+	/*if (OwnedVehicle->GetSelectedModule() == nullptr)
 	{
 		if (NewHoveredModule)
 		{

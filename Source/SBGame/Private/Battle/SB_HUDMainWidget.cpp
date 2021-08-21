@@ -1,8 +1,8 @@
 #include "Battle/SB_HUDMainWidget.h"
 #include "Battle/SB_HUDWeaponWidget.h"
 #include "SB_SpectatorWidget.h"
-#include "Ship/SB_Ship.h"
-#include "Ship/SB_ShipMovementComponent.h"
+#include "Vehicle/SB_Vehicle.h"
+#include "Vehicle/SB_ShipMovementComponent.h"
 #include "Module/SB_ThrusterModule.h"
 #include "Module/SB_ShieldModule.h"
 #include "Module/Weapon/SB_WeaponModule.h"
@@ -28,33 +28,33 @@ void USB_HUDMainWidget::NativeOnInitialized()
 	{
 		// If ships references are already set, initialize now. If not, wait for PlayerController events.
 
-		if (OwnerPC->GetOwnedShip())
-			OnNewOwnedShip(OwnerPC->GetOwnedShip());
+		if (OwnerPC->GetOwnedVehicle())
+			OnNewOwnedVehicle(OwnerPC->GetOwnedVehicle());
 
-		OwnerPC->OnNewOwnedShip.AddUniqueDynamic(this, &USB_HUDMainWidget::OnNewOwnedShip);
+		OwnerPC->OnNewOwnedVehicle.AddUniqueDynamic(this, &USB_HUDMainWidget::OnNewOwnedVehicle);
 	}
 }
 
-void USB_HUDMainWidget::OnNewOwnedShip(ASB_Ship* const NewOwnedShip)
+void USB_HUDMainWidget::OnNewOwnedVehicle(ASB_Vehicle* const NewOwnedVehicle)
 {
-	if (NewOwnedShip == nullptr)
+	if (NewOwnedVehicle == nullptr)
 		return;
 
-	/*OnShipDurabilityUpdated(NewOwnedShip->GetDurability(), DataManager->ShipSettings.MaxDurability);
-	NewOwnedShip->OnDurabilityUpdated.AddUniqueDynamic(this, &USB_HUDMainWidget::OnShipDurabilityUpdated);
+	/*OnShipDurabilityUpdated(NewOwnedVehicle->GetDurability(), DataManager->ShipSettings.MaxDurability);
+	NewOwnedVehicle->OnDurabilityUpdated.AddUniqueDynamic(this, &USB_HUDMainWidget::OnShipDurabilityUpdated);
 
-	OnShieldDurabilityUpdated(NewOwnedShip->ShieldModule->GetShieldDurability(), DataManager->ShieldSettings.MaxDurability);
-	NewOwnedShip->ShieldModule->OnShieldDurabilityUpdated.AddUniqueDynamic(this, &USB_HUDMainWidget::OnShieldDurabilityUpdated);
+	OnShieldDurabilityUpdated(NewOwnedVehicle->ShieldModule->GetShieldDurability(), DataManager->ShieldSettings.MaxDurability);
+	NewOwnedVehicle->ShieldModule->OnShieldDurabilityUpdated.AddUniqueDynamic(this, &USB_HUDMainWidget::OnShieldDurabilityUpdated);
 
 	OnShieldCooldownUpdated(1.0f, 1.0f);
-	NewOwnedShip->ShieldModule->OnShieldCooldownUpdated.AddUniqueDynamic(this, &USB_HUDMainWidget::OnShieldCooldownUpdated);
+	NewOwnedVehicle->ShieldModule->OnShieldCooldownUpdated.AddUniqueDynamic(this, &USB_HUDMainWidget::OnShieldCooldownUpdated);
 	
-	NewOwnedShip->OnDestroyed.AddUniqueDynamic(this, &USB_HUDMainWidget::OnShipDestroyedBPI);
+	NewOwnedVehicle->OnDestroyed.AddUniqueDynamic(this, &USB_HUDMainWidget::OnShipDestroyedBPI);
 
 	//
 
 	ThrusterModulesContainer->ClearChildren();
-	for (auto& ThrusterModule : NewOwnedShip->GetThrusterModules())
+	for (auto& ThrusterModule : NewOwnedVehicle->GetThrusterModules())
 	{
 		USB_ModuleWidget* ModuleWidget = CreateWidget<USB_ModuleWidget>(GetWorld(), DataManager->UISettings.Module_WBP);
 		if (ModuleWidget)
@@ -65,7 +65,7 @@ void USB_HUDMainWidget::OnNewOwnedShip(ASB_Ship* const NewOwnedShip)
 	}*/
 	
 	WeaponModulesContainer->ClearChildren();
-	for (const auto& WeaponModule : NewOwnedShip->GetWeapons())
+	for (const auto& WeaponModule : NewOwnedVehicle->GetWeapons())
 	{
 		USB_HUDWeaponWidget* WeaponWidget = CreateWidget<USB_HUDWeaponWidget>(GetWorld(), GInstance->UISettings.HUDWeapon_WBP);
 		if (WeaponWidget)
@@ -75,9 +75,9 @@ void USB_HUDMainWidget::OnNewOwnedShip(ASB_Ship* const NewOwnedShip)
 		}
 	}
 
-	/*if (NewOwnedShip->ShieldModule)
+	/*if (NewOwnedVehicle->ShieldModule)
 	{
-		//ShieldModuleWidget->Update(Cast<USB_BaseModule>(NewOwnedShip->ShieldModule));
+		//ShieldModuleWidget->Update(Cast<USB_BaseModule>(NewOwnedVehicle->ShieldModule));
 	}*/
 
 	OnShipSpawnedBPI();

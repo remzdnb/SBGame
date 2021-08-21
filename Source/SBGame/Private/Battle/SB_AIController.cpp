@@ -2,8 +2,8 @@
 #include "Battle/SB_BattleGameMode.h"
 #include "Battle/SB_GameState.h"
 #include "Battle/SB_PlayerState.h"
-#include "Ship/SB_Ship.h"
-#include "Ship/SB_ShipMovementComponent.h"
+#include "Vehicle/SB_Vehicle.h"
+#include "Vehicle/SB_ShipMovementComponent.h"
 #include "SB_GameInstance.h"
 //
 #include "Kismet/GameplayStatics.h"
@@ -39,30 +39,30 @@ void ASB_AIController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (OwnedShip == nullptr)
+	if (OwnedVehicle == nullptr)
 		return;
 
 	/*UpdateMovement();
 
 	// omg
-	if (OwnedShip.IsValid())
+	if (OwnedVehicle.IsValid())
 	{
-		if (OwnedShip->GetShipMovement())
+		if (OwnedVehicle->GetShipMovement())
 		{
-			//float LerpedYaw = FMath::Lerp(GetControlRotation().Yaw, OwnedShip->GetShipMovement()->GetTargetRotationYaw(), DataManager->ShipSettings.TurnInertia);
-			OwnedShip->SetActorRotation(FRotator(0.0f, OwnedShip->GetShipMovement()->GetTargetRotationYaw(), 0.0f));
+			//float LerpedYaw = FMath::Lerp(GetControlRotation().Yaw, OwnedVehicle->GetShipMovement()->GetTargetRotationYaw(), DataManager->ShipSettings.TurnInertia);
+			OwnedVehicle->SetActorRotation(FRotator(0.0f, OwnedVehicle->GetShipMovement()->GetTargetRotationYaw(), 0.0f));
 			//SetControlRotation(FRotator(0.0f, LerpedYaw, 0.0f));
 			//SetFocus / SetFocalpoint?
 		}
 	}*/
 }
 
-ASB_Ship* const ASB_AIController::SpawnAndPossessVehicle(const FTransform& SpawnTransform)
+ASB_Vehicle* const ASB_AIController::SpawnAndPossessVehicle(const FTransform& SpawnTransform)
 {
 	if (GetPawn() != nullptr)
 		return nullptr;
 	
-	ASB_Ship* const NewShip = GetWorld()->SpawnActorDeferred<ASB_Ship>(
+	ASB_Vehicle* const NewShip = GetWorld()->SpawnActorDeferred<ASB_Vehicle>(
 		GInstance->AISettings.AIShipClass,
 		SpawnTransform,
 		this,
@@ -86,7 +86,7 @@ void ASB_AIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
-	OwnedShip = Cast<ASB_Ship>(InPawn);
+	OwnedVehicle = Cast<ASB_Vehicle>(InPawn);
 }
 
 uint8 ASB_AIController::GetTeamID()
@@ -101,7 +101,7 @@ uint8 ASB_AIController::GetTeamID()
 
 void ASB_AIController::UpdateDetection()
 {
-	if (OwnedShip == nullptr)
+	if (OwnedVehicle == nullptr)
 		return;
 
 	CollisionActor_Right = nullptr;
@@ -115,12 +115,12 @@ void ASB_AIController::UpdateDetection()
 
 void ASB_AIController::UpdateCollisionActor(bool bIsRightActor)
 {
-	const FVector StartLocation = OwnedShip->GetActorLocation();
-	const FRotator EndRotation = bIsRightActor ? OwnedShip->GetActorRotation() + FRotator(0.0f, 15.0f, 0.0f) : OwnedShip->GetActorRotation() + FRotator(0.0f, -15.0f, 0.0f);
+	const FVector StartLocation = OwnedVehicle->GetActorLocation();
+	const FRotator EndRotation = bIsRightActor ? OwnedVehicle->GetActorRotation() + FRotator(0.0f, 15.0f, 0.0f) : OwnedVehicle->GetActorRotation() + FRotator(0.0f, -15.0f, 0.0f);
 	const FVector EndLocation = StartLocation + (EndRotation.Vector() * GInstance->AISettings.CollisionDetectionRange);
 	FCollisionShape CollisionSphere = FCollisionShape::MakeSphere(GInstance->AISettings.CollisionDetectionSphereRadius);
 	FCollisionQueryParams TraceParams;
-	TraceParams.AddIgnoredActor(OwnedShip.Get());
+	TraceParams.AddIgnoredActor(OwnedVehicle.Get());
 	TArray<FHitResult> Hits;
 	GetWorld()->SweepMultiByChannel(Hits, StartLocation, EndLocation, FQuat::Identity, ECC_Visibility, CollisionSphere);
 	for (FHitResult& Hit : Hits)
@@ -150,21 +150,21 @@ void ASB_AIController::UpdateMovement()
 {
 	if (CollisionActor_Right.IsValid() == false && CollisionActor_Left.IsValid() == false)
 	{
-		OwnedShip->GetShipMovement()->MoveForward(1.0f);
+		OwnedVehicle->GetShipMovement()->MoveForward(1.0f);
 	}
 	else if (CollisionActor_Right.IsValid() == true && CollisionActor_Left.IsValid() == true)
 	{
-		OwnedShip->GetShipMovement()->TurnRight(1.0f);
+		OwnedVehicle->GetShipMovement()->TurnRight(1.0f);
 	}
 	else if (CollisionActor_Right.IsValid() == true && CollisionActor_Left.IsValid() == false)
 	{
-		OwnedShip->GetShipMovement()->MoveForward(1.0f);
-		OwnedShip->GetShipMovement()->TurnRight(-1.0f);
+		OwnedVehicle->GetShipMovement()->MoveForward(1.0f);
+		OwnedVehicle->GetShipMovement()->TurnRight(-1.0f);
 	}
 	else if (CollisionActor_Right.IsValid() == false && CollisionActor_Left.IsValid() == true)
 	{
-		OwnedShip->GetShipMovement()->MoveForward(1.0f);
-		OwnedShip->GetShipMovement()->TurnRight(1.0f);
+		OwnedVehicle->GetShipMovement()->MoveForward(1.0f);
+		OwnedVehicle->GetShipMovement()->TurnRight(1.0f);
 	}
 }
 
@@ -172,15 +172,15 @@ void ASB_AIController::UpdateTargetShip()
 {
 	/*TargetShip = nullptr;
 
-	TArray<ASB_Ship*> TargetShips;
-	//ASB_Ship* ClosestTargetShip;
+	TArray<ASB_Vehicle*> TargetShips;
+	//ASB_Vehicle* ClosestTargetShip;
 	float ClosestTargetDistance = 999999999.0f;
 
 	for (auto& PlayerController : GMode->GetPlayerControllers())
 	{
 		if (PlayerController->GetPlayerState()->GetTeam() != PState->GetTeam())
 		{
-			ASB_Ship* const LocalShip = PlayerController->GetOwnedShip();
+			ASB_Vehicle* const LocalShip = PlayerController->GetOwnedVehicle();
 			if (LocalShip)
 			{
 				TargetShips.Add(LocalShip);
@@ -192,7 +192,7 @@ void ASB_AIController::UpdateTargetShip()
 	{
 		if (AIController->GetPlayerState()->GetTeam() != PState->GetTeam())
 		{
-			ASB_Ship* const LocalShip = AIController->GetOwnedShip().Get();
+			ASB_Vehicle* const LocalShip = AIController->GetOwnedVehicle().Get();
 			if (LocalShip)
 			{
 				TargetShips.Add(LocalShip);
@@ -202,10 +202,10 @@ void ASB_AIController::UpdateTargetShip()
 
 	for (auto& LocalTargetShip : TargetShips)
 	{
-		const FVector Start = OwnedShip->GetActorLocation();
+		const FVector Start = OwnedVehicle->GetActorLocation();
 		const FVector End = LocalTargetShip->GetActorLocation();
 		FCollisionQueryParams TraceParams;
-		TraceParams.AddIgnoredActor(OwnedShip.Get());
+		TraceParams.AddIgnoredActor(OwnedVehicle.Get());
 		TArray<FHitResult> Hits;
 
 		GetWorld()->LineTraceMultiByChannel(Hits, Start, End, ECC_Visibility, TraceParams);

@@ -4,13 +4,14 @@
 #include "Battle/SB_GameState.h"
 #include "Battle/SB_PlayerState.h"
 #include "Battle/SB_HUDMainWidget.h"
-#include "Ship/SB_Ship.h"
-#include "Ship/SB_ShipMovementComponent.h"
+#include "Vehicle/SB_Vehicle.h"
+#include "Vehicle/SB_ShipMovementComponent.h"
 #include "SB_GameInstance.h"
 #include "SB_PlayerSaveGame.h"
 // Plugins
 #include "RZ_CameraActor.h"
 #include "RZ_UIManager.h"
+#include "RZ_DamageMarkerWidget.h"
 #include "RZ_LogWidget.h"
 // Engine
 #include "SB_FSGameMode.h"
@@ -32,57 +33,58 @@ void ASB_BattlePlayerController::BeginPlay()
 	//UIManager->AddHUDWidget(LogWidget);
 	UIManager->ToggleHUD(true);
 	
-	UWidgetBlueprintLibrary::SetInputMode_GameOnly(this);
-	bShowMouseCursor = false;
-	bEnableMouseOverEvents = false;
-	bEnableClickEvents = false;
+	UWidgetBlueprintLibrary::SetInputMode_GameAndUIEx(this);
+	bShowMouseCursor = true;
+	bEnableMouseOverEvents = true;
+	bEnableClickEvents = true;
+	HitResultTraceDistance = 1000000.0f;
 }
 
 void ASB_BattlePlayerController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
-	UpdateViewTarget(DeltaTime);
+
+	UpdateHoveredVehicle();
+	//UpdateViewTarget(DeltaTime);
 }
 
 void ASB_BattlePlayerController::OnRep_Pawn()
 {
 	Super::OnRep_Pawn();
 
-	if (OwnedShip)
+	if (OwnedVehicle)
 	{
-		CameraActor->SetNewTargetActor(OwnedShip, FVector(0.0f, 0.0f, 5000.0f));
+		CameraActor->SetNewTargetActor(OwnedVehicle, FVector(0.0f, 0.0f, 5000.0f));
 		SetViewTargetWithBlend(CameraActor, 0.0f);
-		//OwnedShip->GetShipCameraManager()->SetArmRotation(FRotator(-25.0f, OwnedShip->GetActorRotation().Yaw - 145.0f, 0.0f), false);
-		//OwnedShip->GetShipCameraManager()->SetMaxTargetArmLength();
+		//OwnedVehicle->GetShipCameraManager()->SetArmRotation(FRotator(-25.0f, OwnedVehicle->GetActorRotation().Yaw - 145.0f, 0.0f), false);
+		//OwnedVehicle->GetShipCameraManager()->SetMaxTargetArmLength();
 	}
 }
 
-
 void ASB_BattlePlayerController::Respawn_Server_Implementation()
 {
-	if (OwnedShip)
+	if (OwnedVehicle)
 	{
-		if (OwnedShip->GetState() == ESB_ShipState::Destroyed)
+		if (OwnedVehicle->GetState() == ESB_ShipState::Destroyed)
 		{
 			UnPossess();
-			OwnedShip->Destroy();
-			OwnedShip = nullptr;
+			OwnedVehicle->Destroy();
+			OwnedVehicle = nullptr;
 			//GMode->QueryRespawn(this);
 		}
 	}
 }
 
-ASB_Ship* const ASB_BattlePlayerController::SpawnAndPossessVehicle(const FTransform& SpawnTransform)
+ASB_Vehicle* const ASB_BattlePlayerController::SpawnAndPossessVehicle(const FTransform& SpawnTransform)
 {
 	if (GetLocalRole() < ROLE_Authority || GetPawn() != nullptr)
 		return nullptr;
 
-	const FSB_ShipData* const ShipData = GInstance->GetShipDataFromRow(GInstance->GetSaveGame()->ShipDataRowName);
-	if (ShipData)
+	const FSB_VehicleData* const VehicleData = GInstance->GetVehicleDataFromRow(GInstance->GetSaveGame()->VehicleDataRowName);
+	if (VehicleData)
 	{
-		ASB_Ship* NewShip = GetWorld()->SpawnActorDeferred<ASB_Ship>(
-			ShipData->ShipBP, SpawnTransform,
+		ASB_Vehicle* NewShip = GetWorld()->SpawnActorDeferred<ASB_Vehicle>(
+			VehicleData->Vehicle_BP, SpawnTransform,
 			this,
 			nullptr,
 			ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn
@@ -101,6 +103,17 @@ ASB_Ship* const ASB_BattlePlayerController::SpawnAndPossessVehicle(const FTransf
 	return nullptr;
 }
 
+uint8 ASB_BattlePlayerController::GetTeamID()
+{
+	if (PState)
+	{
+		return PState->GetTeam();
+	}
+
+	return 0;
+}
+
+#pragma region +++++ Vehicle ...
 
 void ASB_BattlePlayerController::OnDamageDealt(float PrimaryDamage, float SecondaryDamage, const FVector& HitLocation, ESB_PrimaryDamageType PrimaryDamageType)
 {
@@ -115,12 +128,48 @@ void ASB_BattlePlayerController::OnDamageDealt_Client_Implementation(float Prima
 	if (PrimaryDamageType == ESB_PrimaryDamageType::Shield)
 		NewColor = FLinearColor::Blue;
 	
-	/*URZ_DamageMarkerWidget* const NewDamageMarker = CreateWidget<URZ_DamageMarkerWidget>(GetWorld(), DataManager->UISettings.DamageMarker_WBP);
+	URZ_DamageMarkerWidget* const NewDamageMarker = CreateWidget<URZ_DamageMarkerWidget>(GetWorld(), GInstance->UISettings.HUDDamageMarker_WBP);
 	if (NewDamageMarker)
 	{
-	NewDamageMarker->Init(PrimaryDamage, SecondaryDamage, HitLocation, NewColor);
-	UIManager->AddHUDWidget(NewDamageMarker);
-	}*/
+		NewDamageMarker->Init(PrimaryDamage, SecondaryDamage, HitLocation, NewColor);
+		UIManager->AddHUDWidget(NewDamageMarker, false);
+	}
+}
+
+#pragma endregion
+
+#pragma region +++++ Input ...
+
+void ASB_BattlePlayerController::UpdateHoveredVehicle()
+{
+	if (IsLocalPlayerController() == false)
+		return;
+	
+	FHitResult HitResult;
+	GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(ECC_Visibility), true, HitResult);
+	ASB_Vehicle* const NewHoveredVehicle = Cast<ASB_Vehicle>(HitResult.Actor);
+	if (NewHoveredVehicle != HoveredVehicle &&
+		NewHoveredVehicle != GetPawn())
+	{
+		if (HoveredVehicle.IsValid())
+			HoveredVehicle->ToggleOutline(false);
+
+		if (NewHoveredVehicle)
+			NewHoveredVehicle->ToggleOutline(true);
+
+		HoveredVehicle = NewHoveredVehicle;
+	}
+
+	if (GInstance->DebugSettings.bIsDebugEnabled_PlayerController)
+	{
+		FString StringToPrint;
+		if (HoveredVehicle.IsValid())
+			StringToPrint = "ASB_BattlePlayerController::UpdateHoveredVehicle - Hovered : " + HoveredVehicle->GetName();
+		else
+			StringToPrint = "ASB_BattlePlayerController::UpdateHoveredVehicle - Hovered : nullptr";
+		
+		GEngine->AddOnScreenDebugMessage(-1, GetWorld()->GetDeltaSeconds(), FColor::White, StringToPrint);
+	}
 }
 
 void ASB_BattlePlayerController::UpdateViewTarget(float DeltaTime) const
@@ -133,21 +182,21 @@ void ASB_BattlePlayerController::UpdateViewTarget(float DeltaTime) const
 	FCollisionQueryParams TraceParams;
 	TraceParams.bTraceComplex = true;
 	TraceParams.bIgnoreTouches = true;
-	TraceParams.AddIgnoredActor(OwnedShip);
+	TraceParams.AddIgnoredActor(OwnedVehicle);
 	FHitResult Hit;
 
 	GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, TraceParams);
 	if (Hit.Actor.IsValid())
 	{
-		if (OwnedShip)
+		if (OwnedVehicle)
 		{
-			OwnedShip->UpdateOwnerViewData(Hit.Location, Hit.Actor.Get());
+			OwnedVehicle->UpdateOwnerViewData(Hit.Location, Hit.Actor.Get());
 		}
 
 		/*if (DataManager->GameSettings.bIsDebugEnabled_PlayerController)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::White, *("ASB_PlayerController::UpdateViewTarget // Actor : " + Hit.Actor->GetName() + " // Component : " + Hit.Component->GetName()));
-			UKismetSystemLibrary::DrawDebugSphere(GetWorld(), Hit.Location, 500.0f, 10, FColor::Green, DeltaTime + 0.01f, 20.0f);
+		GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::White, *("ASB_PlayerController::UpdateViewTarget // Actor : " + Hit.Actor->GetName() + " // Component : " + Hit.Component->GetName()));
+		UKismetSystemLibrary::DrawDebugSphere(GetWorld(), Hit.Location, 500.0f, 10, FColor::Green, DeltaTime + 0.01f, 20.0f);
 		}*/
 	}
 }
@@ -163,36 +212,19 @@ void ASB_BattlePlayerController::SetupInputComponent()
 	InputComponent->BindAction("Tab", IE_Pressed, this, &ASB_BattlePlayerController::TabKeyPressed).bConsumeInput = false;
 }
 
-uint8 ASB_BattlePlayerController::GetTeamID()
-{
-	if (PState)
-	{
-		return PState->GetTeam();
-	}
-
-	return 0;
-}
-
 void ASB_BattlePlayerController::LeftMouseButtonPressed()
 {
-	if (OwnedShip)
+	if (OwnedVehicle)
 	{
-		/*if (OwnedShip->ShieldModule->GetIsSetupMode() == 1)
+		if (HoveredVehicle.IsValid())
 		{
-			OwnedShip->ShieldModule->Deploy();
-		}*/
-
-			OwnedShip->StartFireSelectedWeapons();
-
+			OwnedVehicle->SetPriorityTarget(HoveredVehicle.Get());
+		}
 	}
 }
 
 void ASB_BattlePlayerController::LeftMouseButtonReleased()
 {
-	if (OwnedShip)
-	{
-		OwnedShip->StopFireAllWeapons();
-	}
 }
 
 void ASB_BattlePlayerController::TabKeyPressed()
@@ -218,3 +250,4 @@ void ASB_BattlePlayerController::TabKeyPressed()
 	}
 }
 
+#pragma endregion

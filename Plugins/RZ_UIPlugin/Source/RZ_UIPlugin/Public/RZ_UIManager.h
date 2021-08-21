@@ -22,7 +22,7 @@ public:
 
 	UFUNCTION() void ToggleMenu(bool bNewIsOpen);
 	UFUNCTION() void ToggleHUD(bool bNewIsOpen);
-	UFUNCTION() void AddHUDWidget(UUserWidget* NewWidget);
+	UFUNCTION() void AddHUDWidget(UUserWidget* NewWidget, bool bSaveReference = true);
 	UFUNCTION() void BroadcastMenuWidgetSelected(const FName& WidgetName, UUserWidget* WidgetRef);
 
 	//

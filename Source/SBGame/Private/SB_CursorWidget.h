@@ -15,7 +15,7 @@ public:
 	virtual void NativeOnInitialized() override;
 
 	UFUNCTION()
-	void OnNewOwnedShip(class ASB_Ship* const NewOwnedShip);
+	void OnNewOwnedVehicle(class ASB_Vehicle* const NewOwnedVehicle);
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void PlayStartAnimationBPI(bool bShouldStart);
@@ -32,7 +32,7 @@ private:
 
 	class ASB_CampaignPlayerController* CampaignPC;
 
-	TWeakObjectPtr<class ASB_Ship> OwnedShip;
+	TWeakObjectPtr<class ASB_Vehicle> OwnedVehicle;
 	
 	//
 	

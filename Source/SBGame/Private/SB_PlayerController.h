@@ -7,10 +7,10 @@
 
 class USB_GameInstance;
 class ARZ_UIManager;
-class ASB_Ship;
+class ASB_Vehicle;
 class ARZ_CameraActor;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FNewOwnedShipDelegate, class ASB_Ship* const, NewShip);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FNewOwnedVehicleDelegate, class ASB_Vehicle* const, NewShip);
 
 UCLASS()
 class ASB_PlayerController : public APlayerController
@@ -27,12 +27,12 @@ public:
 	//
 	
 	FORCEINLINE UFUNCTION() ARZ_UIManager* const GetUIManager() const { return UIManager; }
-	FORCEINLINE UFUNCTION() ASB_Ship* const GetOwnedShip() const { return OwnedShip; }
+	FORCEINLINE UFUNCTION() ASB_Vehicle* const GetOwnedVehicle() const { return OwnedVehicle; }
 	FORCEINLINE UFUNCTION() ARZ_CameraActor* const GetCameraActor() const { return CameraActor; }
 
 	//
 
-	FNewOwnedShipDelegate OnNewOwnedShip;
+	FNewOwnedVehicleDelegate OnNewOwnedVehicle;
 
 protected:
 	
@@ -42,7 +42,7 @@ protected:
 	//
 
 	UPROPERTY() 
-	ASB_Ship* OwnedShip;
+	ASB_Vehicle* OwnedVehicle;
 
 	UPROPERTY()
 	ARZ_CameraActor* CameraActor;

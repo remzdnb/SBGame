@@ -34,6 +34,6 @@ class ISB_ControllerInterface
 public:
 
 	virtual uint8 GetTeamID() = 0;
-	virtual class ASB_Ship* const SpawnAndPossessVehicle(const FTransform& SpawnTransform) = 0;
+	virtual class ASB_Vehicle* const SpawnAndPossessVehicle(const FTransform& SpawnTransform) = 0;
 };
 

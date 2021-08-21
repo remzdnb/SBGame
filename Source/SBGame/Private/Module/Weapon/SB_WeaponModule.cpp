@@ -1,7 +1,7 @@
 #include "SB_WeaponModule.h"
 #include "SB_WeaponModuleAnimInstance.h"
-#include "Ship/SB_Ship.h"
-#include "Ship/SB_TargetPoint.h"
+#include "Vehicle/SB_Vehicle.h"
+#include "Vehicle/SB_TargetPoint.h"
 #include "SB_GameInstance.h"
 //
 #include "Components/SceneComponent.h"
@@ -49,7 +49,7 @@ void USB_WeaponModule::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 #pragma region +++++ Targeting ...
 
-void USB_WeaponModule::SetTargetShip(ASB_Ship* const NewTargetShip)
+void USB_WeaponModule::SetTargetShip(ASB_Vehicle* const NewTargetShip)
 {
 	TargetShip = NewTargetShip;
 }

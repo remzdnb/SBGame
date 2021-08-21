@@ -29,7 +29,6 @@ public:
 public:
 
 	const FSB_VehicleData* const GetVehicleDataFromRow(const FName& RowName) const;
-	const FSB_ShipData* const GetShipDataFromRow(const FName& RowName) const;
 	const FSB_BaseModuleData* const GetBaseModuleDataFromRow(const FName& RowName) const;
 	const FSB_ThrusterModuleData* const GetThrusterModuleDataFromRow(const FName& RowName) const;
 	const FSB_WeaponModuleData* const GetWeaponModuleDataFromRow(const FName& RowName) const;
@@ -38,9 +37,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	UDataTable* VehicleDT;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	UDataTable* ShipDT;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	UDataTable* BaseModuleDT;
@@ -52,9 +48,6 @@ public:
 	UDataTable* WeaponModuleDT;
 
 	//
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FSB_ShipSettings ShipSettings;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FSB_ShieldSettings ShieldSettings;

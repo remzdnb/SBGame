@@ -24,7 +24,7 @@ public:
 	FString JoinIP;
 
 	UPROPERTY()
-	FName ShipDataRowName;
+	FName VehicleDataRowName;
 	
 	UPROPERTY()
 	TArray<FName> ShipConfig;

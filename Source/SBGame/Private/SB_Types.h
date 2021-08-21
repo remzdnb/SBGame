@@ -71,28 +71,6 @@ enum class ESB_ShieldState : uint8
 #pragma region +++++ Settings ...
 
 USTRUCT(BlueprintType)
-struct FSB_ShipSettings
-{
-	GENERATED_USTRUCT_BODY()
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	class UMaterialInterface* DestroyedMaterial;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	class UParticleSystem* DestroyedParticle;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float DestroyedParticleScale;
-
-	FSB_ShipSettings()
-	{
-		DestroyedMaterial = nullptr;
-		DestroyedParticle = nullptr;
-		DestroyedParticleScale = 10.0f;
-	}
-};
-
-USTRUCT(BlueprintType)
 struct FSB_ShieldSettings
 {
 	GENERATED_USTRUCT_BODY()
@@ -269,49 +247,16 @@ struct FSB_VehicleData : public FTableRowBase
 	class UTexture2D* DisplayTexture;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<AActor> ShipBP;
+	TSubclassOf<AActor> Vehicle_BP;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<AActor> DestructibleShipBP;
+	TSubclassOf<AActor> DestructibleVehicle_BP;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float MaxDurability;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float MoveSpeed;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float TurnRate;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float TurnInertia;
- 
-	FSB_VehicleData()
-	{
-		DisplayName = "ShipName";
-		DisplayTexture = nullptr;
-		ShipBP = nullptr;
-		DestructibleShipBP = nullptr;
-		MaxDurability = 10000.0f;
-		MoveSpeed = 5000.0f;
-		TurnRate = 2.0f;
-		TurnInertia = 0.1f;
-	}
-};
-
-USTRUCT(BlueprintType)
-struct FSB_ShipData : public FTableRowBase
-{
-	GENERATED_USTRUCT_BODY()
+	class UParticleSystem* OnDestroyedParticle;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	FString DisplayName;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class ASB_Ship> ShipBP;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<AActor> DestructibleShipBP;
+	float OnDestroyedParticleScale;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float MaxDurability;
@@ -331,11 +276,14 @@ struct FSB_ShipData : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	float TurnInertia;
  
-	FSB_ShipData()
+	FSB_VehicleData()
 	{
 		DisplayName = "ShipName";
-		ShipBP = nullptr;
-		DestructibleShipBP = nullptr;
+		DisplayTexture = nullptr;
+		Vehicle_BP = nullptr;
+		DestructibleVehicle_BP = nullptr;
+		OnDestroyedParticle = nullptr;
+		OnDestroyedParticleScale = 10.0f;
 		MaxDurability = 10000.0f;
 		MaxMoveSpeed = 5000.0f;
 		MaxAcceleration = 1024.0f;

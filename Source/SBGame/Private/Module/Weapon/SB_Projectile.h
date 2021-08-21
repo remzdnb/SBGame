@@ -24,6 +24,15 @@ public:
 
 private:
 
+	UFUNCTION()
+	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void SpawnImpactFX_Multicast(AActor* HitActor, FVector ImpactPoint, FVector ImpactNormal);
+
+	UFUNCTION()
+	void Debug(AActor* HitActor);
+
 	// Components
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
@@ -37,29 +46,17 @@ private:
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UProjectileMovementComponent* ProjectileMovement;
+	
+	// References
 
+	class USB_GameInstance* GInstance;
+	TWeakObjectPtr<AController> OwningController;
+	TWeakObjectPtr<class ASB_Vehicle> OwningVehicle;
+	
 	// Data
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	FName DataRowName;
 
 	const FSB_WeaponModuleData* WeaponModuleData;
-
-	//
-
-	class USB_GameInstance* GInstance;
-	
-	TWeakObjectPtr<AController> OwningController;
-	TWeakObjectPtr<ASB_Ship> OwningShip;
-
-	//
-
-	UFUNCTION()
-	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-
-	UFUNCTION(NetMulticast, Reliable)
-	void SpawnImpactFX_Multicast(AActor* HitActor, FVector ImpactPoint, FVector ImpactNormal);
-
-	UFUNCTION()
-	void Debug(AActor* HitActor);
 };

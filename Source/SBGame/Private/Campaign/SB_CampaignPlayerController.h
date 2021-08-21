@@ -26,7 +26,7 @@ public:
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
-	void SelectShip(const FName& NewShipDataRowName);
+	void SelectShip(const FName& NewVehicleDataRowName);
 
 private:
 	

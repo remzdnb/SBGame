@@ -1,15 +1,15 @@
 // SBGame
-#include "Ship/SB_Ship.h"
-#include "Ship/SB_ShipMovementComponent.h"
-#include "Ship/SB_TargetPoint.h"
+#include "Vehicle/SB_Vehicle.h"
+#include "Vehicle/SB_ShipMovementComponent.h"
+#include "Vehicle/SB_TargetPoint.h"
 #include "Module/SB_ModuleSlotComponent.h"
 #include "Module/SB_ThrusterModule.h"
 #include "Module/SB_ShieldModule.h"
 #include "Module/Weapon/SB_WeaponModule.h"
 #include "Battle/SB_BattleGameMode.h"
+#include "Battle/SB_BattlePlayerController.h"
 #include "Battle/SB_PlayerState.h"
 #include "Battle/SB_HUDVehicleOTMWidget.h"
-#include "SB_PlayerController.h"
 #include "SB_GameInstance.h"
 #include "SB_PlayerSaveGame.h"
 // Plugins
@@ -29,7 +29,7 @@
 
 #pragma region +++++ Setup ...
 
-ASB_Ship::ASB_Ship(const FObjectInitializer& ObjectInitializer) :
+ASB_Vehicle::ASB_Vehicle(const FObjectInitializer& ObjectInitializer) :
 	Super(ObjectInitializer.SetDefaultSubobjectClass<USB_ShipMovementComponent>(ACharacter::CharacterMovementComponentName)),
 	State(ESB_ShipState::Ready)
 {
@@ -43,7 +43,7 @@ ASB_Ship::ASB_Ship(const FObjectInitializer& ObjectInitializer) :
 	GetMesh()->DestroyComponent();
 
 	ShipMovement = Cast<USB_ShipMovementComponent>(ACharacter::GetMovementComponent());
-	//ShipCameraManager = CreateDefaultSubobject<USB_ShipCameraManager>(FName("ShipCameraManager"));
+	//ShipCameraManager = CreateDefaultSubobject<USB_VehicleCameraManager>(FName("ShipCameraManager"));
 	
 	//
 
@@ -59,7 +59,7 @@ ASB_Ship::ASB_Ship(const FObjectInitializer& ObjectInitializer) :
 	bAlwaysRelevant = true;
 }
 
-void ASB_Ship::OnConstruction(const FTransform& Transform)
+void ASB_Vehicle::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 
@@ -71,7 +71,7 @@ void ASB_Ship::OnConstruction(const FTransform& Transform)
 	}
 }
 
-void ASB_Ship::PostInitializeComponents()
+void ASB_Vehicle::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
@@ -80,7 +80,9 @@ void ASB_Ship::PostInitializeComponents()
 
 	GInstance = Cast<USB_GameInstance>(GetGameInstance());
 	BattleGMode =  Cast<ASB_BattleGameMode>(GetWorld()->GetAuthGameMode());
-	ShipData = GInstance->GetShipDataFromRow(ShipDataRowName);
+	VehicleData = GInstance->GetVehicleDataFromRow(VehicleDataRowName);
+	
+	Durability = VehicleData->MaxDurability;
 	
 	/*if (GInstance->GetSaveGame())
 		LoadConfig(GInstance->GetSaveGame()->ShipConfig);
@@ -94,7 +96,7 @@ void ASB_Ship::PostInitializeComponents()
 	TargetPoints = InlineTargetPoints;
 }
 
-void ASB_Ship::BeginPlay()
+void ASB_Vehicle::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -124,13 +126,9 @@ void ASB_Ship::BeginPlay()
 			OTMWidget->Init(this);
 		}
 	}
-
-	//
-
-	Durability = 10000.0f; //DataManager->ShipSettings.MaxDurability;
 }
 
-void ASB_Ship::PossessedBy(AController* NewController)
+void ASB_Vehicle::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 
@@ -142,11 +140,11 @@ void ASB_Ship::PossessedBy(AController* NewController)
 
 #pragma region +++++ Main ...
 
-void ASB_Ship::Tick(float DeltaTime)
+void ASB_Vehicle::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	UpdateSecondaryTargets();
+	UpdateWeaponsTargets();
 	
 	// Update circle particle
 	//CircleParticleCT->SetWorldRotation(UKismetMathLibrary::MakeRotFromX(ShipMovement->Velocity));
@@ -154,7 +152,7 @@ void ASB_Ship::Tick(float DeltaTime)
 	//Debug(DeltaTime);
 }
 
-void ASB_Ship::UpdateOwnerViewData(const FVector& NewOwnerViewLocation, AActor* NewOwnerViewActor)
+void ASB_Vehicle::UpdateOwnerViewData(const FVector& NewOwnerViewLocation, AActor* NewOwnerViewActor)
 {
 	if (State != ESB_ShipState::Ready)
 		return;
@@ -166,7 +164,7 @@ void ASB_Ship::UpdateOwnerViewData(const FVector& NewOwnerViewLocation, AActor* 
 	OwnerViewActor = NewOwnerViewActor;
 }
 
-void ASB_Ship::UpdateOwnerViewData_Server_Implementation(const FVector& NewOwnerViewLocation, AActor* NewOwnerViewActor)
+void ASB_Vehicle::UpdateOwnerViewData_Server_Implementation(const FVector& NewOwnerViewLocation, AActor* NewOwnerViewActor)
 {
 	UpdateOwnerViewData(NewOwnerViewLocation, NewOwnerViewActor);
 }
@@ -175,7 +173,7 @@ void ASB_Ship::UpdateOwnerViewData_Server_Implementation(const FVector& NewOwner
 
 #pragma region +++++ Modules ...
 
-void ASB_Ship::LoadConfig(const TArray<FName>& NewConfig, bool bSpawnEmptyModules)
+void ASB_Vehicle::LoadConfig(const TArray<FName>& NewConfig, bool bSpawnEmptyModules)
 {
 	for (int32 Index = 0; Index != ModuleSlots.Num(); Index++)
 	{
@@ -190,8 +188,8 @@ void ASB_Ship::LoadConfig(const TArray<FName>& NewConfig, bool bSpawnEmptyModule
 			NewModule = ModuleSlots[Index]->SpawnDefaultModule(bSpawnEmptyModules);
         }
 
-
-		//
+		ModuleArray.Add(NewModule);
+		NewModule->OnModuleDamaged.AddUniqueDynamic(this, &ASB_Vehicle::OnModuleDamaged);
 
 		if (NewModule->GetBaseModuleData()->ModuleType == ESB_ModuleType::Weapon)
 		{
@@ -200,7 +198,7 @@ void ASB_Ship::LoadConfig(const TArray<FName>& NewConfig, bool bSpawnEmptyModule
 	}
 }
 
-void ASB_Ship::SaveConfig()
+void ASB_Vehicle::SaveConfig()
 {
 	TArray<FName> NewConfig;
 
@@ -216,11 +214,12 @@ void ASB_Ship::SaveConfig()
 
 #pragma region +++++ Weapons ...
 
-void ASB_Ship::SelectPriorityTarget(ASB_Ship* NewTargetShip)
+void ASB_Vehicle::SetPriorityTarget(ASB_Vehicle* NewPriorityTarget)
 {
+	PriorityTarget = NewPriorityTarget;
 }
 
-void ASB_Ship::UpdateSecondaryTargets() // update all target, since its on tick
+void ASB_Vehicle::UpdateWeaponsTargets()
 {
 	if (BattleGMode == nullptr || PState == nullptr)
 		return;
@@ -228,22 +227,25 @@ void ASB_Ship::UpdateSecondaryTargets() // update all target, since its on tick
 	TArray<AActor*> EnemyShips;
 	for (auto& Ship : BattleGMode->GetSpawnedShips())
 	{
-		if (Ship->PState)
-		{
-			if (Ship->PState->GetTeam() != PState->GetTeam())
+		//if (Ship.IsValid())
+		//{
+			if (Ship->PState)
 			{
-				EnemyShips.Add(Ship.Get());
+				if (Ship->PState->GetTeam() != PState->GetTeam())
+				{
+					EnemyShips.Add(Ship.Get());
+				}
 			}
-		}
+		//}
 	}
 
-	ASB_Ship* const TargetShip = Cast<ASB_Ship>(
+	ASB_Vehicle* const TargetShip = Cast<ASB_Vehicle>(
 		RZ_UtilityLibrary::GetClosestActorFromLocation(EnemyShips, GetActorLocation())
 	);
 
 	for (const auto& Weapon : Weapons)
 	{
-		Weapon->SetTargetShip(TargetShip);
+		Weapon->SetTargetShip(PriorityTarget);
 	}
 }
 
@@ -251,7 +253,16 @@ void ASB_Ship::UpdateSecondaryTargets() // update all target, since its on tick
 
 #pragma region +++++ Combat ...
 
-void ASB_Ship::ApplyShipDamage(float ShipDamage, const FVector& HitLocation, AController* const InstigatorController, float FromModuleDamage)
+void ASB_Vehicle::OnModuleDamaged(
+	USB_BaseModule* const ModuleRef,
+	float Damage,
+	const FVector& HitLocation,
+	AController* const InstigatorController)
+{
+	ApplyShipDamage(Damage, HitLocation, InstigatorController, 0.0f);
+}
+
+void ASB_Vehicle::ApplyShipDamage(float ShipDamage, const FVector& HitLocation, AController* const InstigatorController, float FromModuleDamage)
 {
 	if (State == ESB_ShipState::Destroyed)
 		return;
@@ -266,16 +277,16 @@ void ASB_Ship::ApplyShipDamage(float ShipDamage, const FVector& HitLocation, ACo
 		Durability -= ShipDamage;
 	}
 
-	ASB_PlayerController* const InstigatorPlayerController = Cast<ASB_PlayerController>(InstigatorController);
+	ASB_BattlePlayerController* const InstigatorPlayerController = Cast<ASB_BattlePlayerController>(InstigatorController);
 	if (InstigatorPlayerController)
 	{
-		//InstigatorPlayerController->OnDamageDealt(ShipDamage, FromModuleDamage, HitLocation, ESB_PrimaryDamageType::Ship);
+		InstigatorPlayerController->OnDamageDealt(ShipDamage, FromModuleDamage, HitLocation, ESB_PrimaryDamageType::Ship);
 	}
 
 	OnRep_Durability();
 }
 
-void ASB_Ship::UpdateState(ESB_ShipState NewState)
+void ASB_Vehicle::UpdateState(ESB_ShipState NewState)
 {
 	if (GetLocalRole() != ROLE_Authority)
 		return;
@@ -288,38 +299,28 @@ void ASB_Ship::UpdateState(ESB_ShipState NewState)
 	UpdateState_Multicast(NewState);
 }
 
-void ASB_Ship::UpdateState_Multicast_Implementation(ESB_ShipState NewState)
+void ASB_Vehicle::UpdateState_Multicast_Implementation(ESB_ShipState NewState)
 {
 	if (NewState == ESB_ShipState::Destroyed)
 	{
-		GetCapsuleComponent()->SetCollisionProfileName("IgnoreAll");
-		GetMesh()->SetCollisionProfileName("IgnoreAll");
-		//for (const auto& BaseModule : BaseModules)
-			//BaseModule->SetCollisionProfileName("IgnoreAll");
-		SetActorHiddenInGame(true);
+		UGameplayStatics::SpawnEmitterAtLocation(
+			GetWorld(),
+			VehicleData->OnDestroyedParticle,
+			GetActorLocation(),
+			GetActorRotation(),
+			FVector(VehicleData->OnDestroyedParticleScale),
+			true,
+			EPSCPoolMethod::None,
+			true
+		);
 
 		/*AActor* DestructibleShip = GetWorld()->SpawnActorDeferred<AActor>(DataManager->GameSettings.DestructibleShipClass, GetMesh()->GetComponentTransform(), this, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
 		if (DestructibleShip)
 		{
-			UGameplayStatics::FinishSpawningActor(DestructibleShip, GetMesh()->GetComponentTransform());
+		UGameplayStatics::FinishSpawningActor(DestructibleShip, GetMesh()->GetComponentTransform());
 		}*/
 
-		if (OTMWidget)
-		{
-			OTMWidget->RemoveFromViewport();
-		}
-
-		UGameplayStatics::SpawnEmitterAtLocation(
-			GetWorld(),
-			GInstance->ShipSettings.DestroyedParticle,
-			GetActorLocation(),
-			GetActorRotation(),
-			FVector(GInstance->ShipSettings.DestroyedParticleScale),
-			true,
-			EPSCPoolMethod::None,
-			true);
-
-		OnDestroyed.Broadcast(nullptr);
+		this->Destroy();
 	}
 
 	State = NewState;
@@ -329,30 +330,33 @@ void ASB_Ship::UpdateState_Multicast_Implementation(ESB_ShipState NewState)
 
 #pragma region +++++ Mesh ...
 
-void ASB_Ship::ToggleOutline(bool bNewIsVisible, int32 StencilValue)
+void ASB_Vehicle::ToggleOutline(bool bNewIsVisible, int32 StencilValue)
 {
-	GetMesh()->SetCustomDepthStencilValue(StencilValue);
-	GetMesh()->SetRenderCustomDepth(bNewIsVisible);
+	for (const auto& Module : ModuleArray)
+	{
+		Module->SetCustomDepthStencilValue(3);
+		Module->SetRenderCustomDepth(bNewIsVisible);
+	}
 }
 
 #pragma endregion
 
 #pragma region +++++ Replication / Debug ...
 
-void ASB_Ship::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+void ASB_Vehicle::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
-	DOREPLIFETIME(ASB_Ship, OwnerViewLocation);
-	DOREPLIFETIME(ASB_Ship, Durability);
+	DOREPLIFETIME(ASB_Vehicle, OwnerViewLocation);
+	DOREPLIFETIME(ASB_Vehicle, Durability);
 }
 
-void ASB_Ship::OnRep_Durability()
+void ASB_Vehicle::OnRep_Durability()
 {
-	OnDurabilityUpdated.Broadcast(Durability, ShipData->MaxDurability);
+	OnVehicleDurabilityUpdated.Broadcast(Durability, VehicleData->MaxDurability);
 }
 
-void ASB_Ship::Debug(float DeltaTime)
+void ASB_Vehicle::Debug(float DeltaTime)
 {
 	FString RoleString = "None";
 	FColor Color = FColor::White;

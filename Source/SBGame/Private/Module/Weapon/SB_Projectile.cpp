@@ -1,5 +1,5 @@
 #include "Module/Weapon/SB_Projectile.h"
-#include "Ship/SB_Ship.h"
+#include "Vehicle/SB_Vehicle.h"
 #include "Module/SB_BaseModule.h"
 #include "SB_GameInstance.h"
 #include "SB_Interfaces.h"
@@ -47,6 +47,9 @@ void ASB_Projectile::PostInitializeComponents()
 	if (GetWorld()->IsGameWorld() == false)
 		return;
 
+	GInstance = Cast<USB_GameInstance>(GetGameInstance());
+	WeaponModuleData = GInstance->GetWeaponModuleDataFromRow(DataRowName);
+	
 	if (GetLocalRole() == ROLE_Authority)
 	{
 		CollisionSphere->OnComponentHit.AddDynamic(this, &ASB_Projectile::OnHit);
@@ -59,17 +62,12 @@ void ASB_Projectile::BeginPlay()
 {
 	Super::BeginPlay();
 
-	/*OwningShip = Cast<ASB_Ship>(GetOwner());
-	if (OwningShip.IsValid())
+	OwningVehicle = Cast<ASB_Vehicle>(GetOwner());
+	if (OwningVehicle.IsValid())
 	{
-		OwningController = Cast<AController>(OwningShip->GetOwner());
-		CollisionSphere->IgnoreActorWhenMoving(OwningShip.Get(), true);
-		ProjectileData = OwningShip->GetDataManager()->GetProjectileDataFromRow(DataRowName);
-		if (ProjectileData == nullptr)
-		{
-			Destroy();
-		}
-	}*/
+		OwningController = Cast<AController>(OwningVehicle->GetOwner());
+		CollisionSphere->IgnoreActorWhenMoving(OwningVehicle.Get(), true);
+	}
 }
 
 void ASB_Projectile::Destroyed()
@@ -84,43 +82,40 @@ void ASB_Projectile::Destroyed()
 
 void ASB_Projectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	SpawnImpactFX_Multicast(OtherActor, Hit.ImpactPoint, Hit.ImpactNormal);
-	Destroy();
-	
 	if (OtherActor != GetOwner())
 	{
 		// Combat interface is implemented both on shields/drones (actors) and on ship modules (components).
-		/*ISB_CombatInterface* CombatInterface = Cast<ISB_CombatInterface>(OtherActor);
+		ISB_CombatInterface* CombatInterface = Cast<ISB_CombatInterface>(OtherComp);
 		if (CombatInterface)
 		{
-			CombatInterface->ApplyDamageFromProjectile(ProjectileData->Damage, Hit.Location, OwningController.Get());
+			CombatInterface->ApplyDamageFromProjectile(WeaponModuleData->Damage, Hit.Location, OwningController.Get());
 		}
-		else
-		{
-			CombatInterface = Cast<ISB_CombatInterface>(OtherComp);
-			if (CombatInterface)
-			{
-				CombatInterface->ApplyDamageFromProjectile(ProjectileData->Damage, Hit.Location, OwningController.Get());
-			}
-		}*/
 		
-		//UGameplayStatics::ApplyPointDamage(OtherActor, ProjectileData->Damage, FVector::ZeroVector, Hit, Cast<AController>(OwnerShip->GetOwner()), nullptr, nullptr); // ToDo : is ship always owner, even if not possessed ?
-
-
-
 		//Debug(OtherActor);
 		//const FString StringToPrint = "ASB_Projectile HIT - Projectile destroyed on Actor : " + OtherActor->GetName() + "// Component : " + OtherComp->GetName();
 
 		//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Purple, StringToPrint);
 	}
+
+	SpawnImpactFX_Multicast(OtherActor, Hit.ImpactPoint, Hit.ImpactNormal);
+	Destroy();
 }
 
 void ASB_Projectile::SpawnImpactFX_Multicast_Implementation(AActor* HitActor, FVector ImpactPoint, FVector ImpactNormal)
 {
-	/*if (ProjectileData == nullptr) // crash if it doesnt have time to initialize ?
-		return;
-
-	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ProjectileData->ImpactParticle, ImpactPoint, UKismetMathLibrary::MakeRotFromZ(ImpactNormal), FVector(ProjectileData->ImpactParticleScale), true, EPSCPoolMethod::None, true);*/
+	if (WeaponModuleData)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(
+			GetWorld(),
+			WeaponModuleData->ImpactParticle,
+			ImpactPoint,
+			UKismetMathLibrary::MakeRotFromZ(ImpactNormal),
+			FVector(WeaponModuleData->ImpactParticleScale),
+			true,
+			EPSCPoolMethod::None,
+			true
+		);
+	}
 }
 
 void ASB_Projectile::Debug(AActor* Actor)

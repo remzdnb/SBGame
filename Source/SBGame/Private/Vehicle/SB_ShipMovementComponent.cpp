@@ -1,5 +1,5 @@
-#include "Ship/SB_ShipMovementComponent.h"
-#include "Ship/SB_Ship.h"
+#include "Vehicle/SB_ShipMovementComponent.h"
+#include "Vehicle/SB_Vehicle.h"
 #include "Module/SB_ThrusterModule.h"
 #include "RZ_UtilityLibrary.h"
 //
@@ -25,13 +25,13 @@ void USB_ShipMovementComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	OwningShip = Cast<ASB_Ship>(GetOwner());
+	OwningShip = Cast<ASB_Vehicle>(GetOwner());
 	if (OwningShip.IsValid())
 	{
 		TargetRotationYaw = OwningShip->GetActorRotation().Yaw;
-		MaxWalkSpeed = OwningShip->GetShipData()->MaxMoveSpeed;
-		MaxAcceleration = OwningShip->GetShipData()->MaxAcceleration;
-		GroundFriction = OwningShip->GetShipData()->MoveInertia;
+		MaxWalkSpeed = OwningShip->GetVehicleData()->MaxMoveSpeed;
+		MaxAcceleration = OwningShip->GetVehicleData()->MaxAcceleration;
+		GroundFriction = OwningShip->GetVehicleData()->MoveInertia;
 		//OwningShip->GetReplicatedMovement()->
 	}
 
@@ -111,7 +111,7 @@ void USB_ShipMovementComponent::TurnRight(float AxisValue)
 
 		if (OwningPlayerController.IsValid())
 		{
-			OwningPlayerController->AddYawInput(AxisValue * OwningShip->GetShipData()->TurnRate * GetWorld()->GetDeltaSeconds());
+			OwningPlayerController->AddYawInput(AxisValue * OwningShip->GetVehicleData()->TurnRate * GetWorld()->GetDeltaSeconds());
 			//TargetRotationYaw = TargetRotationYaw + AxisValue * DataManager->ShipSettings.TurnSpeed;// * DeltaLol;//GetWorld()->GetDeltaSeconds();
 		}
 	}

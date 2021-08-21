@@ -1,6 +1,6 @@
 #include "Module/SB_ThrusterModule.h"
-#include "Ship/SB_Ship.h"
-#include "Ship/SB_ShipMovementComponent.h"
+#include "Vehicle/SB_Vehicle.h"
+#include "Vehicle/SB_ShipMovementComponent.h"
 #include "SB_GameInstance.h"
 //
 #include "Particles/ParticleSystemComponent.h"
@@ -46,7 +46,7 @@ void USB_ThrusterModule::InitializeComponent()
 	if (GetWorld()->IsGameWorld() == false)
 		return;
 
-	ShipMovement = Cast<ASB_Ship>(GetOwner())->GetShipMovement();
+	ShipMovement = Cast<ASB_Vehicle>(GetOwner())->GetShipMovement();
 }
 
 void USB_ThrusterModule::BeginPlay()

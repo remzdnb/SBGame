@@ -8,7 +8,7 @@ class USB_GameInstance;
 class ASB_ShipStart;
 class ASB_BattlePlayerController;
 class ASB_AIController;
-class ASB_Ship;
+class ASB_Vehicle;
 
 UCLASS()
 class ASB_BattleGameMode : public AGameModeBase
@@ -23,20 +23,12 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void PostLogin(APlayerController* NewPlayerController) override;
-
-	//
-
-	UFUNCTION()
-	void RegisterShip(ASB_Ship* const ShipToRegister);
-
-	UFUNCTION()
-	void UnregisterShip(ASB_Ship* const ShipToUnregister);
 	
 	//
 
 	FORCEINLINE UFUNCTION() TArray<TWeakObjectPtr<ASB_BattlePlayerController>> const GetPlayerControllers() { return PlayerControllers; }
 	FORCEINLINE UFUNCTION() TArray<TWeakObjectPtr<ASB_AIController>> const GetAIControllers() { return AIControllers; }
-	FORCEINLINE UFUNCTION() TArray<TWeakObjectPtr<ASB_Ship>> const GetSpawnedShips() { return SpawnedShips; }
+	FORCEINLINE UFUNCTION() TArray<TWeakObjectPtr<ASB_Vehicle>> const GetSpawnedShips() { return SpawnedVehicles; }
 
 protected:
 
@@ -45,12 +37,18 @@ protected:
 	TArray<ASB_ShipStart*> ShipStarts;
 	TArray<TWeakObjectPtr<ASB_BattlePlayerController>> PlayerControllers;
 	TArray<TWeakObjectPtr<ASB_AIController>> AIControllers;
-	TArray<TWeakObjectPtr<ASB_Ship>> SpawnedShips;
+	TArray<TWeakObjectPtr<ASB_Vehicle>> SpawnedVehicles;
 	
 	//
 
 	UFUNCTION()
 	ASB_ShipStart* GetAvailableShipStart(uint8 TeamID);
+
+	UFUNCTION()
+	void RegisterVehicle(AActor* const VehicleToRegister);
+
+	UFUNCTION()
+	void UnregisterVehicle(AActor* const VehicleToUnregister);
 
 	UFUNCTION(Exec)
 	void SpawnAIController(uint8 TeamID);

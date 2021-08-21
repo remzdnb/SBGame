@@ -1,6 +1,6 @@
 #include "Module/Weapon/SB_ProjectileWeaponModule.h"
 #include "Module/Weapon/SB_Projectile.h"
-#include "Ship/SB_TargetPoint.h"
+#include "Vehicle/SB_TargetPoint.h"
 //
 #include "RZ_UtilityLibrary.h"
 #include "Kismet/GameplayStatics.h"

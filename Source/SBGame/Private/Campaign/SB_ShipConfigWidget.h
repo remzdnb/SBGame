@@ -28,7 +28,7 @@ private:
 	
 	class USB_GameInstance* GInstance;
 	class ASB_CampaignPlayerController* OwningPC;
-	TWeakObjectPtr<class ASB_Ship> OwnedShip;
+	TWeakObjectPtr<class ASB_Vehicle> OwnedVehicle;
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	///// Main
@@ -44,7 +44,7 @@ public:
 private:
 
 	UFUNCTION()
-	void OnNewOwnedShip(class ASB_Ship* const NewOwnedShip);
+	void OnNewOwnedVehicle(class ASB_Vehicle* const NewOwnedVehicle);
 
 	UFUNCTION()
 	void OnNewMenuWidgetSelected(const FName& WidgetName, UUserWidget* SelectedWidget);

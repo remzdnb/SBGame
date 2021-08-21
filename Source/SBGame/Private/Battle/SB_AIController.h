@@ -13,7 +13,7 @@ class USB_GameInstance;
 class ASB_BattleGameMode;
 class ASB_GameState;
 class ASB_PlayerState;
-class ASB_Ship;
+class ASB_Vehicle;
 
 UCLASS()
 class ASB_AIController : public AAIController, public ISB_ControllerInterface
@@ -32,12 +32,12 @@ public:
 	// ControllerInterface
 	
 	virtual uint8 GetTeamID() override;
-	virtual ASB_Ship* const SpawnAndPossessVehicle(const FTransform& SpawnTransform) override;
+	virtual ASB_Vehicle* const SpawnAndPossessVehicle(const FTransform& SpawnTransform) override;
 	
 	//
 
 	FORCEINLINE UFUNCTION() ASB_PlayerState* GetPlayerState() const { return PState; }
-	FORCEINLINE UFUNCTION() ASB_Ship* GetOwnedShip() const { return OwnedShip.Get(); }
+	FORCEINLINE UFUNCTION() ASB_Vehicle* GetOwnedVehicle() const { return OwnedVehicle.Get(); }
 
 private:
 
@@ -48,8 +48,8 @@ private:
 
 	//
 
-	TWeakObjectPtr<ASB_Ship> OwnedShip;
-	TWeakObjectPtr<ASB_Ship> TargetShip;
+	TWeakObjectPtr<ASB_Vehicle> OwnedVehicle;
+	TWeakObjectPtr<ASB_Vehicle> TargetShip;
 	TWeakObjectPtr<AActor> CollisionActor_Right;
 	TWeakObjectPtr<AActor> CollisionActor_Left;
 

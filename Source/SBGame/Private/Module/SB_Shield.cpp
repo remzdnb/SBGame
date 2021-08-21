@@ -1,6 +1,6 @@
 #include "Module/SB_Shield.h"
 #include "Module/SB_ShieldModule.h"
-#include "Ship/SB_Ship.h"
+#include "Vehicle/SB_Vehicle.h"
 //
 #include "Components/StaticMeshComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -25,7 +25,7 @@ void ASB_Shield::BeginPlay()
 {
 	Super::BeginPlay();
 
-	OwningShip = Cast<ASB_Ship>(GetOwner());
+	OwningShip = Cast<ASB_Vehicle>(GetOwner());
 	//OwningShieldModule = OwningShip->ShieldModule;
 
 	ShieldMesh->IgnoreActorWhenMoving(GetOwner()->GetOwner(), true);

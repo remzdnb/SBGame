@@ -8,7 +8,7 @@
 
 #define TARGETUPDATERATE 0.5f
 
-class ASB_Ship;
+class ASB_Vehicle;
 class USB_TargetPoint;
 class USB_WeaponModuleAnimInstance;
 
@@ -42,11 +42,11 @@ private:
 public:
 
 	UFUNCTION()
-	void SetTargetShip(ASB_Ship* const NewTargetShip);
+	void SetTargetShip(ASB_Vehicle* const NewTargetShip);
 
 protected:
 	
-	TWeakObjectPtr<ASB_Ship> TargetShip;
+	TWeakObjectPtr<ASB_Vehicle> TargetShip;
 	TWeakObjectPtr<USB_TargetPoint> TargetPoint;
 
 private:

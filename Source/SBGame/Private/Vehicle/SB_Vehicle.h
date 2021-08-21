@@ -3,20 +3,16 @@
 #include "SB_Types.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "SB_Ship.generated.h"
+#include "SB_Vehicle.generated.h"
 
 #define DEFAULTCAPSULESIZE 7000.0f
 #define DEFAULTRELATIVEMESHLOCATION FVector(0.0f, 0.0f, 0.0f)
 #define DEFAULTRELATIVEMESHROTATION FRotator(0.0f, -90.0f, 0.0f)
-#define MAXAUTOLOCKCOMPONENTS 4
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FDurabilityUpdatedDelegate, float, NewDurability, float, MaxDurability);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDestroyedDelegate, const APlayerState* const, Instigator);
 
 class USB_GameInstance;
 class ASB_BattleGameMode;
+class ASB_BattlePlayerController;
 class ASB_PlayerState;
-class USB_ShipCameraManager;
 class USB_ShipMovementComponent;
 class USB_ModuleSlotComponent;
 class USB_BaseModule;
@@ -26,14 +22,16 @@ class USB_ShieldModule;
 class USB_HUDVehicleOTMWidget;
 class USB_TargetPoint;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FVehicleDurabilityUpdatedDelegate, float, NewDurability, float, MaxDurability);
+
 UCLASS()
-class ASB_Ship : public ACharacter
+class ASB_Vehicle : public ACharacter
 {
 	GENERATED_BODY()
 
 public:
 
-	ASB_Ship(const FObjectInitializer& ObjectInitializer);
+	ASB_Vehicle(const FObjectInitializer& ObjectInitializer);
 
 	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void PostInitializeComponents() override;
@@ -43,9 +41,9 @@ public:
 	
 	//
 
-	FORCEINLINE UFUNCTION() const FSB_ShipData* const GetShipData() const { return ShipData; }
+	FORCEINLINE UFUNCTION() const FSB_VehicleData* const GetVehicleData() const { return VehicleData; }
 	FORCEINLINE UFUNCTION() USB_ShipMovementComponent* const GetShipMovement() const { return ShipMovement; }
-	//FORCEINLINE UFUNCTION() USB_ShipCameraManager* const GetShipCameraManager() const { return ShipCameraManager; }
+	//FORCEINLINE UFUNCTION() USB_VehicleCameraManager* const GetShipCameraManager() const { return ShipCameraManager; }
 
 private:
 	
@@ -56,9 +54,9 @@ private:
 	//
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	FName ShipDataRowName;
+	FName VehicleDataRowName;
 
-	const FSB_ShipData* ShipData;
+	const FSB_VehicleData* VehicleData;
 
 	//
 	
@@ -67,7 +65,7 @@ private:
 	class USB_ShipMovementComponent* ShipMovement;
 	
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	//USB_ShipCameraManager* ShipCameraManager;
+	//USB_VehicleCameraManager* ShipCameraManager;
 	
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	///// Modules
@@ -88,13 +86,16 @@ private:
 	
 	TInlineComponentArray<USB_ModuleSlotComponent*> ModuleSlots;
 
+	UPROPERTY()
+	TArray<USB_BaseModule*> ModuleArray;
+
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	///// Weapons
 
 public:
 	
 	UFUNCTION()
-	void SelectPriorityTarget(ASB_Ship* NewTargetShip);
+	void SetPriorityTarget(ASB_Vehicle* NewPriorityTarget);
 
 	//
 
@@ -104,7 +105,7 @@ public:
 private:
 
 	UFUNCTION()
-	void UpdateSecondaryTargets();
+	void UpdateWeaponsTargets();
 
 	//
 	
@@ -114,13 +115,21 @@ private:
 	UPROPERTY()
 	TArray<USB_TargetPoint*> TargetPoints;
 
+	UPROPERTY()
+	ASB_Vehicle* PriorityTarget;
+	
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	///// Combat
 
 public:
 	
 	UFUNCTION()
-	void ApplyShipDamage(float ShipDamage, const FVector& HitLocation, AController* const InstigatorController, float FromModuleDamage);
+	void ApplyShipDamage(
+		float ShipDamage,
+		const FVector& HitLocation,
+		AController* const InstigatorController,
+		float FromModuleDamage
+	);
 	
 	UFUNCTION()
 	void UpdateState(ESB_ShipState NewState);
@@ -135,11 +144,19 @@ public:
 
 	//
 
-	FDurabilityUpdatedDelegate OnDurabilityUpdated;
-	FDestroyedDelegate OnDestroyed;
+	FVehicleDurabilityUpdatedDelegate OnVehicleDurabilityUpdated;
+	//FDestroyedDelegate OnDestroyed;
 
 private:
 
+	UFUNCTION()
+	void OnModuleDamaged(
+		USB_BaseModule* const ModuleRef,
+		float Damage,
+		const FVector& HitLocation,
+		AController* const InstigatorController
+	);
+	
 	UFUNCTION()
 	void OnRep_Durability();
 

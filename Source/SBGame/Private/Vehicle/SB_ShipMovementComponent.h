@@ -47,7 +47,7 @@ public:
 
 private:
 	
-	TWeakObjectPtr<ASB_Ship> OwningShip;
+	TWeakObjectPtr<class ASB_Vehicle> OwningShip;
 	TWeakObjectPtr<APlayerController> OwningPlayerController;
 
 	//

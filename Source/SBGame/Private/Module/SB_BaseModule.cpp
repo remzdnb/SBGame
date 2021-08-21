@@ -1,5 +1,5 @@
 #include "Module/SB_BaseModule.h"
-#include "Ship/SB_Ship.h"
+#include "Vehicle/SB_Vehicle.h"
 #include "SB_GameInstance.h"
 //
 #include "Components/SkeletalMeshComponent.h"
@@ -26,8 +26,6 @@ USB_BaseModule::USB_BaseModule()
 
 void USB_BaseModule::Init(const FSB_ModuleSlotData& NewModuleSlotData, const FName& NewModuleRowName)
 {
-	//OwningShip = Cast<ASB_Ship>(GetOuter());
-	
 	ModuleSlotData = NewModuleSlotData;
 	ModuleRowName = NewModuleRowName;
 
@@ -80,13 +78,13 @@ void USB_BaseModule::ToggleHighlight(bool bNewIsEnabled)
 	bIsSelected = bNewIsEnabled;
 	
 	bIsHovered = false;
-	
-	OnSelectionUpdated.Broadcast(bNewIsEnabled);
 }
 
 void USB_BaseModule::ApplyDamageFromProjectile(float Damage, const FVector& HitLocation, AController* const InstigatorController)
 {
-	// Apply module damage.
+	OnModuleDamaged.Broadcast(this, Damage, HitLocation, InstigatorController);
+	
+	/* Apply module damage.
 	if (Durability > 0)
 	{
 		if (Durability - Damage <= 0)
@@ -105,13 +103,13 @@ void USB_BaseModule::ApplyDamageFromProjectile(float Damage, const FVector& HitL
 	{
 		RepairTimer.Invalidate();
 		GetWorld()->GetTimerManager().SetTimer(RepairTimer, this, &USB_BaseModule::RepairOnce, 0.5f, true, 2.0f);
-	}
+	}*/
 
 	// Apply ship damage.
 	//OwningShip->ApplyShipDamage(Damage * BaseModuleData->ShipDamageModifier, HitLocation, InstigatorController, Damage);
 
 	//
-	OnDurabilityUpdated.Broadcast(Durability);
+	//OnDurabilityUpdated.Broadcast(Durability);
 	
 	//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, *("USB_BaseModule::ApplyDamage // New Durability : " + FString::FromInt(Durability))); 
 }

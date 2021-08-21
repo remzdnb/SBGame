@@ -4,7 +4,7 @@
 #include "Campaign/SB_SlotSelectionItemWidget.h"
 #include "Campaign/SB_ModuleSelectionItemWidget.h"
 #include "Campaign/SB_CampaignPlayerController.h"
-#include "Ship/SB_Ship.h"
+#include "Vehicle/SB_Vehicle.h"
 #include "Module/SB_ModuleSlotComponent.h"
 #include "Module/SB_BaseModule.h"
 #include "SB_GameInstance.h"
@@ -34,9 +34,9 @@ void USB_ShipConfigWidget::NativeOnInitialized()
 	OwningPC = Cast<ASB_CampaignPlayerController>(GetOwningPlayer());
 	if (OwningPC)
 	{
-		OnNewOwnedShip(OwningPC->GetOwnedShip());
+		OnNewOwnedVehicle(OwningPC->GetOwnedVehicle());
 		
-		OwningPC->OnNewOwnedShip.AddUniqueDynamic(this, &USB_ShipConfigWidget::OnNewOwnedShip);
+		OwningPC->OnNewOwnedVehicle.AddUniqueDynamic(this, &USB_ShipConfigWidget::OnNewOwnedVehicle);
 		OwningPC->GetUIManager()->OnNewMenuWidgetSelected.AddUniqueDynamic(this, &USB_ShipConfigWidget::OnNewMenuWidgetSelected);
 	}
 
@@ -46,10 +46,10 @@ void USB_ShipConfigWidget::NativeOnInitialized()
 	OnVehicleSelectionButtonPressedBPN(0);
 }
 
-void USB_ShipConfigWidget::OnNewOwnedShip(ASB_Ship* const NewOwnedShip)
+void USB_ShipConfigWidget::OnNewOwnedVehicle(ASB_Vehicle* const NewOwnedVehicle)
 {
-	OwnedShip = NewOwnedShip;
-	if (OwnedShip == nullptr)
+	OwnedVehicle = NewOwnedVehicle;
+	if (OwnedVehicle == nullptr)
 		return;
 	
 	SelectedSlot = nullptr;
@@ -103,13 +103,13 @@ void USB_ShipConfigWidget::OnSlotSelectionButtonPressedBPN_Implementation(uint8 
 
 void USB_ShipConfigWidget::UpdateVehicleSelectionPanel()
 {
-	const FSB_VehicleData* const VehicleData = GInstance->GetVehicleDataFromRow(GInstance->GetSaveGame()->ShipDataRowName);
+	const FSB_VehicleData* const VehicleData = GInstance->GetVehicleDataFromRow(GInstance->GetSaveGame()->VehicleDataRowName);
 	if (VehicleData)
 	{
 		SelectedVehicleNameText->SetText(FText::FromString(VehicleData->DisplayName));
 		SelectedVehicleImage->SetBrushFromTexture(VehicleData->DisplayTexture);
 		SelectedVehicleDurabilityStat->Init(VehicleData->MaxDurability);
-		SelectedVehicleMoveSpeedStat->Init(VehicleData->MoveSpeed);
+		SelectedVehicleMoveSpeedStat->Init(VehicleData->MaxMoveSpeed);
 		SelectedVehicleTurnSpeedStat->Init(VehicleData->TurnRate);
 	}
 	
@@ -127,7 +127,7 @@ void USB_ShipConfigWidget::UpdateVehicleSelectionPanel()
 			
 			VehicleSelectionContainerPanel->AddChild(ItemWidget);
 
-			if (VehicleDataRowName == GInstance->GetSaveGame()->ShipDataRowName)
+			if (VehicleDataRowName == GInstance->GetSaveGame()->VehicleDataRowName)
 				ItemWidget->OnSelectionUpdatedBPI(true);
 		}
 	}
@@ -146,10 +146,10 @@ void USB_ShipConfigWidget::OnVehicleSelectionItemPressed(const FName& VehicleDat
 
 void USB_ShipConfigWidget::UpdateSlotSelectionPanel()
 {
-	ShipNameText->SetText(FText::FromString(GInstance->GetSaveGame()->ShipDataRowName.ToString()));
+	ShipNameText->SetText(FText::FromString(GInstance->GetSaveGame()->VehicleDataRowName.ToString()));
 
 	SlotListContainerPanel->ClearChildren();
-	for (const auto& ModuleSlot : OwnedShip->GetModuleSlots())
+	for (const auto& ModuleSlot : OwnedVehicle->GetModuleSlots())
 	{
 		USB_SlotSelectionItemWidget* const ItemWidget = CreateWidget<USB_SlotSelectionItemWidget>(GetWorld(), SlotSelectionItemWBP);
 		if (ItemWidget)
@@ -175,7 +175,7 @@ void USB_ShipConfigWidget::OnSlotSelectionItemPressed(uint8 SlotID)
 		SelectedSlot->GetSpawnedModule()->ToggleHighlight(false);
 	}
 	
-	SelectedSlot = OwnedShip->GetModuleSlots()[SlotID];
+	SelectedSlot = OwnedVehicle->GetModuleSlots()[SlotID];
 	SelectedSlot->GetSpawnedModule()->ToggleHighlight(true);
 
 	UpdateSlotSelectionPanel();
@@ -241,7 +241,7 @@ void USB_ShipConfigWidget::OnModuleSelectionItemPressed(const FName& ModuleDataR
 	SelectedSlot->SpawnModule(ModuleDataRowName, true);
 	SelectedSlot->GetSpawnedModule()->ToggleHighlight();
 
-	OwnedShip->SaveConfig();
+	OwnedVehicle->SaveConfig();
 	
 	UpdateSlotSelectionPanel();
 	UpdateModuleSelectionPanel();

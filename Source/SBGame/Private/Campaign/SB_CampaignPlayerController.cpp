@@ -1,6 +1,6 @@
 // SBGame
 #include "Campaign/SB_CampaignPlayerController.h"
-#include "Ship/SB_Ship.h"
+#include "Vehicle/SB_Vehicle.h"
 #include "SB_GameInstance.h"
 #include "SB_PlayerSaveGame.h"
 // Plugins
@@ -18,14 +18,14 @@ void ASB_CampaignPlayerController::BeginPlay()
 
 	if (IsLocalController())
 	{
-		SelectShip(GInstance->GetSaveGame()->ShipDataRowName);
+		SelectShip(GInstance->GetSaveGame()->VehicleDataRowName);
 
 		// Camera
 
-		CameraActor->SetNewLocation(OwnedShip->GetActorLocation(), true);
+		CameraActor->SetNewLocation(OwnedVehicle->GetActorLocation(), true);
 		CameraActor->SetNewRotation(FRotator(
 										DEFAULT_CAMERAARMROTATIONPITCH,
-										OwnedShip->GetActorRotation().Yaw + DEFAULT_CAMERAARMROTATIONYAW,
+										OwnedVehicle->GetActorRotation().Yaw + DEFAULT_CAMERAARMROTATIONYAW,
 										0.0f),
 									false
 		);
@@ -50,31 +50,31 @@ void ASB_CampaignPlayerController::BeginPlay()
 	}
 }
 
-void ASB_CampaignPlayerController::SelectShip(const FName& NewShipDataRowName)
+void ASB_CampaignPlayerController::SelectShip(const FName& NewVehicleDataRowName)
 {
-	const FSB_ShipData* const NewShipData = GInstance->GetShipDataFromRow(NewShipDataRowName);
-	if (NewShipData)
+	const FSB_VehicleData* const NewVehicleData = GInstance->GetVehicleDataFromRow(NewVehicleDataRowName);
+	if (NewVehicleData)
 	{
-		if (OwnedShip)
+		if (OwnedVehicle)
 		{
 			UnPossess();
-			OwnedShip->Destroy();
+			OwnedVehicle->Destroy();
 		}
 				
 		const FTransform SpawnTransform = FTransform(FVector::ZeroVector);
-		ASB_Ship* NewShip = GetWorld()->SpawnActorDeferred<ASB_Ship>(NewShipData->ShipBP, SpawnTransform, this, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+		ASB_Vehicle* NewShip = GetWorld()->SpawnActorDeferred<ASB_Vehicle>(NewVehicleData->Vehicle_BP, SpawnTransform, this, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
 		if (NewShip)
 		{
 			UGameplayStatics::FinishSpawningActor(NewShip, SpawnTransform);
 			OnPossess(NewShip);
-			OwnedShip = Cast<ASB_Ship>(GetPawn());
-			OwnedShip->LoadConfig(GInstance->GetSaveGame()->ShipConfig, true);
-			OnNewOwnedShip.Broadcast(OwnedShip);
+			OwnedVehicle = Cast<ASB_Vehicle>(GetPawn());
+			OwnedVehicle->LoadConfig(GInstance->GetSaveGame()->ShipConfig, true);
+			OnNewOwnedVehicle.Broadcast(OwnedVehicle);
 
 			SetViewTargetWithBlend(CameraActor, 0.0f);
 		}
 
-		GInstance->SaveSelectedShip(NewShipDataRowName);
+		GInstance->SaveSelectedShip(NewVehicleDataRowName);
 	}
 }
 
@@ -88,11 +88,11 @@ void ASB_CampaignPlayerController::OnNewMenuWidgetSelected(const FName& WidgetNa
 		bEnableMouseOverEvents = true;
 		bEnableClickEvents = true;
 		
-		CameraActor->SetNewLocation(OwnedShip->GetActorLocation(), true);
+		CameraActor->SetNewLocation(OwnedVehicle->GetActorLocation(), true);
 		CameraActor->SetNewArmLength(SHIPCONFIG_CAMERAARMLENGTH, false);
 		CameraActor->SetNewRotation(FRotator(
 										SHIPCONFIG_CAMERAARMROTATIONPITCH,
-										OwnedShip->GetActorRotation().Yaw + SHIPCONFIG_CAMERAARMROTATIONYAW,
+										OwnedVehicle->GetActorRotation().Yaw + SHIPCONFIG_CAMERAARMROTATIONYAW,
 										0.0f),
 									true
 		);
@@ -103,11 +103,11 @@ void ASB_CampaignPlayerController::OnNewMenuWidgetSelected(const FName& WidgetNa
 		bEnableMouseOverEvents = false;
 		bEnableClickEvents = false;
 
-		CameraActor->SetNewLocation(OwnedShip->GetActorLocation(), true);
+		CameraActor->SetNewLocation(OwnedVehicle->GetActorLocation(), true);
 		CameraActor->SetNewArmLength(DEFAULT_CAMERAARMLENGTH, false);
 		CameraActor->SetNewRotation(FRotator(
 										DEFAULT_CAMERAARMROTATIONPITCH,
-										OwnedShip->GetActorRotation().Yaw + DEFAULT_CAMERAARMROTATIONYAW,
+										OwnedVehicle->GetActorRotation().Yaw + DEFAULT_CAMERAARMROTATIONYAW,
 										0.0f),
 									true
 		);
@@ -127,9 +127,9 @@ void ASB_CampaignPlayerController::SetupInputComponent()
 
 void ASB_CampaignPlayerController::OnLeftMouseButtonPressed()
 {
-	if (OwnedShip)
+	if (OwnedVehicle)
 	{
-		//OwnedShip->SelectModule(OwnedShip->GetHoveredModule());
+		//OwnedVehicle->SelectModule(OwnedVehicle->GetHoveredModule());
 	}
 }
 

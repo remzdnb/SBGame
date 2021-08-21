@@ -24,20 +24,13 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void OnRep_Pawn() override;
-	virtual void SetupInputComponent() override;
-
+	
 	// ControllerInterface
 	
 	virtual uint8 GetTeamID() override;
-	virtual ASB_Ship* const SpawnAndPossessVehicle(const FTransform& SpawnTransform) override;
+	virtual ASB_Vehicle* const SpawnAndPossessVehicle(const FTransform& SpawnTransform) override;
 
 	//
-
-	UFUNCTION()
-	void OnDamageDealt(float PrimaryDamage, float SecondaryDamage, const FVector& HitLocation, ESB_PrimaryDamageType PrimaryDamageType);
-
-	UFUNCTION(Client, Reliable)
-	void OnDamageDealt_Client(float PrimaryDamage, float SecondaryDamage, const FVector& HitLocation, ESB_PrimaryDamageType PrimaryDamageType);
 
 	UFUNCTION(Server, Reliable)
 	void Respawn_Server();
@@ -48,21 +41,51 @@ public:
 
 private:
 
+	ASB_BattleGameMode* GMode;
+	ASB_GameState* GState;
+	ASB_PlayerState* PState;
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///// Vehicle
+
+public:
+
+	UFUNCTION()
+	void OnDamageDealt(float PrimaryDamage, float SecondaryDamage, const FVector& HitLocation, ESB_PrimaryDamageType PrimaryDamageType);
+
+private:
+	
+	UFUNCTION(Client, Reliable)
+	void OnDamageDealt_Client(float PrimaryDamage, float SecondaryDamage, const FVector& HitLocation, ESB_PrimaryDamageType PrimaryDamageType);
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///// Input
+
+public:
+
+	virtual void SetupInputComponent() override;
+
+private:
+
+	UFUNCTION()
+	void UpdateHoveredVehicle();
+	
 	UFUNCTION()
 	void UpdateViewTarget(float DeltaTime) const;
 
 	//
 
-	UFUNCTION() void LeftMouseButtonPressed();
-	UFUNCTION() void LeftMouseButtonReleased();
-	UFUNCTION() void TabKeyPressed();
+	UFUNCTION()
+	void LeftMouseButtonPressed();
+	
+	UFUNCTION()
+	void LeftMouseButtonReleased();
+	
+	UFUNCTION()
+	void TabKeyPressed();
 
 	//
 
-	ASB_BattleGameMode* GMode;
-	ASB_GameState* GState;
-	ASB_PlayerState* PState;
-
 	UPROPERTY()
-	class URZ_LogWidget* LogWidget;
+	TWeakObjectPtr<ASB_Vehicle> HoveredVehicle;
 };

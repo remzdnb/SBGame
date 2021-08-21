@@ -52,7 +52,7 @@ void USB_GameInstance::SaveSelectedShip(const FName& NewSelectedShipName)
 {
 	if (SaveGame)
 	{
-		SaveGame->ShipDataRowName = NewSelectedShipName;
+		SaveGame->VehicleDataRowName = NewSelectedShipName;
 		UGameplayStatics::SaveGameToSlot(SaveGame, "PlayerSaveGame", 0);
 	}
 }
@@ -87,20 +87,6 @@ const FSB_VehicleData* const USB_GameInstance::GetVehicleDataFromRow(const FName
 	const FSB_VehicleData* const VehicleData = VehicleDT->FindRow<FSB_VehicleData>(RowName, ContextString);
 	
 	return VehicleData;
-}
-
-const FSB_ShipData* const USB_GameInstance::GetShipDataFromRow(const FName& RowName) const
-{
-	if (ShipDT == nullptr)
-	{
-		UE_LOG(LogTemp, Error, TEXT("ASB_DataManager::GetShipDataFromRow : Missing ShipDT."));
-		return nullptr;
-	}
-
-	const FString ContextString;
-	const FSB_ShipData* const ShipData = ShipDT->FindRow<FSB_ShipData>(RowName, ContextString);
-	
-	return ShipData;
 }
 
 const FSB_BaseModuleData* const USB_GameInstance::GetBaseModuleDataFromRow(const FName& RowName) const

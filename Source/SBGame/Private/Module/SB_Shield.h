@@ -35,7 +35,7 @@ private:
 
 	//
 	
-	TWeakObjectPtr<class ASB_Ship> OwningShip;
+	TWeakObjectPtr<class ASB_Vehicle> OwningShip;
 	TWeakObjectPtr<class USB_ShieldModule> OwningShieldModule;
 
 };

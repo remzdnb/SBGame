@@ -32,14 +32,16 @@ void ARZ_UIManager::BeginPlay()
 	Super::BeginPlay();
 }
 
-void ARZ_UIManager::AddHUDWidget(UUserWidget* NewWidget)
+void ARZ_UIManager::AddHUDWidget(UUserWidget* NewWidget, bool bSaveReference)
 {
-	HUDWidgets.Add(NewWidget);
-
+	if (bSaveReference)
+	{
+		HUDWidgets.Add(NewWidget);
+	}
+	
 	if (IsHUDOpen())
 	{
-		ToggleHUD(false);
-		ToggleHUD(true);
+		NewWidget->AddToViewport();
 	}
 	
 	/*if (BattleHUDWidget == nullptr)

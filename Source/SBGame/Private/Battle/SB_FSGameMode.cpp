@@ -1,8 +1,8 @@
 #include "Battle/SB_FSGameMode.h"
 #include "Battle/SB_BattlePlayerController.h"
 #include "Battle/SB_AIController.h"
-#include "Ship/SB_Ship.h"
-#include "Ship/SB_ShipStart.h"
+#include "Vehicle/SB_Vehicle.h"
+#include "Vehicle/SB_ShipStart.h"
 #include "SB_GameInstance.h"
 
 ASB_FSGameMode::ASB_FSGameMode()
@@ -57,11 +57,12 @@ void ASB_FSGameMode::HandleFreeRespawn()
 		ASB_ShipStart* const ShipStart = GetAvailableShipStart(ControllerInterface->GetTeamID());
 		if (ShipStart)
 		{
-			ASB_Ship* const NewShip = ControllerInterface->SpawnAndPossessVehicle(ShipStart->GetStartTransform());
-			if (NewShip)
+			ASB_Vehicle* const NewVehicle = ControllerInterface->SpawnAndPossessVehicle(ShipStart->GetStartTransform());
+			if (NewVehicle)
 			{
 				ReadyToSpawnControllers.RemoveAt(0);
-				SpawnedShips.Add(NewShip);
+				RegisterVehicle(NewVehicle);
+				NewVehicle->OnDestroyed.AddUniqueDynamic(this, &ASB_FSGameMode::UnregisterVehicle);
 			}
 		}
 	}

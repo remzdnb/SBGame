@@ -4,7 +4,7 @@
 #include "Module/Weapon/SB_TraceWeaponModule.h"
 #include "Module/Weapon/SB_ProjectileWeaponModule.h"
 #include "Module/Weapon/SB_BeamWeaponModule.h"
-#include "Ship/SB_Ship.h"
+#include "Vehicle/SB_Vehicle.h"
 #include "SB_GameInstance.h"
 //
 #include "SB_ThrusterModule.h"

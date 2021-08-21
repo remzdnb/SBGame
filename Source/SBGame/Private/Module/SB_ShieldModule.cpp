@@ -1,6 +1,6 @@
 #include "Module/SB_ShieldModule.h"
 #include "Module/SB_Shield.h"
-#include "Ship/SB_Ship.h"
+#include "Vehicle/SB_Vehicle.h"
 #include "SB_PlayerController.h"
 #include "SB_GameInstance.h"
 //

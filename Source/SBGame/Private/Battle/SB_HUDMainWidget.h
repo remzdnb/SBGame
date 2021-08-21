@@ -29,7 +29,7 @@ public:
 	//
 
 	UFUNCTION()
-	void OnNewOwnedShip(class ASB_Ship* const NewOwnedShip);
+	void OnNewOwnedVehicle(class ASB_Vehicle* const NewOwnedVehicle);
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnShipSpawnedBPI();
