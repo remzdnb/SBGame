@@ -3,6 +3,7 @@
 #include "Vehicle/SB_Vehicle.h"
 #include "Vehicle/SB_TargetPoint.h"
 #include "SB_GameInstance.h"
+#include "Battle/SB_PlayerState.h"
 //
 #include "Components/SceneComponent.h"
 #include "Particles/ParticleSystemComponent.h"
@@ -13,11 +14,7 @@
 
 USB_WeaponModule::USB_WeaponModule()
 {
-	TargetShip = nullptr;
-	TargetPoint = nullptr;
-	LerpedRotation = GetComponentRotation();
-	
-	bIsSelected = false;
+	bIsAIEnabled = false;
 	bWantsToFire = false;
 }
 
@@ -26,6 +23,14 @@ void USB_WeaponModule::Init(const FSB_ModuleSlotData& NewModuleSlotData, const F
 	Super::Init(NewModuleSlotData, NewModuleRowName);
 	
 	WeaponModuleData = GInstance->GetWeaponModuleDataFromRow(NewModuleRowName);
+}
+
+void USB_WeaponModule::BeginPlay()
+{
+	Super::BeginPlay();
+
+	DefaultRotation = CurrentRotation = GetRelativeRotation();
+
 	WeaponAnimInstance = Cast<USB_WeaponModuleAnimInstance>(GetAnimInstance());
 
 	GetWorld()->GetTimerManager().SetTimer(TargetUpdateTimer, this, &USB_WeaponModule::UpdateTargetComponent, TARGETUPDATERATE, true, 0.0f);
@@ -42,16 +47,17 @@ void USB_WeaponModule::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	if (WeaponModuleData == nullptr)
 		return;
 
-	UpdateRotation();
+	UpdateRotation(DeltaTime);
+	UpdateWeaponTrace();
 }
 
 #pragma endregion
 
 #pragma region +++++ Targeting ...
 
-void USB_WeaponModule::SetTargetShip(ASB_Vehicle* const NewTargetShip)
+void USB_WeaponModule::SetTargets(TArray<ASB_Vehicle*> NewTargets)
 {
-	TargetShip = NewTargetShip;
+	TargetVehicles = NewTargets;
 }
 
 void USB_WeaponModule::UpdateTargetComponent()
@@ -61,7 +67,7 @@ void USB_WeaponModule::UpdateTargetComponent()
 	if (GetOwnerRole() < ROLE_Authority)
 		return;
 	
-	if (TargetShip == nullptr)
+	if (TargetVehicles.Num() == 0)
 		return;
 
 	FHitResult HitResult;
@@ -70,25 +76,72 @@ void USB_WeaponModule::UpdateTargetComponent()
 	//TraceParams.AddIgnoredActor(GetOwner());
 	TraceParams.AddIgnoredComponent(this);
 
-	for (USB_TargetPoint* const ThisTargetPoint : TargetShip->GetTargetPoints())
+	for (auto& TargetVehicle : TargetVehicles)
 	{
-		const FVector End = ThisTargetPoint->GetComponentLocation();
-		GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, TraceParams);
-		
-		if (HitResult.Actor == TargetShip)
+		for (USB_TargetPoint* const ThisTargetPoint : TargetVehicle->GetTargetPoints())
 		{
-			if (GInstance->DebugSettings.bIsDebugEnabled_WeaponModule)
-				UKismetSystemLibrary::DrawDebugLine(GetWorld(), Start, End, FColor::Green, 0.3f, 20.0f);
+			const FVector End =
+				Start +
+				UKismetMathLibrary::FindLookAtRotation(Start, ThisTargetPoint->GetComponentLocation()).Vector() *
+				WeaponModuleData->Range;
 			
-			TargetPoint = ThisTargetPoint;
-			//bWantsToFire = true;
-			return;
-		}
+			GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, TraceParams);
+			if (HitResult.Actor == TargetVehicle)
+			{
+				if (GInstance->DebugSettings.bIsDebugEnabled_WeaponModule)
+					UKismetSystemLibrary::DrawDebugLine(GetWorld(), Start, End, FColor::Green, 0.2f, 20.0f);
+			
+				TargetPoint = ThisTargetPoint;
+				return;
+			}
 
-		if (GInstance->DebugSettings.bIsDebugEnabled_WeaponModule)
-		{
-			UKismetSystemLibrary::DrawDebugLine(GetWorld(), Start, End, FColor::Red, TARGETUPDATERATE - 0.2f, 20.0f);
+			if (GInstance->DebugSettings.bIsDebugEnabled_WeaponModule)
+			{
+				UKismetSystemLibrary::DrawDebugLine(GetWorld(), Start, End, FColor::Red, 0.2f, 20.0f);
+			}
 		}
+	}
+}
+
+void USB_WeaponModule::UpdateWeaponTrace()
+{
+	if (GetOwnerRole() < ROLE_Authority)
+		return;
+	
+	const FVector Start = GetSocketLocation("ViewSocket");
+	const FVector End =
+		GetSocketLocation("ViewSocket") +
+		GetSocketRotation("ViewSocket").Vector() *
+		WeaponModuleData->Range;
+	
+	FCollisionQueryParams TraceParams;
+	TraceParams.AddIgnoredComponent(this);
+
+	GetWorld()->LineTraceSingleByChannel(WeaponTraceResult, Start, End, ECC_Visibility, TraceParams);
+	ASB_Vehicle* HitVehicle = Cast<ASB_Vehicle>(WeaponTraceResult.Actor);
+	if (HitVehicle)
+	{
+		const ASB_PlayerState* const SelfPlayerState = Cast<ASB_PlayerState>(Cast<APawn>(GetOwner())->GetPlayerState());
+		const ASB_PlayerState* const TargetPlayerState = Cast<ASB_PlayerState>(HitVehicle->GetPlayerState());
+		if (SelfPlayerState && TargetPlayerState)
+		{
+			if (SelfPlayerState->GetTeam() != TargetPlayerState->GetTeam())
+			{
+				if (GInstance->DebugSettings.bIsDebugEnabled_WeaponModule)
+				{
+					UKismetSystemLibrary::DrawDebugLine(GetWorld(), Start, End, FColor(255, 255, 255, 1),
+					                                    GetWorld()->GetDeltaSeconds() + 0.01f, 30.0f);
+				}
+
+				return;
+			}
+		}
+	}
+
+	if (GInstance->DebugSettings.bIsDebugEnabled_WeaponModule)
+	{
+		UKismetSystemLibrary::DrawDebugLine(GetWorld(), Start, End, FColor(64, 64, 64, 1),
+		                                    GetWorld()->GetDeltaSeconds() + 0.01f, 30.0f);
 	}
 }
 
@@ -96,32 +149,48 @@ void USB_WeaponModule::UpdateTargetComponent()
 
 #pragma region +++++ Rotation ...
 
-void USB_WeaponModule::UpdateRotation()
+void USB_WeaponModule::UpdateRotation(float DeltaTime)
 {
 	if (TargetPoint.IsValid())
 	{
-		LerpedRotation = FMath::Lerp(
-			LerpedRotation, 
-			UKismetMathLibrary::FindLookAtRotation(GetSocketLocation("ViewSocket"), TargetPoint->GetComponentLocation()), 
+		const FRotator TargetWorldRotation = UKismetMathLibrary::FindLookAtRotation(
+			GetSocketLocation("ViewSocket"), TargetPoint->GetComponentLocation());
+		
+		const FRotator TargetRelativeRotation = UKismetMathLibrary::InverseTransformRotation(
+			GetOwner()->GetTransform(), TargetWorldRotation);
+
+		CurrentRotation = FMath::RInterpConstantTo(
+			GetRelativeRotation(),
+			FRotator(TargetRelativeRotation.Pitch, TargetRelativeRotation.Yaw - 90.0f, TargetRelativeRotation.Roll),
+			DeltaTime,
 			WeaponModuleData->RotationRate
 		);
+		
+		if (WeaponAnimInstance)
+		{
+			WeaponAnimInstance->UpdateInstance(TargetWorldRotation);
+		}
 	}
 	else
 	{
-		LerpedRotation = FMath::Lerp(
-			LerpedRotation, 
-			GetOwner()->GetActorRotation(), 
-			WeaponModuleData->RotationRate);
+		CurrentRotation = FMath::RInterpConstantTo(
+			GetRelativeRotation(),
+			DefaultRotation,
+			DeltaTime,
+			WeaponModuleData->RotationRate / 2
+		);
+
+		if (WeaponAnimInstance)
+		{
+			WeaponAnimInstance->UpdateInstance(FRotator::ZeroRotator);
+		}
 	}
 
 	// Apply yaw rotation on component itself
-	SetWorldRotation(FRotator(0.0f, LerpedRotation.Yaw - 90.0f, 0.0f));
+	SetRelativeRotation(FRotator(DefaultRotation.Pitch, CurrentRotation.Yaw, DefaultRotation.Roll));
 
 	// Apply pitch rotation on AnimInstance
-	if (WeaponAnimInstance)
-	{
-		WeaponAnimInstance->UpdateInstance(LerpedRotation);
-	}
+
 }
 
 #pragma endregion

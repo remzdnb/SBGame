@@ -1,7 +1,7 @@
 // SBGame
 #include "Battle/SB_BattlePlayerController.h"
 #include "Battle/SB_BattleGameMode.h"
-#include "Battle/SB_GameState.h"
+#include "SB_GameState.h"
 #include "Battle/SB_PlayerState.h"
 #include "Battle/SB_HUDMainWidget.h"
 #include "Vehicle/SB_Vehicle.h"
@@ -27,17 +27,29 @@ void ASB_BattlePlayerController::BeginPlay()
 	GState = Cast<ASB_GameState>(GetWorld()->GetGameState());
 	PState = Cast<ASB_PlayerState>(PlayerState);
 
-	USB_HUDMainWidget* BattleHUDWidget = CreateWidget<USB_HUDMainWidget>(this, GInstance->UISettings.HUDMain_WBP);
-	UIManager->AddHUDWidget(BattleHUDWidget);
-	//LogWidget = CreateWidget<URZ_LogWidget>(this, GInstance->UISettings.Log_WBP);
-	//UIManager->AddHUDWidget(LogWidget);
-	UIManager->ToggleHUD(true);
+	if (IsLocalPlayerController())
+	{
+		// Spawn outline post process.
+		
+		const FActorSpawnParameters SpawnParameters;
+		GetWorld()->SpawnActor<AActor>(GInstance->GameSettings.BattlePostProcess_BP, SpawnParameters);
+
+		// Init UI
+
+		USB_HUDMainWidget* BattleHUDWidget = CreateWidget<USB_HUDMainWidget>(this, GInstance->UISettings.HUDMain_WBP);
+		UIManager->AddHUDWidget(BattleHUDWidget);
+		//LogWidget = CreateWidget<URZ_LogWidget>(this, GInstance->UISettings.Log_WBP);
+		//UIManager->AddHUDWidget(LogWidget);
+		UIManager->ToggleHUD(true);
+
+		// Init controller settings
 	
-	UWidgetBlueprintLibrary::SetInputMode_GameAndUIEx(this);
-	bShowMouseCursor = true;
-	bEnableMouseOverEvents = true;
-	bEnableClickEvents = true;
-	HitResultTraceDistance = 1000000.0f;
+		UWidgetBlueprintLibrary::SetInputMode_GameAndUIEx(this);
+		bShowMouseCursor = true;
+		bEnableMouseOverEvents = true;
+		bEnableClickEvents = true;
+		HitResultTraceDistance = 1000000.0f;
+	}
 }
 
 void ASB_BattlePlayerController::Tick(float DeltaTime)
@@ -56,6 +68,7 @@ void ASB_BattlePlayerController::OnRep_Pawn()
 	{
 		CameraActor->SetNewTargetActor(OwnedVehicle, FVector(0.0f, 0.0f, 5000.0f));
 		SetViewTargetWithBlend(CameraActor, 0.0f);
+		//OwnedVehicle->OnDestroyed.AddUniqueDynamic(this, &ASB_BattlePlayerController::OnVehicleDestroyed);
 		//OwnedVehicle->GetShipCameraManager()->SetArmRotation(FRotator(-25.0f, OwnedVehicle->GetActorRotation().Yaw - 145.0f, 0.0f), false);
 		//OwnedVehicle->GetShipCameraManager()->SetMaxTargetArmLength();
 	}
@@ -94,6 +107,7 @@ ASB_Vehicle* const ASB_BattlePlayerController::SpawnAndPossessVehicle(const FTra
 			UGameplayStatics::FinishSpawningActor(NewShip, SpawnTransform);
 			OnPossess(NewShip);
 			NewShip->LoadConfig(GInstance->GetSaveGame()->ShipConfig, false);
+			NewShip->OnDestroyed.AddDynamic(this, &ASB_BattlePlayerController::OnVehicleDestroyed);
 			OnRep_Pawn();
 			
 			return NewShip;
@@ -136,6 +150,11 @@ void ASB_BattlePlayerController::OnDamageDealt_Client_Implementation(float Prima
 	}
 }
 
+void ASB_BattlePlayerController::OnVehicleDestroyed(AActor* DestroyedVehicle)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, "VehicleDestroyed BattlePC");
+}
+
 #pragma endregion
 
 #pragma region +++++ Input ...
@@ -151,11 +170,11 @@ void ASB_BattlePlayerController::UpdateHoveredVehicle()
 	if (NewHoveredVehicle != HoveredVehicle &&
 		NewHoveredVehicle != GetPawn())
 	{
-		if (HoveredVehicle.IsValid())
+		if (HoveredVehicle.IsValid() && HoveredVehicle != SelectedVehicle)
 			HoveredVehicle->ToggleOutline(false);
 
-		if (NewHoveredVehicle)
-			NewHoveredVehicle->ToggleOutline(true);
+		if (NewHoveredVehicle && NewHoveredVehicle != SelectedVehicle)
+			NewHoveredVehicle->ToggleOutline(true, 1);
 
 		HoveredVehicle = NewHoveredVehicle;
 	}
@@ -169,6 +188,26 @@ void ASB_BattlePlayerController::UpdateHoveredVehicle()
 			StringToPrint = "ASB_BattlePlayerController::UpdateHoveredVehicle - Hovered : nullptr";
 		
 		GEngine->AddOnScreenDebugMessage(-1, GetWorld()->GetDeltaSeconds(), FColor::White, StringToPrint);
+	}
+}
+
+void ASB_BattlePlayerController::SelectHoveredVehicle()
+{
+	if (HoveredVehicle == SelectedVehicle)
+		return;
+	
+	if (SelectedVehicle.IsValid())
+	{
+		SelectedVehicle->ToggleOutline(false);
+		OwnedVehicle->SetPriorityTarget(nullptr);
+		SelectedVehicle = nullptr;
+	}
+	
+	if (HoveredVehicle.IsValid())
+	{
+		HoveredVehicle->ToggleOutline(true, 2);
+		OwnedVehicle->SetPriorityTarget(HoveredVehicle.Get());
+		SelectedVehicle = HoveredVehicle;
 	}
 }
 
@@ -216,10 +255,7 @@ void ASB_BattlePlayerController::LeftMouseButtonPressed()
 {
 	if (OwnedVehicle)
 	{
-		if (HoveredVehicle.IsValid())
-		{
-			OwnedVehicle->SetPriorityTarget(HoveredVehicle.Get());
-		}
+		SelectHoveredVehicle();
 	}
 }
 

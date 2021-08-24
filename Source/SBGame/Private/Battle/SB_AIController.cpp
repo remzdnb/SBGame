@@ -1,6 +1,6 @@
 #include "Battle/SB_AIController.h"
 #include "Battle/SB_BattleGameMode.h"
-#include "Battle/SB_GameState.h"
+#include "SB_GameState.h"
 #include "Battle/SB_PlayerState.h"
 #include "Vehicle/SB_Vehicle.h"
 #include "Vehicle/SB_ShipMovementComponent.h"
@@ -57,6 +57,25 @@ void ASB_AIController::Tick(float DeltaTime)
 	}*/
 }
 
+#pragma region +++++ Controller Interface ...
+
+uint8 ASB_AIController::GetTeamID()
+{
+	if (PState)
+	{
+		return PState->GetTeam();
+	}
+
+	return 0;
+}
+
+void ASB_AIController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+
+	OwnedVehicle = Cast<ASB_Vehicle>(InPawn);
+}
+
 ASB_Vehicle* const ASB_AIController::SpawnAndPossessVehicle(const FTransform& SpawnTransform)
 {
 	if (GetPawn() != nullptr)
@@ -82,22 +101,18 @@ ASB_Vehicle* const ASB_AIController::SpawnAndPossessVehicle(const FTransform& Sp
 	return nullptr;
 }
 
-void ASB_AIController::OnPossess(APawn* InPawn)
+void ASB_AIController::OnVehicleDestroyed(AActor* const DestroyedVehicle)
 {
-	Super::OnPossess(InPawn);
-
-	OwnedVehicle = Cast<ASB_Vehicle>(InPawn);
+	GetWorldTimerManager().SetTimer(
+		FreeRespawnTimer,
+		FreeRespawnTimerDelegate,
+		GInstance->GameSettings.FreeRespawnTimer,
+		true,
+		GInstance->GameSettings.FreeRespawnTimer
+	);
 }
 
-uint8 ASB_AIController::GetTeamID()
-{
-	if (PState)
-	{
-		return PState->GetTeam();
-	}
-
-	return 0;
-}
+#pragma endregion
 
 void ASB_AIController::UpdateDetection()
 {

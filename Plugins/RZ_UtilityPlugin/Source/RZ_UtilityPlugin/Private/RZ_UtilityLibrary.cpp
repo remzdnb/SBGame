@@ -7,18 +7,19 @@ RZ_UtilityLibrary::RZ_UtilityLibrary()
 
 #pragma region +++++ Actor ...
 
-TArray<AActor*> RZ_UtilityLibrary::OrderActorsByDistance(TArray<AActor*> ActorsToOrder, FVector OriginLocation)
+TArray<AActor*> RZ_UtilityLibrary::OrderActorsByDistance(TArray<AActor*> ActorsToOrder, FVector TargetLocation)
 {
-	/*float MinDistance = 999999999999999999.0f;
 	TArray<AActor*> TempArray = ActorsToOrder;
 	TArray<AActor*> ResultArray;
 
-	for (auto& Actor : TempArray)
+	for (int32 Index = 0; Index < ActorsToOrder.Num(); Index++)
 	{
-		if (FVector::Dist(Actor.GetActorLocation))
-	}*/
+		AActor* ClosestActor = GetClosestActorFromLocation(TempArray, TargetLocation);
+		ResultArray.Add(ClosestActor);
+		TempArray.Remove(ClosestActor);
+	}
 	
-	return ActorsToOrder;
+	return ResultArray;
 }
 
 AActor* RZ_UtilityLibrary::GetClosestActorFromLocation(TArray<AActor*> ActorArray, FVector TargetLocation)

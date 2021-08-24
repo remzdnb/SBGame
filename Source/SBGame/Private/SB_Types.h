@@ -5,6 +5,13 @@
 #include "SB_Types.generated.h"
 
 UENUM(BlueprintType)
+enum class ESB_GameType : uint8
+{
+	Campaign,
+	Battle
+};
+
+UENUM(BlueprintType)
 enum class ESB_GamePhase : uint8
 {
 	WaitingForPlayers,
@@ -70,6 +77,28 @@ enum class ESB_ShieldState : uint8
 
 #pragma region +++++ Settings ...
 
+USTRUCT(BlueprintType)
+struct FSB_GameSettings
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<AActor> CampaignPostProcess_BP;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<AActor> BattlePostProcess_BP;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float FreeRespawnTimer;
+	
+	FSB_GameSettings()
+	{
+		CampaignPostProcess_BP = nullptr;
+		BattlePostProcess_BP = nullptr;
+		FreeRespawnTimer = 5.0f;
+	}
+};
+	
 USTRUCT(BlueprintType)
 struct FSB_ShieldSettings
 {

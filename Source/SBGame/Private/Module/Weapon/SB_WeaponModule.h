@@ -22,6 +22,7 @@ public:
 	USB_WeaponModule();
 
 	virtual void Init(const FSB_ModuleSlotData& NewModuleSlotData, const FName& NewModuleRowName) override;
+	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	//
@@ -41,18 +42,29 @@ private:
 
 public:
 
-	UFUNCTION()
-	void SetTargetShip(ASB_Vehicle* const NewTargetShip);
+	UFUNCTION() // Update available targets, called by owning vehicle. // Server only.
+	void SetTargets(TArray<ASB_Vehicle*> NewTargets);
 
 protected:
+
+	UPROPERTY()
+	bool bIsAIEnabled;
 	
-	TWeakObjectPtr<ASB_Vehicle> TargetShip;
+	UPROPERTY() // ToDo : Convert to TWeakObjectPtr
+	TArray<ASB_Vehicle*> TargetVehicles;
+	
 	TWeakObjectPtr<USB_TargetPoint> TargetPoint;
+
+	UPROPERTY()
+	FHitResult WeaponTraceResult;
 
 private:
 	
-	UFUNCTION()
-	void UpdateTargetComponent();
+	UFUNCTION() // Search a line of view to a target point, from the vehicle targets list. // Server only.
+	void UpdateTargetComponent(); // ToDo : TargetPoint or Component ?
+
+	UFUNCTION() // Get hit result facing weapon muzzle, used by subclasses own logic. // Server only.
+	void UpdateWeaponTrace();
 
 	//
 
@@ -65,12 +77,15 @@ private:
 protected:
 
 	UPROPERTY()
-	FRotator LerpedRotation;
+	FRotator DefaultRotation;
+	
+	UPROPERTY()
+	FRotator CurrentRotation;
 
 private:
 
 	UFUNCTION()
-	void UpdateRotation();
+	void UpdateRotation(float DeltaTime);
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	///// Fire

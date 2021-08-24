@@ -16,7 +16,7 @@ public:
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 private:
-
+	
 	UFUNCTION()
 	void UpdateFire();
 	

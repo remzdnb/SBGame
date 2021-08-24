@@ -33,6 +33,7 @@ public:
 	
 	virtual uint8 GetTeamID() override;
 	virtual ASB_Vehicle* const SpawnAndPossessVehicle(const FTransform& SpawnTransform) override;
+	virtual void OnVehicleDestroyed(AActor* const DestroyedVehicle) override;
 	
 	//
 
@@ -55,6 +56,8 @@ private:
 
 	//
 
+	FTimerDelegate FreeRespawnTimerDelegate;
+	FTimerHandle FreeRespawnTimer;
 	FTimerHandle DetectionUpdateTimer;
 
 	//

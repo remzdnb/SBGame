@@ -19,24 +19,29 @@ public:
 	virtual void SetWantsToFire(bool bNewWantsToFire) override;
 
 private:
-
-	UFUNCTION()
-	void IncreaseBeamLength(float DeltaTime);
-
-	UFUNCTION()
-	void DecreaseBeamLength(float DeltaTime);
-
+	
 	UFUNCTION()
 	void CheckBeamCollision();
 	
-	//
+	UFUNCTION()
+	void UpdateBeam();
+
+	UFUNCTION()
+	void StopBeam();
+
+	UFUNCTION()
+	void ApplyBeamDamage();
 	
-	UPROPERTY()
-	class ASB_Beam* BeamActor;
+	//
+
+	AController* OwnerController; // ToDo : set in base module ...
 
 	UPROPERTY()
 	class UParticleSystemComponent* BeamParticle;
 
 	UPROPERTY()
-	float CurrentBeamLength;
+	FHitResult HitResult;
+	
+	UPROPERTY()
+	FTimerHandle DamageTimer;
 };

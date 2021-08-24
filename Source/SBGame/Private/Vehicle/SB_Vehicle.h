@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SB_Types.h"
+//
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "SB_Vehicle.generated.h"
@@ -23,6 +24,7 @@ class USB_HUDVehicleOTMWidget;
 class USB_TargetPoint;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FVehicleDurabilityUpdatedDelegate, float, NewDurability, float, MaxDurability);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FVehicleDestroyedDelegate, class ASB_Vehicle* const, DestroyedVehicle, AController*, OwningController);
 
 UCLASS()
 class ASB_Vehicle : public ACharacter
@@ -116,7 +118,7 @@ private:
 	TArray<USB_TargetPoint*> TargetPoints;
 
 	UPROPERTY()
-	ASB_Vehicle* PriorityTarget;
+	TWeakObjectPtr<ASB_Vehicle> PriorityTarget;
 	
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	///// Combat
@@ -131,12 +133,6 @@ public:
 		float FromModuleDamage
 	);
 	
-	UFUNCTION()
-	void UpdateState(ESB_ShipState NewState);
-
-	UFUNCTION(NetMulticast, Reliable)
-	void UpdateState_Multicast(ESB_ShipState NewState);
-
 	//
 	
 	FORCEINLINE UFUNCTION() float GetDurability() const { return Durability; }
@@ -145,7 +141,7 @@ public:
 	//
 
 	FVehicleDurabilityUpdatedDelegate OnVehicleDurabilityUpdated;
-	//FDestroyedDelegate OnDestroyed;
+	FVehicleDestroyedDelegate OnVehicleDestroyed;
 
 private:
 
@@ -156,6 +152,13 @@ private:
 		const FVector& HitLocation,
 		AController* const InstigatorController
 	);
+
+	UFUNCTION()
+	void DestroyVehicle();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void DestroyVehicle_Multicast();
+
 	
 	UFUNCTION()
 	void OnRep_Durability();

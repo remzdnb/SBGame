@@ -1,102 +1,135 @@
 #include "Module/Weapon/SB_BeamWeaponModule.h"
 #include "Module/Weapon/SB_Beam.h"
+#include "Vehicle/SB_Vehicle.h"
+#include "SB_GameInstance.h"
+#include "Battle/SB_PlayerState.h"
 //
+#include "SB_GameState.h"
 #include "Particles/ParticleSystemComponent.h" 
 #include "Kismet/GameplayStatics.h"
+#include "TimerManager.h"
+#include "Kismet/KismetMathLibrary.h"
 
 void USB_BeamWeaponModule::Init(const FSB_ModuleSlotData& NewModuleSlotData, const FName& NewModuleRowName)
 {
 	Super::Init(NewModuleSlotData, NewModuleRowName);
 
-	/*BeamActor = GetWorld()->SpawnActorDeferred<ASB_Beam>(WeaponModuleData->BeamBP, FTransform(FVector()), GetOwner(), nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
-	if (BeamActor)
+	const ASB_Vehicle* OwningVehicle = Cast<ASB_Vehicle>(GetOwner());
+	OwnerController = Cast<AController>(OwningVehicle->GetOwner());
+
+	if (GState->GetGameType() == ESB_GameType::Battle)
 	{
-		UGameplayStatics::FinishSpawningActor(BeamActor, FTransform(FVector()));
-		BeamActor->AttachToComponent(this, FAttachmentTransformRules::SnapToTargetNotIncludingScale, "MuzzleSocket_01");
-		BeamActor->SetActorScale3D(WeaponModuleData->BeamScale);
-	}*/
-
-	const FString ComponentName = this->GetName() + "_BeamParticle";
-	BeamParticle = NewObject<UParticleSystemComponent>(this, *ComponentName);
-	BeamParticle->AttachToComponent(this, FAttachmentTransformRules::SnapToTargetNotIncludingScale, "MuzzleSocket_01");
-	BeamParticle->SetTemplate(WeaponModuleData->BeamParticle);
-	BeamParticle->SetWorldScale3D(FVector(1.0f));
-	BeamParticle->RegisterComponent();
-
-	//
-
-	CurrentBeamLength = 0.0f;
+		const FString ComponentName = this->GetName() + "_BeamParticle";
+		BeamParticle = NewObject<UParticleSystemComponent>(this, *ComponentName);
+		BeamParticle->AttachToComponent(this, FAttachmentTransformRules::SnapToTargetNotIncludingScale, "MuzzleSocket_01");
+		BeamParticle->SetTemplate(WeaponModuleData->BeamParticle);
+		BeamParticle->SetWorldScale3D(FVector(1.0f));
+		BeamParticle->SetVisibility(false);
+		BeamParticle->RegisterComponent();
+	}
 }
 
 void USB_BeamWeaponModule::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (bWantsToFire)
-		IncreaseBeamLength(DeltaTime);
-	else
-		DecreaseBeamLength(DeltaTime);
-
-	BeamParticle->SetVectorParameter("length", FVector(1.0f, 1.0f, CurrentBeamLength));
-	BeamParticle->SetVectorParameter("beamEnd", FVector(CurrentBeamLength, 0.0f, 0.0f));
-	BeamParticle->SetFloatParameter("tileVcorrect", CurrentBeamLength / 20.0f / 25.0f);
+	if (GState->GetGameType() == ESB_GameType::Battle)
+	{
+		CheckBeamCollision();
+	}
+	
+	//BeamParticle->SetVectorParameter("beamEnd", FVector(CurrentBeamLength, 0.0f, 0.0f));
+	//BeamParticle->SetFloatParameter("tileVcorrect", CurrentBeamLength / 20.0f / 25.0f);
 }
 
 void USB_BeamWeaponModule::SetWantsToFire(bool bNewWantsToFire)
 {
 	Super::SetWantsToFire(bNewWantsToFire);
-
-	/*if (bNewWantsToFire)
-		StartBeam();
-	else
-		StopBeam();*/
-
-
-}
-
-void USB_BeamWeaponModule::IncreaseBeamLength(float DeltaTime)
-{
-	if (CurrentBeamLength < WeaponModuleData->Range)
-	{
-		CurrentBeamLength = CurrentBeamLength + WeaponModuleData->BeamSpeed * DeltaTime;
-	}
-}
-
-void USB_BeamWeaponModule::DecreaseBeamLength(float DeltaTime)
-{
-	if (CurrentBeamLength > 0)
-	{
-		CurrentBeamLength = CurrentBeamLength - WeaponModuleData->BeamSpeed * DeltaTime;
-	}
 }
 
 void USB_BeamWeaponModule::CheckBeamCollision()
 {
-	const FVector Start = GetSocketLocation("MuzzleSocket_01");
+	const FVector Start = GetSocketLocation("ViewSocket");
 	const FVector End =
-		GetSocketLocation("MuzzleSocket_01") +
-		GetSocketRotation("MuzzleSocket_01").Vector()
-		* CurrentBeamLength;
-
-	FHitResult HitResult;
+		GetSocketLocation("ViewSocket") +
+		GetSocketRotation("ViewSocket").Vector() *
+		WeaponModuleData->Range;
+	
 	FCollisionQueryParams TraceParams;
 	TraceParams.AddIgnoredComponent(this);
 	
 	GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, TraceParams);
-
-	/*if (HitResult.Actor == TargetShip)
+	ASB_Vehicle* HitVehicle = Cast<ASB_Vehicle>(HitResult.Actor);
+	if (HitVehicle)
 	{
-		if (GInstance->DebugSettings.bIsDebugEnabled_WeaponModule)
-			UKismetSystemLibrary::DrawDebugLine(GetWorld(), Start, End, FColor::Green, 0.3f, 20.0f);
+		const ASB_PlayerState* const SelfPlayerState = Cast<ASB_PlayerState>(Cast<APawn>(GetOwner())->GetPlayerState());
+		const ASB_PlayerState* const TargetPlayerState = Cast<ASB_PlayerState>(HitVehicle->GetPlayerState());
+		if (SelfPlayerState && TargetPlayerState)
+		{
+			if (SelfPlayerState->GetTeam() != TargetPlayerState->GetTeam())
+			{
+				UpdateBeam();
 
-		TargetPoint = ThisTargetPoint;
-		bWantsToFire = true;
-		return;
+				if (GInstance->DebugSettings.bIsDebugEnabled_WeaponModule)
+				{
+					UKismetSystemLibrary::DrawDebugLine(GetWorld(), Start, End, FColor::Purple, GetWorld()->GetDeltaSeconds() + 0.01f, 50.0f);
+				}
+
+				return;
+			}
+		}
 	}
+	
+	StopBeam();
 
 	if (GInstance->DebugSettings.bIsDebugEnabled_WeaponModule)
 	{
-		UKismetSystemLibrary::DrawDebugLine(GetWorld(), Start, End, FColor::Red, TARGETUPDATERATE - 0.2f, 20.0f);
-	}*/
+		UKismetSystemLibrary::DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, GetWorld()->GetDeltaSeconds() + 0.01f, 50.0f);
+	}
+}
+
+void USB_BeamWeaponModule::UpdateBeam()
+{
+	if (GetWorld()->GetTimerManager().IsTimerActive(DamageTimer) == false)
+	{
+		if (GInstance->DebugSettings.bIsDebugEnabled_WeaponModule == false)
+		{
+			//BeamParticle->SetVisibility(true);
+		}
+
+		BeamParticle->SetVisibility(true);
+		
+		GetWorld()->GetTimerManager().SetTimer(
+			DamageTimer,
+			this,
+			&USB_BeamWeaponModule::ApplyBeamDamage,
+			WeaponModuleData->BeamTickRate,
+			true,
+			WeaponModuleData->BeamTickRate
+		);
+	}
+
+	// doesnt work well, think about it
+	/*BeamParticle->SetWorldRotation(UKismetMathLibrary::FindLookAtRotation(
+			GetSocketLocation("MuzzleSocket_01"),
+			HitResult.Location)
+	);*/
+	const float NewBeamLength = FVector::Dist(GetSocketLocation("MuzzleSocket_01"), HitResult.Location);
+	BeamParticle->SetVectorParameter("length", FVector(1.0f, 1.0f, NewBeamLength));
+}
+
+void USB_BeamWeaponModule::StopBeam()
+{
+	BeamParticle->SetVisibility(false);
+	GetWorld()->GetTimerManager().ClearTimer(DamageTimer);
+}
+
+void USB_BeamWeaponModule::ApplyBeamDamage()
+{
+	ISB_CombatInterface* CombatInterface = Cast<ISB_CombatInterface>(HitResult.Component);
+	if (CombatInterface)
+	{
+		CombatInterface->ApplyDamageFromProjectile(WeaponModuleData->Damage, HitResult.Location, OwnerController);
+	}
 }
 

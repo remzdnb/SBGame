@@ -1,6 +1,6 @@
 // SBGame
 #include "Battle/SB_BattleGameMode.h"
-#include "Battle/SB_GameState.h"
+#include "SB_GameState.h"
 #include "Battle/SB_PlayerState.h"
 #include "Battle/SB_BattlePlayerController.h"
 #include "Battle/SB_AIController.h"
@@ -33,7 +33,9 @@ void ASB_BattleGameMode::PostInitializeComponents()
 	if (GetWorld()->IsGameWorld() == false)
 		return;
 
-	GInstance = Cast<USB_GameInstance>(GetGameInstance());
+	//
+	
+	GState->SetGameType(ESB_GameType::Battle);
 
 	//
 
@@ -130,8 +132,10 @@ void ASB_BattleGameMode::RegisterVehicle(AActor* const VehicleToRegister)
 	}
 }
 
-void ASB_BattleGameMode::UnregisterVehicle(AActor* const VehicleToUnregister)
+void ASB_BattleGameMode::UnregisterVehicle(ASB_Vehicle* const VehicleToUnregister, AController* OwningController)
 {
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, "ASB_BattleGameMode::UnregisterVehicle");
+	
 	ASB_Vehicle* const Vehicle = Cast<ASB_Vehicle>(VehicleToUnregister);
 	if (Vehicle)
 	{

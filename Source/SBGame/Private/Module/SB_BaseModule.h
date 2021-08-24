@@ -26,8 +26,8 @@ public:
 
 	USB_BaseModule();
 
-	virtual void Init(const FSB_ModuleSlotData& NewModuleSlotData, const FName& NewModuleRowName);
-	virtual void ApplyDamageFromProjectile(float Damage, const FVector& HitLocation, AController* const InstigatorController) override;
+	virtual void Init(const FSB_ModuleSlotData& NewModuleSlotData, const FName& NewModuleRowName); // Rename to setup
+	virtual void InitializeComponent() override;
 
 	//
 
@@ -39,57 +39,78 @@ public:
 
 	UFUNCTION()
 	void ToggleHighlight(bool bNewIsEnabled = true);
-	
-	//
 
+protected:
+	
+	const class USB_GameInstance* GInstance;
+	const class ASB_GameState* GState;
+	
+	TWeakObjectPtr<ASB_Vehicle> OwningShip;
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///// Data
+
+public:
+	
 	FORCEINLINE UFUNCTION() const FSB_ModuleSlotData& GetModuleSlotData() const { return ModuleSlotData; }
 	FORCEINLINE UFUNCTION() const FSB_BaseModuleData* const GetBaseModuleData() const { return BaseModuleData; }
 	FORCEINLINE UFUNCTION() const FName& GetModuleRowName() const { return ModuleRowName; }
+
+protected:
+
+	FSB_ModuleSlotData ModuleSlotData;
+	FName ModuleRowName;
+	const FSB_BaseModuleData* BaseModuleData;
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///// State
+
+public:
+
+	UFUNCTION()
+	virtual void UpdateState(const ESB_ModuleState NewState);
+
 	FORCEINLINE UFUNCTION() ESB_ModuleState GetState() const { return State; }
 
 	//
 
-	FModuleDamaged OnModuleDamaged;
 	FModuleStateUpdatedDelegate OnStateUpdated;
+
+private:
+	
+	UFUNCTION()
+	void OnRep_State();
+
+	//
+	
+	UPROPERTY(ReplicatedUsing=OnRep_State)
+	ESB_ModuleState State;
+	
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///// Combat
+
+public:
+	
+	virtual void ApplyDamageFromProjectile(float Damage, const FVector& HitLocation, AController* const InstigatorController) override;
+
+	//
+
+	FModuleDamaged OnModuleDamaged;
 	FModuleDurabilityUpdatedDelegate OnDurabilityUpdated;
 
-protected:
-
-	UFUNCTION()
-	virtual void UpdateState(const ESB_ModuleState NewState);
+private:
 
 	UFUNCTION()
 	void RepairOnce();
 
 	UFUNCTION()
-	void OnRep_State();
-	
-	UFUNCTION()
 	void OnRep_Durability();
-	
-	//
 
-	const class USB_GameInstance* GInstance;
-	
-	FSB_ModuleSlotData ModuleSlotData;
-	FName ModuleRowName;
-	const FSB_BaseModuleData* BaseModuleData;
-	
-	//TWeakObjectPtr<ASB_Vehicle> OwningShip;
+	//
 
 	FTimerHandle RepairTimer;
 
-	//
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true")) // why visibleanywhere ?
-	bool bIsHovered;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	bool bIsSelected;
-
-	UPROPERTY(ReplicatedUsing=OnRep_State)
-	ESB_ModuleState State;
-	
 	UPROPERTY(ReplicatedUsing=OnRep_Durability)
 	float Durability;
+	
 };

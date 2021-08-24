@@ -26,11 +26,15 @@ public:
 	//
 
 	UFUNCTION()
+	void QueryFreeRespawnWithDelay(AController* const NewController, float Delay);
+	
+	UFUNCTION()
 	void QueryFreeRespawn(AController* const NewController);
 
 private:
 
 	virtual void OnAIControllerSpawned(ASB_AIController* const NewAIController) override;
+	virtual void UnregisterVehicle(ASB_Vehicle* const VehicleToUnregister, AController* OwningController) override;
 
 	//
 	

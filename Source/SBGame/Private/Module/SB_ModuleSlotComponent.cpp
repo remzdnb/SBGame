@@ -13,8 +13,6 @@
 
 USB_ModuleSlotComponent::USB_ModuleSlotComponent()
 {
-	SetChildActorClass(ASB_ModuleSlotActor::StaticClass());
-
 	GInstance = Cast<USB_GameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 
 	static ConstructorHelpers::FObjectFinder<UDataTable> FoundDT(TEXT("DataTable'/Game/Data/SB_BaseModuleData_DT.SB_BaseModuleData_DT'"));
@@ -22,6 +20,13 @@ USB_ModuleSlotComponent::USB_ModuleSlotComponent()
 	{
 		BaseModuleDT = FoundDT.Object;
 	}
+
+#if WITH_EDITOR
+
+	SetChildActorClass(ASB_ModuleSlotActor::StaticClass());
+
+#endif
+	
 }
 
 void USB_ModuleSlotComponent::InitializeComponent()
@@ -60,25 +65,27 @@ USB_BaseModule* const USB_ModuleSlotComponent::SpawnModule(const FName& NewModul
 		{
 			NewModule = NewObject<USB_ThrusterModule>(this, *ComponentName);
 		}
-		else
+		else if (BaseModuleData->ModuleType == ESB_ModuleType::Empty)
 		{
-			if (BaseModuleData->ModuleType == ESB_ModuleType::Empty && bSpawnEmptyModule)
-			{
-				if (bSpawnEmptyModule)
-					NewModule = NewObject<USB_BaseModule>(this, *ComponentName);
-			}
-			else
+			if (bSpawnEmptyModule)
 			{
 				NewModule = NewObject<USB_BaseModule>(this, *ComponentName);
 			}
 		}
-		
-		NewModule->Init(ModuleSlotData, NewModuleDataRowName);
-		NewModule->AttachToComponent(GetAttachParent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-		NewModule->SetRelativeLocation(GetRelativeLocation());
-		NewModule->SetRelativeRotation(GetRelativeRotation());
-		NewModule->RegisterComponent();
+		else
+		{
+			NewModule = NewObject<USB_BaseModule>(this, *ComponentName);
+		}
 
+		if (NewModule)
+		{
+			NewModule->Init(ModuleSlotData, NewModuleDataRowName);
+			NewModule->AttachToComponent(GetAttachParent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+			NewModule->SetRelativeLocation(GetRelativeLocation());
+			NewModule->SetRelativeRotation(GetRelativeRotation());
+			NewModule->RegisterComponent();
+		}
+		
 		SpawnedModule = NewModule;
 		return SpawnedModule;
 	}
@@ -93,6 +100,9 @@ USB_BaseModule* const USB_ModuleSlotComponent::SpawnDefaultModule(bool bSpawnEmp
 
 void USB_ModuleSlotComponent::UpdateEditorMesh()
 {
+	
+#if WITH_EDITOR
+	
 	if (IsValid(BaseModuleDT) == false)
 		return;
 
@@ -107,4 +117,7 @@ void USB_ModuleSlotComponent::UpdateEditorMesh()
 			ModuleSlotActor->DemoMesh->SetRelativeScale3D(BaseModuleData->WorldScale);
 		}
 	}
+
+#endif
+     
 }

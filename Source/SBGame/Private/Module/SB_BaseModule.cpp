@@ -1,6 +1,7 @@
 #include "Module/SB_BaseModule.h"
 #include "Vehicle/SB_Vehicle.h"
 #include "SB_GameInstance.h"
+#include "SB_GameState.h"
 //
 #include "Components/SkeletalMeshComponent.h"
 #include "TimerManager.h"
@@ -16,16 +17,16 @@ USB_BaseModule::USB_BaseModule()
 	SetGenerateOverlapEvents(true);
 	SetCustomDepthStencilValue(1);
 	SetIsReplicatedByDefault(true);
-
-	GInstance = Cast<USB_GameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-
-	bIsHovered = false;
-	bIsSelected = false;
+	
 	State = ESB_ModuleState::Ready;
 }
 
 void USB_BaseModule::Init(const FSB_ModuleSlotData& NewModuleSlotData, const FName& NewModuleRowName)
 {
+	// should be called by each instance ?
+	GInstance = Cast<USB_GameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+	GState = Cast<ASB_GameState>(GetWorld()->GetGameState());
+	
 	ModuleSlotData = NewModuleSlotData;
 	ModuleRowName = NewModuleRowName;
 
@@ -40,9 +41,15 @@ void USB_BaseModule::Init(const FSB_ModuleSlotData& NewModuleSlotData, const FNa
 	}
 }
 
+void USB_BaseModule::InitializeComponent()
+{
+	Super::InitializeComponent();
+
+}
+
 void USB_BaseModule::OnHoverStart()
 {
-	if (BaseModuleData == nullptr)
+	/*if (BaseModuleData == nullptr)
 	{
 		//UE_LOG(LogTemp, Warning, TEXT("USB_BaseModule::OnHoverStart : BaseModuleData == nullptr"));
 		return;
@@ -61,23 +68,19 @@ void USB_BaseModule::OnHoverStart()
 		
 		SetRenderCustomDepth(true);
 		bIsHovered = true;
-	}
+	}*/
 }
 
 void USB_BaseModule::OnHoverStop()
 {
-	SetRenderCustomDepth(false);
-	bIsHovered = false;
+	//SetRenderCustomDepth(false);
+	//bIsHovered = false;
 }
 
 void USB_BaseModule::ToggleHighlight(bool bNewIsEnabled)
 {
 	SetCustomDepthStencilValue(3);
-	
 	SetRenderCustomDepth(bNewIsEnabled);
-	bIsSelected = bNewIsEnabled;
-	
-	bIsHovered = false;
 }
 
 void USB_BaseModule::ApplyDamageFromProjectile(float Damage, const FVector& HitLocation, AController* const InstigatorController)

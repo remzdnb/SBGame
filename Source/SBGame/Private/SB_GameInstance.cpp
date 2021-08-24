@@ -131,6 +131,11 @@ const FSB_WeaponModuleData* const USB_GameInstance::GetWeaponModuleDataFromRow(c
 	return WeaponModuleData;
 }
 
+void USB_GameInstance::ToggleDebug(bool bEnable)
+{
+	DebugSettings.bIsDebugEnabled_WeaponModule = bEnable;
+}
+
 void USB_GameInstance::Debug()
 {
 	if (SaveGame)

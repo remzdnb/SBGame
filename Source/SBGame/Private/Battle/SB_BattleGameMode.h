@@ -1,17 +1,17 @@
 #pragma once
 
+#include "SB_GameMode.h"
+//
 #include "CoreMinimal.h"
-#include "GameFramework/GameModeBase.h"
 #include "SB_BattleGameMode.generated.h"
 
-class USB_GameInstance;
 class ASB_ShipStart;
 class ASB_BattlePlayerController;
 class ASB_AIController;
 class ASB_Vehicle;
 
 UCLASS()
-class ASB_BattleGameMode : public AGameModeBase
+class ASB_BattleGameMode : public ASB_GameMode
 {
 	GENERATED_BODY()
 
@@ -32,8 +32,6 @@ public:
 
 protected:
 
-	USB_GameInstance* GInstance;
-
 	TArray<ASB_ShipStart*> ShipStarts;
 	TArray<TWeakObjectPtr<ASB_BattlePlayerController>> PlayerControllers;
 	TArray<TWeakObjectPtr<ASB_AIController>> AIControllers;
@@ -48,7 +46,7 @@ protected:
 	void RegisterVehicle(AActor* const VehicleToRegister);
 
 	UFUNCTION()
-	void UnregisterVehicle(AActor* const VehicleToUnregister);
+	virtual void UnregisterVehicle(ASB_Vehicle* const VehicleToUnregister, AController* OwningController);
 
 	UFUNCTION(Exec)
 	void SpawnAIController(uint8 TeamID);

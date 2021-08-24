@@ -50,13 +50,16 @@ public:
 	//
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FSB_ShieldSettings ShieldSettings;
+	FSB_GameSettings GameSettings;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FSB_UISettings UISettings;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FSB_AISettings AISettings;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FSB_ShieldSettings ShieldSettings;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FSB_DebugSettings DebugSettings;
@@ -91,7 +94,15 @@ private:
 	USB_PlayerSaveGame* SaveGame;
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	/////
+	///// Console commands
+
+private:
+	
+	UFUNCTION(Exec)
+	void ToggleDebug(bool bEnable);
+	
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///// Console commands
 
 private:
 

@@ -45,11 +45,19 @@ public:
 
 	FGameStateUpdated GameStateUpdatedEvent;
 
+	//
+
+	FORCEINLINE UFUNCTION() ESB_GameType GetGameType() const { return GameType; }
+	FORCEINLINE UFUNCTION() void SetGameType(ESB_GameType NewGameType) { GameType = NewGameType; }
+
 private:
 
 	FTimerHandle GamePhaseTimer;
 
 	//
+	
+	UPROPERTY()
+	ESB_GameType GameType;
 	
 	UPROPERTY()
 	ESB_GamePhase GamePhase;

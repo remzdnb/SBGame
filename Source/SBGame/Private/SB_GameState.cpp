@@ -4,6 +4,7 @@
 
 ASB_GameState::ASB_GameState()
 {
+	GameType = ESB_GameType::Battle;
 	GamePhase = ESB_GamePhase::Ready;
 }
 

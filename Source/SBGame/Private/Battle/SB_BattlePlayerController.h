@@ -39,7 +39,7 @@ public:
 
 	FORCEINLINE UFUNCTION() ASB_PlayerState* const GetPlayerState() const { return PState; }
 
-private:
+protected:
 
 	ASB_BattleGameMode* GMode;
 	ASB_GameState* GState;
@@ -53,8 +53,15 @@ public:
 	UFUNCTION()
 	void OnDamageDealt(float PrimaryDamage, float SecondaryDamage, const FVector& HitLocation, ESB_PrimaryDamageType PrimaryDamageType);
 
+	UFUNCTION()
+	void OnVehicleDestroyed(AActor* DestroyedVehicle);
+
+protected:
+
+
+
 private:
-	
+
 	UFUNCTION(Client, Reliable)
 	void OnDamageDealt_Client(float PrimaryDamage, float SecondaryDamage, const FVector& HitLocation, ESB_PrimaryDamageType PrimaryDamageType);
 
@@ -69,6 +76,9 @@ private:
 
 	UFUNCTION()
 	void UpdateHoveredVehicle();
+
+	UFUNCTION()
+	void SelectHoveredVehicle();
 	
 	UFUNCTION()
 	void UpdateViewTarget(float DeltaTime) const;
@@ -88,4 +98,7 @@ private:
 
 	UPROPERTY()
 	TWeakObjectPtr<ASB_Vehicle> HoveredVehicle;
+
+	UPROPERTY()
+	TWeakObjectPtr<ASB_Vehicle> SelectedVehicle;
 };

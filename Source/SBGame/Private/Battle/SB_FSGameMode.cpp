@@ -4,6 +4,8 @@
 #include "Vehicle/SB_Vehicle.h"
 #include "Vehicle/SB_ShipStart.h"
 #include "SB_GameInstance.h"
+//
+#include "TimerManager.h"
 
 ASB_FSGameMode::ASB_FSGameMode()
 {
@@ -28,11 +30,26 @@ void ASB_FSGameMode::PostLogin(APlayerController* NewPlayerController)
 	QueryFreeRespawn(NewPlayerController);
 }
 
-inline void ASB_FSGameMode::OnAIControllerSpawned(ASB_AIController* const NewAIController)
+void ASB_FSGameMode::OnAIControllerSpawned(ASB_AIController* const NewAIController)
 {
 	Super::OnAIControllerSpawned(NewAIController);
 
 	QueryFreeRespawn(NewAIController);
+}
+
+void ASB_FSGameMode::QueryFreeRespawnWithDelay(AController* const NewController, float Delay)
+{
+	FTimerDelegate FreeRespawnTimerDelegate;
+	FreeRespawnTimerDelegate.BindUFunction(this, FName("QueryFreeRespawn"), NewController);
+	FTimerHandle FreeRespawnTimer;
+
+	GetWorld()->GetTimerManager().SetTimer(
+		FreeRespawnTimer,
+		FreeRespawnTimerDelegate,
+		GInstance->GameSettings.FreeRespawnTimer,
+		false,
+		GInstance->GameSettings.FreeRespawnTimer
+	);
 }
 
 void ASB_FSGameMode::QueryFreeRespawn(AController* const NewController)
@@ -62,8 +79,34 @@ void ASB_FSGameMode::HandleFreeRespawn()
 			{
 				ReadyToSpawnControllers.RemoveAt(0);
 				RegisterVehicle(NewVehicle);
-				NewVehicle->OnDestroyed.AddUniqueDynamic(this, &ASB_FSGameMode::UnregisterVehicle);
+				NewVehicle->OnVehicleDestroyed.AddDynamic(this, &ASB_FSGameMode::UnregisterVehicle);
 			}
 		}
+	}
+}
+
+void ASB_FSGameMode::UnregisterVehicle(ASB_Vehicle* const VehicleToUnregister, AController* OwningController)
+{
+	if (GInstance->DebugSettings.bIsDebugEnabled_GameMode)
+		UE_LOG(LogTemp, Display, TEXT("ASB_FSGameMode::UnregisterVehicle - respawn timer set 0."));
+	
+	Super::UnregisterVehicle(VehicleToUnregister, OwningController);
+
+	if (OwningController)
+	{
+		FTimerDelegate FreeRespawnTimerDelegate;
+		FreeRespawnTimerDelegate.BindUFunction(this, FName("QueryFreeRespawn"), OwningController);
+		FTimerHandle FreeRespawnTimer;
+
+		GetWorld()->GetTimerManager().SetTimer(
+			FreeRespawnTimer,
+			FreeRespawnTimerDelegate,
+			GInstance->GameSettings.FreeRespawnTimer,
+			false,
+			GInstance->GameSettings.FreeRespawnTimer
+		);
+
+		if (GInstance->DebugSettings.bIsDebugEnabled_GameMode)
+			UE_LOG(LogTemp, Display, TEXT("ASB_FSGameMode::UnregisterVehicle - %s respawn timer set."), *OwningController->GetName());
 	}
 }

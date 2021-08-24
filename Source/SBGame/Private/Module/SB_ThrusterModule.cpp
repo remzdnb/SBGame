@@ -67,14 +67,14 @@ void USB_ThrusterModule::UpdateState(const ESB_ModuleState NewState)
 {
 	Super::UpdateState(NewState);
 
-	if (State == ESB_ModuleState::Repairing)
+	/*if (State == ESB_ModuleState::Repairing)
 	{
 		
 	}
 	else
 	{
 		
-	}
+	}*/
 }
 
 void USB_ThrusterModule::UpdateExhaustParticle()
