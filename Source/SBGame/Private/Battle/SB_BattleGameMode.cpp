@@ -5,7 +5,7 @@
 #include "Battle/SB_BattlePlayerController.h"
 #include "Battle/SB_AIController.h"
 #include "Vehicle/SB_Vehicle.h"
-#include "Vehicle/SB_ShipStart.h"
+#include "SB_PlayerStart.h"
 #include "SB_GameInstance.h"
 // Plugins
 #include "RZ_UIManager.h"
@@ -35,18 +35,13 @@ void ASB_BattleGameMode::PostInitializeComponents()
 
 	//
 	
-	GState->SetGameType(ESB_GameType::Battle);
+	GState->GameType = ESB_GameType::Battle;
 
 	//
 
-	for (TActorIterator<ASB_ShipStart> NewShipStart(GetWorld()); NewShipStart; ++NewShipStart)
+	for (TActorIterator<ASB_PlayerStart> PlayerStart(GetWorld()); PlayerStart; ++PlayerStart)
 	{
-		ShipStarts.Add(*NewShipStart);
-	}
-
-	if (ShipStarts.Num() == 0)
-	{
-		UE_LOG(LogTemp, Error, TEXT("ARZ_BaseGameMode::PostInitializeComponents - Missing ShipStart."));
+		PlayerStarts.Add(*PlayerStart);
 	}
 }
 
@@ -54,14 +49,19 @@ void ASB_BattleGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	for (uint8 Index = 0; Index < GInstance->AISettings.DefaultBotNum_Team1; Index++)
-	{
-		SpawnAIController(1);
-	}
+	InitTeams();
 
-	for (uint8 Index = 0; Index < GInstance->AISettings.DefaultBotNum_Team2; Index++)
+	for (uint8 TeamID = 0; TeamID < GInstance->AISettings.DefaultBotCountByTeam.Num(); TeamID++)
 	{
-		SpawnAIController(2);
+		if (GState->TeamsData.IsValidIndex(TeamID))
+		{
+			for (uint8 Index = 0; Index < GInstance->AISettings.DefaultBotCountByTeam[TeamID]; Index++)
+			{
+				// if max player ?
+
+				SpawnAIController(TeamID);
+			}
+		}
 	}
 }
 
@@ -77,9 +77,30 @@ void ASB_BattleGameMode::PostLogin(APlayerController* NewPlayerController)
 	PlayerControllers.Add(Cast<ASB_BattlePlayerController>(NewPlayerController));
 }
 
-ASB_ShipStart* ASB_BattleGameMode::GetAvailableShipStart(uint8 TeamID)
+void ASB_BattleGameMode::InitTeams()
 {
-	for (ASB_ShipStart* ShipStart : ShipStarts)
+	uint8 TeamCount = 1;
+	for (const auto& PlayerStart : PlayerStarts)
+	{
+		if (PlayerStart->GetTeamID() > TeamCount)
+		{
+			TeamCount = PlayerStart->GetTeamID() + 1;
+		}
+	}
+
+	GState->TeamsData.SetNum(TeamCount);
+	for (const auto& PlayerStart : PlayerStarts)
+	{
+		GState->TeamsData[PlayerStart->GetTeamID()].MaxPlayers++;
+		GState->TeamsData[PlayerStart->GetTeamID()].PlayerStartList.Add(PlayerStart);
+	}
+
+	GState->BroadcastGameStateUpdated();
+}
+
+ASB_PlayerStart* ASB_BattleGameMode::GetAvailableShipStart(uint8 TeamID)
+{
+	for (ASB_PlayerStart* ShipStart : PlayerStarts)
 	{
 		if (ShipStart->GetIsEnabled() == true &&
 			ShipStart->GetIsAvailable() == true &&
@@ -101,9 +122,7 @@ void ASB_BattleGameMode::SpawnAIController(uint8 TeamID)
 	{
 		NewAIController->bWantsPlayerState = true;
 		UGameplayStatics::FinishSpawningActor(NewAIController, FTransform());
-
-		AIControllers.Add(NewAIController);
-
+		
 		ASB_PlayerState* const PlayerState = Cast<ASB_PlayerState>(NewAIController->PlayerState);
 		if (PlayerState)
 		{
@@ -111,6 +130,9 @@ void ASB_BattleGameMode::SpawnAIController(uint8 TeamID)
 			PlayerState->SetTeamID(TeamID);
 		}
 
+		AIControllers.Add(NewAIController);
+		GState->TeamsData[TeamID].PlayerList.Add(NewAIController);
+		
 		OnAIControllerSpawned(NewAIController);
 	}
 }

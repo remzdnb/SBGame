@@ -64,11 +64,14 @@ void ASB_Vehicle::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 
-	GetComponents(ModuleSlots);
-
-	for (const auto& ModuleSlot : ModuleSlots)
+	if (GetWorld()->IsGameWorld() == false)
 	{
-		ModuleSlot->UpdateEditorMesh();
+		GetComponents(ModuleSlots);
+	
+		for (const auto& ModuleSlot : ModuleSlots)
+		{
+			ModuleSlot->UpdateEditorMesh();
+		}
 	}
 }
 
@@ -78,15 +81,15 @@ void ASB_Vehicle::PostInitializeComponents()
 
 	if (GetWorld()->IsGameWorld() == false)
 		return;
-
+	
 	GInstance = Cast<USB_GameInstance>(GetGameInstance());
 	BattleGMode =  Cast<ASB_BattleGameMode>(GetWorld()->GetAuthGameMode());
 	VehicleData = GInstance->GetVehicleDataFromRow(VehicleDataRowName);
-	
 	Durability = VehicleData->MaxDurability;
 
 	//
 
+	GetComponents(ModuleSlots);
 	TInlineComponentArray<USB_TargetPoint*> InlineTargetPoints;
 	GetComponents(InlineTargetPoints);
 	TargetPoints = InlineTargetPoints;

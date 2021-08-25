@@ -22,5 +22,5 @@ void ASB_CampaignGameMode::PostInitializeComponents()
 
 	//
 	
-	GState->SetGameType(ESB_GameType::Campaign);
+	GState->GameType = ESB_GameType::Campaign;
 }

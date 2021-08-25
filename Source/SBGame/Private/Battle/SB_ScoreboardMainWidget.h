@@ -4,6 +4,10 @@
 #include "Blueprint/UserWidget.h"
 #include "SB_ScoreboardMainWidget.generated.h"
 
+class USB_GameInstance;
+class ASB_GameState;
+class UPanelWidget;
+
 UCLASS()
 class USB_ScoreboardMainWidget : public UUserWidget
 {
@@ -15,17 +19,15 @@ public:
 
 private:
 	
-	class ASB_GameState* GameState;
-
-	//
-
 	UFUNCTION()
-	void Update(bool bDummy);
+	void Update();
 
 	//
 
-	UPROPERTY(meta = (BindWidget)) class UPanelWidget* SpectatorTeamContainer;
-	UPROPERTY(meta = (BindWidget)) class UPanelWidget* ATeamContainer;
-	UPROPERTY(meta = (BindWidget)) class UPanelWidget* BTeamContainer;
+	USB_GameInstance* GInstance;
+	ASB_GameState* GState;
+	
+	//
 
+	UPROPERTY(meta = (BindWidget)) class UPanelWidget* TeamsContainerPanel;
 };

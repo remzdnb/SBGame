@@ -5,6 +5,8 @@
 #pragma once
 
 #include "SB_Types.h"
+#include "RZ_CameraActor.h"
+//
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
 #include "SB_GameInstance.generated.h"
@@ -63,6 +65,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FSB_DebugSettings DebugSettings;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FRZ_CameraActorSettings CameraActorSettings;
 	
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	///// Save Game

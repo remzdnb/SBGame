@@ -12,7 +12,6 @@ ARZ_CameraActor::ARZ_CameraActor()
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(FName("SpringArm"));
 	SpringArm->SetupAttachment(RootScene);
-	SpringArm->TargetArmLength = DEFAULTARMLENGTH;
 	SpringArm->bDoCollisionTest = false;
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(FName("Camera"));
@@ -20,20 +19,24 @@ ARZ_CameraActor::ARZ_CameraActor()
 
 	//
 
-	TargetArmLength = DEFAULTARMLENGTH;
-	TargetArmRotation = FRotator::ZeroRotator;
+	CAMode = ERZ_CameraActorMode::Free;
 }
 
 void ARZ_CameraActor::BeginPlay()
 {
 	Super::BeginPlay();
+
+	SpringArm->TargetArmLength = CASettings.DefaultArmLength_Free;
+	TargetArmLength = CASettings.DefaultArmLength_Free;
+	SpringArm->SetWorldRotation(FRotator(CASettings.DefaultPitch, 0.0f, 0.0f));
+	TargetArmRotation = FRotator(CASettings.DefaultPitch, 0.0f, 0.0f);
 }
 
 void ARZ_CameraActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (TargetActor == nullptr && TargetComponent == nullptr)
+	/*if (TargetActor == nullptr && TargetComponent == nullptr)
 	{
 		if (GetActorLocation() != TargetLocation)
 		{
@@ -50,7 +53,7 @@ void ARZ_CameraActor::Tick(float DeltaTime)
 	if (SpringArm->TargetArmLength != TargetArmLength)
 	{
 		SpringArm->TargetArmLength = FMath::Lerp(SpringArm->TargetArmLength, TargetArmLength, LERPSPEED * DeltaTime);
-	}
+	}*/
 }
 
 void ARZ_CameraActor::AddPitchInput(float AxisValue)

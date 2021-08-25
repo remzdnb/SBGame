@@ -13,7 +13,7 @@
 void USB_HUDVehicleOTMWidget::Init(ASB_Vehicle* const NewOwnedVehicle)
 {
 	ASB_PlayerController* const OwningPC = Cast<ASB_PlayerController>(GetOwningPlayer());
-	if (OwningPC)
+	if (OwningPC && OwningPC->GetUIManager())
 	{
 		OwningPC->GetUIManager()->AddHUDWidget(this);
 	}

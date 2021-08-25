@@ -6,7 +6,7 @@
 #include "GameFramework/GameStateBase.h"
 #include "SB_GameState.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGameStateUpdated, bool, bDummy);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGameStateUpdatedDelegate);
 
 UCLASS()
 class ASB_GameState : public AGameStateBase
@@ -22,7 +22,7 @@ public:
 
 	//
 
-	UFUNCTION()
+	/*UFUNCTION()
 	void InitGame();
 
 	UFUNCTION()
@@ -35,7 +35,7 @@ public:
 	void EndGame();
 
 	UFUNCTION()
-	void ResetGame();
+	void ResetGame();*/
 
 	//
 
@@ -43,22 +43,20 @@ public:
 
 	//
 
-	FGameStateUpdated GameStateUpdatedEvent;
+	FGameStateUpdatedDelegate OnGameStateUpdated;
 
 	//
 
-	FORCEINLINE UFUNCTION() ESB_GameType GetGameType() const { return GameType; }
-	FORCEINLINE UFUNCTION() void SetGameType(ESB_GameType NewGameType) { GameType = NewGameType; }
-
-private:
-
-	FTimerHandle GamePhaseTimer;
-
-	//
-	
 	UPROPERTY()
 	ESB_GameType GameType;
 	
 	UPROPERTY()
 	ESB_GamePhase GamePhase;
+
+	UPROPERTY()
+	TArray<FSB_TeamData> TeamsData;
+
+private:
+
+	FTimerHandle GamePhaseTimer;
 };

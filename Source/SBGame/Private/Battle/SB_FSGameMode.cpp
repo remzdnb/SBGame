@@ -2,7 +2,7 @@
 #include "Battle/SB_BattlePlayerController.h"
 #include "Battle/SB_AIController.h"
 #include "Vehicle/SB_Vehicle.h"
-#include "Vehicle/SB_ShipStart.h"
+#include "SB_PlayerStart.h"
 #include "SB_GameInstance.h"
 //
 #include "TimerManager.h"
@@ -71,7 +71,7 @@ void ASB_FSGameMode::HandleFreeRespawn()
 	ISB_ControllerInterface* const ControllerInterface = Cast<ISB_ControllerInterface>(ReadyToSpawnControllers[0]);
 	if (ControllerInterface)
 	{
-		ASB_ShipStart* const ShipStart = GetAvailableShipStart(ControllerInterface->GetTeamID());
+		ASB_PlayerStart* const ShipStart = GetAvailableShipStart(ControllerInterface->GetTeamID());
 		if (ShipStart)
 		{
 			ASB_Vehicle* const NewVehicle = ControllerInterface->SpawnAndPossessVehicle(ShipStart->GetStartTransform());

@@ -1,7 +1,7 @@
 #include "SB_ScoreboardMainWidget.h"
-#include "SB_ScoreboardPlayerWidget.h"
+#include "SB_ScoreboardTeamWidget.h"
+#include "SB_GameInstance.h"
 #include "SB_GameState.h"
-#include "SB_PlayerState.h"
 //
 #include "Components/PanelWidget.h"
 #include "EngineUtils.h"
@@ -10,43 +10,24 @@ void USB_ScoreboardMainWidget::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
-	if (GetWorld() == nullptr)
-		return;
+	GInstance = Cast<USB_GameInstance>(GetGameInstance());
+	GState = GetWorld()->GetGameState<ASB_GameState>();
+	GState->OnGameStateUpdated.AddUniqueDynamic(this, &USB_ScoreboardMainWidget::Update);
 
-	GameState = GetWorld()->GetGameState<ASB_GameState>();
-	if (GameState)
-	{
-		GameState->GameStateUpdatedEvent.AddUniqueDynamic(this, &USB_ScoreboardMainWidget::Update);
-		Update(true);
-	}
+	Update();
 }
 
-void USB_ScoreboardMainWidget::Update(bool bDummy)
+void USB_ScoreboardMainWidget::Update()
 {
-	SpectatorTeamContainer->ClearChildren();
-	ATeamContainer->ClearChildren();
-	BTeamContainer->ClearChildren();
-
-	/*for (auto& PlayerState : GameState->PlayerArray)
+	TeamsContainerPanel->ClearChildren();
+	
+	for (uint8 Index = 0; Index < GState->TeamsData.Num(); Index++)
 	{
-		USB_ScoreboardPlayerWidget* const PlayerWidget = CreateWidget<USB_ScoreboardPlayerWidget>(GetWorld(), DataManager->UISettings.ScoreboardPlayer_WBP);
-		if (PlayerWidget)
+		USB_ScoreboardTeamWidget* const TeamWidget = CreateWidget<USB_ScoreboardTeamWidget>(GetWorld(), GInstance->UISettings.ScoreboardTeam_WBP);
+		if (TeamWidget)
 		{
-			const ASB_PlayerState* const SBPlayerState = Cast<ASB_PlayerState>(PlayerState);
-
-			PlayerWidget->Init(SBPlayerState);
-
-			switch (SBPlayerState->GetTeam())
-			{
-				case 1:
-					ATeamContainer->AddChild(PlayerWidget);
-					break;
-				case 2:
-					BTeamContainer->AddChild(PlayerWidget);
-					break;
-				default:
-					SpectatorTeamContainer->AddChild(PlayerWidget);
-			}
+			TeamWidget->Init(Index);
+			TeamsContainerPanel->AddChild(TeamWidget);
 		}
-	}*/
+	}
 }

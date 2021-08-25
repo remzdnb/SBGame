@@ -11,6 +11,7 @@
 // Plugins
 #include "RZ_CameraActor.h"
 #include "RZ_UIManager.h"
+#include "RZ_MenuLayoutWidget.h"
 #include "RZ_DamageMarkerWidget.h"
 #include "RZ_LogWidget.h"
 // Engine
@@ -40,6 +41,10 @@ void ASB_BattlePlayerController::BeginPlay()
 		UIManager->AddHUDWidget(BattleHUDWidget);
 		//LogWidget = CreateWidget<URZ_LogWidget>(this, GInstance->UISettings.Log_WBP);
 		//UIManager->AddHUDWidget(LogWidget);
+		for (auto& MapRow : GInstance->UISettings.BattleMenuWidgets)
+		{
+			UIManager->GetMenuLayoutWidget()->CreateMenuWidget(MapRow.Key, MapRow.Value);
+		}
 		UIManager->ToggleHUD(true);
 
 		// Init controller settings

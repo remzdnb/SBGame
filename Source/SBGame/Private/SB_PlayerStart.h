@@ -1,4 +1,4 @@
-///// SB_ShipStart.h - RemzDNB
+///// SB_PlayerStart.h - RemzDNB
 ///// Ship spawn location.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -6,16 +6,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "SB_ShipStart.generated.h"
+#include "SB_PlayerStart.generated.h"
 
 UCLASS()
-class ASB_ShipStart : public AActor
+class ASB_PlayerStart : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 
-	ASB_ShipStart();
+	ASB_PlayerStart();
 
 	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void BeginPlay() override;

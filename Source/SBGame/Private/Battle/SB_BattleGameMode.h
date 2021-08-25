@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "SB_BattleGameMode.generated.h"
 
-class ASB_ShipStart;
+class ASB_PlayerStart;
 class ASB_BattlePlayerController;
 class ASB_AIController;
 class ASB_Vehicle;
@@ -32,7 +32,7 @@ public:
 
 protected:
 
-	TArray<ASB_ShipStart*> ShipStarts;
+	TArray<ASB_PlayerStart*> PlayerStarts;
 	TArray<TWeakObjectPtr<ASB_BattlePlayerController>> PlayerControllers;
 	TArray<TWeakObjectPtr<ASB_AIController>> AIControllers;
 	TArray<TWeakObjectPtr<ASB_Vehicle>> SpawnedVehicles;
@@ -40,7 +40,10 @@ protected:
 	//
 
 	UFUNCTION()
-	ASB_ShipStart* GetAvailableShipStart(uint8 TeamID);
+	void InitTeams();
+
+	UFUNCTION()
+	ASB_PlayerStart* GetAvailableShipStart(uint8 TeamID);
 
 	UFUNCTION()
 	void RegisterVehicle(AActor* const VehicleToRegister);

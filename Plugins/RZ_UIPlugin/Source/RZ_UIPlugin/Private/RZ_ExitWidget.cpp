@@ -17,6 +17,6 @@ void URZ_ExitWidget::OnQuitToDesktopButtonPressed(uint8 ButtonID)
 
 void URZ_ExitWidget::OnQuitToMenuButtonButtonPressed(uint8 ButtonID)
 {
-	const FString Command = "open ASG_MenuMap";
+	const FString Command = "open SB_CampaignMap";
 	GetOwningPlayer()->ConsoleCommand(Command, true);
 }

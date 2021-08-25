@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "SB_PlayerStart.h"
 #include "Engine/DataTable.h"
 #include "SB_Types.generated.h"
 
@@ -82,6 +83,12 @@ struct FSB_GameSettings
 {
 	GENERATED_USTRUCT_BODY()
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TArray<FString> TeamNames;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TArray<FColor> TeamColors;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<AActor> CampaignPostProcess_BP;
 	
@@ -171,6 +178,15 @@ struct FSB_UISettings
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<class UUserWidget> HUDDamageMarker_WBP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class UUserWidget> ScoreboardMain_WBP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class UUserWidget> ScoreboardTeam_WBP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class UUserWidget> ScoreboardPlayer_WBP;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<class UUserWidget> Cursor_WBP;
@@ -188,10 +204,7 @@ struct FSB_AISettings
 	TSubclassOf<AActor> AIShipClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	uint8 DefaultBotNum_Team1;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	uint8 DefaultBotNum_Team2;
+	TArray<uint8> DefaultBotCountByTeam;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	float DetectionUpdateRate;
@@ -206,8 +219,6 @@ struct FSB_AISettings
 	{
 		AIControllerClass = nullptr;
 		AIShipClass = nullptr;
-		DefaultBotNum_Team1 = 0;
-		DefaultBotNum_Team2 = 0;
 		DetectionUpdateRate = 0.5f;
 		CollisionDetectionRange = 35000.0f;
 		CollisionDetectionSphereRadius = 1000.0f;
@@ -263,6 +274,23 @@ struct FSB_DebugSettings
 #pragma endregion
 
 #pragma region +++++ Data ...
+
+USTRUCT()
+struct FSB_TeamData
+{
+	GENERATED_USTRUCT_BODY()
+	
+	uint8 TeamID;
+	uint8 MaxPlayers;
+	TArray<TWeakObjectPtr<ASB_PlayerStart>> PlayerStartList;
+	TArray<TWeakObjectPtr<AController>> PlayerList;
+	
+	FSB_TeamData()
+	{
+		TeamID = 0;
+		MaxPlayers = 0;
+	}
+};
 
 USTRUCT(BlueprintType)
 struct FSB_VehicleData : public FTableRowBase

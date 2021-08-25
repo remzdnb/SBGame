@@ -15,13 +15,13 @@ USB_ModuleSlotComponent::USB_ModuleSlotComponent()
 {
 	GInstance = Cast<USB_GameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 
+#if WITH_EDITOR
+	
 	static ConstructorHelpers::FObjectFinder<UDataTable> FoundDT(TEXT("DataTable'/Game/Data/SB_BaseModuleData_DT.SB_BaseModuleData_DT'"));
 	if (FoundDT.Succeeded())
 	{
 		BaseModuleDT = FoundDT.Object;
 	}
-
-#if WITH_EDITOR
 
 	SetChildActorClass(ASB_ModuleSlotActor::StaticClass());
 

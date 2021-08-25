@@ -12,6 +12,47 @@
 #define MAXPITCH 89.0f
 #define LERPSPEED 5.0f
 
+UENUM(BlueprintType)
+enum class ERZ_CameraActorMode : uint8
+{
+	Free,
+	Attached
+};
+
+USTRUCT(BlueprintType)
+struct FRZ_CameraActorSettings
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float MinArmLength;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float MaxArmLength;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float DefaultArmLength_Free;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float DefaultArmLength_Attached;
+		
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float ArmLengthStep;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float DefaultPitch;
+	
+	FRZ_CameraActorSettings()
+	{
+		MinArmLength = 10000.0f;
+		MaxArmLength = 100000.0f;
+		DefaultArmLength_Free = 100000.0f;
+		DefaultArmLength_Attached = 25000.0f;
+		ArmLengthStep = 10000.0f;
+		DefaultPitch = -25.0f;
+	}
+};
+
 UCLASS()
 class RZ_UTILITYPLUGIN_API ARZ_CameraActor : public AActor
 {
@@ -35,9 +76,11 @@ public:
 	UFUNCTION() void SetNewLocation(const FVector& NewLocation, bool bWithLerp);
 	UFUNCTION() void SetNewRotation(const FRotator& NewRotation, bool bWithLerp);
 	UFUNCTION() void SetNewArmLength(float NewArmLength, bool bWithLerp);
-
+	
 	//
-
+	
+	UPROPERTY() FRZ_CameraActorSettings CASettings;
+	UPROPERTY() ERZ_CameraActorMode CAMode;
 	UPROPERTY() AActor* TargetActor;
 	UPROPERTY() USceneComponent* TargetComponent;
 	UPROPERTY() FVector TargetLocation;
@@ -54,5 +97,4 @@ private:
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* Camera;
-	
 };

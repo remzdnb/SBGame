@@ -3,11 +3,11 @@
 //
 #include "Components/TextBlock.h"
 
-void USB_ScoreboardPlayerWidget::Init(const ASB_PlayerState* const PlayerState)
+void USB_ScoreboardPlayerWidget::Init(const APlayerState* const NewPlayerState)
 {
+	const ASB_PlayerState* const PlayerState = Cast<ASB_PlayerState>(NewPlayerState);
 	if (PlayerState)
 	{
 		PlayerNameText->SetText(FText::FromString(PlayerState->GetDisplayName()));
-		TeamText->SetText(FText::FromString(FString::FromInt(PlayerState->GetTeam())));
 	}
 }

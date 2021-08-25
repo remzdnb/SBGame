@@ -17,7 +17,7 @@ void USB_BeamWeaponModule::Init(const FSB_ModuleSlotData& NewModuleSlotData, con
 	const ASB_Vehicle* OwningVehicle = Cast<ASB_Vehicle>(GetOwner());
 	OwnerController = Cast<AController>(OwningVehicle->GetOwner());
 
-	if (GState->GetGameType() == ESB_GameType::Battle)
+	if (GState->GameType == ESB_GameType::Battle)
 	{
 		const FString ComponentName = this->GetName() + "_BeamParticle";
 		BeamParticle = NewObject<UParticleSystemComponent>(this, *ComponentName);
@@ -33,7 +33,7 @@ void USB_BeamWeaponModule::TickComponent(float DeltaTime, ELevelTick TickType, F
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (GState->GetGameType() == ESB_GameType::Battle)
+	if (GState->GameType == ESB_GameType::Battle)
 	{
 		CheckBeamCollision();
 	}

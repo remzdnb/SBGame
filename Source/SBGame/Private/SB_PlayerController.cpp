@@ -2,7 +2,7 @@
 #include "SB_GameInstance.h"
 #include "Vehicle/SB_Vehicle.h"
 #include "Vehicle/SB_ShipMovementComponent.h"
-#include "SB_PlayerSaveGame.h"
+#include "SB_PlayerStart.h"
 // UtilityPlugin
 #include "RZ_CameraActor.h"
 // UIPlugin
@@ -32,16 +32,27 @@ void ASB_PlayerController::BeginPlay()
 	
 	if (IsLocalController())
 	{
+		const ASB_PlayerStart* SpectatorPlayerStart = nullptr;
+		for (TActorIterator<ASB_PlayerStart> PlayerStart(GetWorld()); PlayerStart; ++PlayerStart)
+		{
+			if (PlayerStart->GetTeamID() == 0)
+			{
+				SpectatorPlayerStart = *PlayerStart;
+				break;
+			}
+		}
+		
 		CameraActor = GetWorld()->SpawnActorDeferred<ARZ_CameraActor>(
 			ARZ_CameraActor::StaticClass(),
-			FTransform(),
+			SpectatorPlayerStart->GetTransform(),
 			this,
 			nullptr,
 			ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn
 		);
 		if (CameraActor)
 		{
-			UGameplayStatics::FinishSpawningActor(CameraActor, FTransform());
+			CameraActor->CASettings = GInstance->CameraActorSettings;
+			UGameplayStatics::FinishSpawningActor(CameraActor, SpectatorPlayerStart->GetTransform());
 			SetViewTargetWithBlend(CameraActor, 0.0f);
 		}
 		

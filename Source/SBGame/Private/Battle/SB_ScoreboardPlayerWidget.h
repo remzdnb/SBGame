@@ -11,12 +11,11 @@ class USB_ScoreboardPlayerWidget : public UUserWidget
 
 public:
 
-	void Init(const class ASB_PlayerState* const PlayerState);
+	void Init(const APlayerState* const NewPlayerState);
 
 private:
 
 	UPROPERTY(meta = (BindWidget)) class UTextBlock* PlayerNameText;
-	UPROPERTY(meta = (BindWidget)) class UTextBlock* TeamText;
 	UPROPERTY(meta = (BindWidget)) class UTextBlock* KillCountText;
 	UPROPERTY(meta = (BindWidget)) class UTextBlock* DeathCountText;
 };

@@ -12,7 +12,7 @@ void ASB_GameState::AddPlayerState(APlayerState* PlayerState)
 {
 	Super::AddPlayerState(PlayerState);
 
-	GameStateUpdatedEvent.Broadcast(true);
+	OnGameStateUpdated.Broadcast();
 
 	UE_LOG(LogTemp, Warning, TEXT("ASB_GameState - PlayerState added."));
 }
@@ -21,11 +21,11 @@ void ASB_GameState::RemovePlayerState(APlayerState* PlayerState)
 {
 	Super::RemovePlayerState(PlayerState);
 
-	GameStateUpdatedEvent.Broadcast(true);
+	OnGameStateUpdated.Broadcast();
 
 	UE_LOG(LogTemp, Warning, TEXT("ASB_GameState - PlayerState removed."));
 }
-
+/*
 void ASB_GameState::InitGame()
 {
 	if (GamePhase == ESB_GamePhase::Ready)
@@ -54,9 +54,9 @@ void ASB_GameState::EndGame()
 
 void ASB_GameState::ResetGame()
 {
-}
+}*/
 
 void ASB_GameState::BroadcastGameStateUpdated()
 {
-	GameStateUpdatedEvent.Broadcast(true);
+	OnGameStateUpdated.Broadcast();
 }
