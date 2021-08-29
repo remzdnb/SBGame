@@ -103,9 +103,6 @@ void ASB_PlayerController::SetupInputComponent()
 	InputComponent->BindAxis("LookRight", this, &ASB_PlayerController::LookRightAxis).bConsumeInput = false;
 	InputComponent->BindAxis("MouseWheel", this, &ASB_PlayerController::ZoomAxis).bConsumeInput = false;
 	
-	InputComponent->BindAxis("MoveForward", this, &ASB_PlayerController::MoveForwardAxis).bConsumeInput = false;
-	InputComponent->BindAxis("MoveRight", this, &ASB_PlayerController::MoveRightAxis).bConsumeInput = false;
-	
 	InputComponent->BindAction("RightMouseButton", IE_Pressed, this, &ASB_PlayerController::RightMouseButtonPressed).bConsumeInput = false;
 	InputComponent->BindAction("RightMouseButton", IE_Released, this, &ASB_PlayerController::RightMouseButtonReleased).bConsumeInput = false;
 	InputComponent->BindAction("Shift", IE_Pressed, this, &ASB_PlayerController::ShiftKeyPressed).bConsumeInput = false;
@@ -148,28 +145,6 @@ void ASB_PlayerController::ZoomAxis(float AxisValue)
 		if (AxisValue < 0)
 		{
 			CameraActor->AddZoomInput(false);
-		}
-	}
-}
-
-void ASB_PlayerController::MoveForwardAxis(float AxisValue)
-{
-	if (OwnedVehicle && OwnedVehicle == GetPawn())
-	{
-		if (OwnedVehicle->GetShipMovement())
-		{
-			OwnedVehicle->GetShipMovement()->MoveForward(AxisValue);
-		}
-	}
-}
-
-void ASB_PlayerController::MoveRightAxis(float AxisValue)
-{
-	if (OwnedVehicle && OwnedVehicle == GetPawn())
-	{
-		if (OwnedVehicle->GetShipMovement())
-		{
-			OwnedVehicle->GetShipMovement()->TurnRight(AxisValue);
 		}
 	}
 }

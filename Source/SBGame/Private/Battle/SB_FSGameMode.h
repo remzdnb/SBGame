@@ -18,7 +18,8 @@ class ASB_FSGameMode : public ASB_BattleGameMode
 public:
 
 	ASB_FSGameMode();
-	
+
+	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void PostLogin(APlayerController* NewPlayerController) override;

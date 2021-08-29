@@ -36,24 +36,51 @@ void ARZ_CameraActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	/*if (TargetActor == nullptr && TargetComponent == nullptr)
+	if (TargetActor)
 	{
-		if (GetActorLocation() != TargetLocation)
-		{
-			SetActorLocation(FMath::Lerp(GetActorLocation(), TargetLocation, LERPSPEED * DeltaTime));
-		}
+		TargetLocation = TargetActor->GetActorLocation();
+	}
+	else if (TargetComponent)
+	{
+		TargetLocation = TargetComponent->GetComponentLocation();
 	}
 	
-	if (SpringArm->GetComponentRotation() != TargetArmRotation)
+	SetActorLocation(TargetLocation);
+	
+	/*if (SpringArm->GetComponentRotation() != TargetArmRotation)
 	{
 		SpringArm->SetWorldRotation(FMath::Lerp(SpringArm->GetComponentRotation(), TargetArmRotation,
 		                                        LERPSPEED * DeltaTime));
-	}
+	}*/
 
 	if (SpringArm->TargetArmLength != TargetArmLength)
 	{
 		SpringArm->TargetArmLength = FMath::Lerp(SpringArm->TargetArmLength, TargetArmLength, LERPSPEED * DeltaTime);
-	}*/
+	}
+}
+
+void ARZ_CameraActor::MoveForward(float AxisValue)
+{
+	if (CAMode != ERZ_CameraActorMode::Free)
+		return;
+	
+	const FRotator Rotation = SpringArm->GetComponentRotation();
+	const FRotator YawRotation(0, Rotation.Yaw, 0);
+	const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+	
+	SetActorLocation(GetActorLocation() + Direction * AxisValue * CASettings.MoveSpeed_Free * GetWorld()->GetDeltaSeconds());
+}
+
+void ARZ_CameraActor::MoveRight(float AxisValue)
+{
+	if (CAMode != ERZ_CameraActorMode::Free)
+		return;
+	
+	const FRotator Rotation = SpringArm->GetComponentRotation();
+	const FRotator YawRotation(0, Rotation.Yaw, 0);
+	const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+	
+	SetActorLocation(GetActorLocation() + Direction * AxisValue * CASettings.MoveSpeed_Free * GetWorld()->GetDeltaSeconds());
 }
 
 void ARZ_CameraActor::AddPitchInput(float AxisValue)
@@ -63,7 +90,7 @@ void ARZ_CameraActor::AddPitchInput(float AxisValue)
 
 	const float NewPitch = SpringArm->GetComponentRotation().Pitch + (AxisValue * GetWorld()->GetDeltaSeconds() * 50.0f);
 	
-	if (NewPitch > MAXPITCH || NewPitch < MINPITCH)
+	if (NewPitch > CASettings.MaxPitch || NewPitch < CASettings.MinPitch)
 		return;
 
 	SpringArm->SetWorldRotation(FRotator(
@@ -101,17 +128,21 @@ void ARZ_CameraActor::AddYawInput(float AxisValue)
 void ARZ_CameraActor::AddZoomInput(bool bZoomIn)
 {
 	TargetArmLength = bZoomIn
-		                  ? FMath::Clamp(TargetArmLength - ARMLENGTHSTEP, MINARMLENGTH, MAXARMLENGTH)
-		                  : FMath::Clamp(TargetArmLength + ARMLENGTHSTEP, MINARMLENGTH, MAXARMLENGTH);
+		                  ? FMath::Clamp(TargetArmLength - CASettings.ArmLengthStep, CASettings.MinArmLength, CASettings.MaxArmLength)
+		                  : FMath::Clamp(TargetArmLength + CASettings.ArmLengthStep, CASettings.MinArmLength, CASettings.MaxArmLength);
 }
 
 void ARZ_CameraActor::SetNewTargetActor(AActor* NewTargetActor, FVector RelativeOffset)
 {
 	TargetComponent = nullptr;
-	
 	TargetActor = NewTargetActor;
-	AttachToActor(TargetActor, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-	SpringArm->SetRelativeLocation(RelativeOffset);
+	SpringArm->SetWorldRotation(
+		FRotator(
+			SpringArm->GetComponentRotation().Pitch,
+			NewTargetActor->GetActorRotation().Yaw,
+			SpringArm->GetComponentRotation().Roll
+		)
+	);
 }
 
 void ARZ_CameraActor::SetNewTargetComponent(USceneComponent* NewTargetComponent)

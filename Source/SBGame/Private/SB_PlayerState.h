@@ -19,7 +19,7 @@ public:
 	//
 
 	UFUNCTION()
-	void SetName(bool bIsPlayer = true);
+	void SetName(bool bIsPlayer = true, const FString& NewPlayerName = FString());
 
 	UFUNCTION()
 	void SetTeamID(uint8 NewTeam);
@@ -28,7 +28,7 @@ public:
 
 	FORCEINLINE UFUNCTION() class USB_PlayerSaveGame* GetPlayerSaveGame() const {return PSaveGame;}
 	FORCEINLINE UFUNCTION() const FString& GetDisplayName() const { return DisplayName; }
-	FORCEINLINE UFUNCTION() uint8 GetTeam() const { return TeamID; }
+	FORCEINLINE UFUNCTION() uint8 GetTeamID() const { return TeamID; }
 
 private:
 

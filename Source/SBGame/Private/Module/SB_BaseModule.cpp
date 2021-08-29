@@ -14,6 +14,8 @@ USB_BaseModule::USB_BaseModule()
 {
 	UPrimitiveComponent::SetCollisionProfileName("CharacterMesh");
 	bEnablePerPolyCollision = true;
+	bNoSkeletonUpdate = true;
+	SetAllowAnimCurveEvaluation(false);
 	SetGenerateOverlapEvents(true);
 	SetCustomDepthStencilValue(1);
 	SetIsReplicatedByDefault(true);

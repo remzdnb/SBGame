@@ -26,6 +26,14 @@ public:
 	
 	//
 
+	UFUNCTION()
+	void RegisterVehicle(AActor* const VehicleToRegister);
+
+	UFUNCTION()
+	virtual void UnregisterVehicle(ASB_Vehicle* const VehicleToUnregister, AController* OwningController);
+
+	//
+
 	FORCEINLINE UFUNCTION() TArray<TWeakObjectPtr<ASB_BattlePlayerController>> const GetPlayerControllers() { return PlayerControllers; }
 	FORCEINLINE UFUNCTION() TArray<TWeakObjectPtr<ASB_AIController>> const GetAIControllers() { return AIControllers; }
 	FORCEINLINE UFUNCTION() TArray<TWeakObjectPtr<ASB_Vehicle>> const GetSpawnedShips() { return SpawnedVehicles; }
@@ -38,18 +46,9 @@ protected:
 	TArray<TWeakObjectPtr<ASB_Vehicle>> SpawnedVehicles;
 	
 	//
-
-	UFUNCTION()
-	void InitTeams();
-
+	
 	UFUNCTION()
 	ASB_PlayerStart* GetAvailableShipStart(uint8 TeamID);
-
-	UFUNCTION()
-	void RegisterVehicle(AActor* const VehicleToRegister);
-
-	UFUNCTION()
-	virtual void UnregisterVehicle(ASB_Vehicle* const VehicleToUnregister, AController* OwningController);
 
 	UFUNCTION(Exec)
 	void SpawnAIController(uint8 TeamID);

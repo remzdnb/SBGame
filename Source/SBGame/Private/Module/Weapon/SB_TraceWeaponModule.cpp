@@ -1,5 +1,5 @@
 #include "Module/Weapon/SB_TraceWeaponModule.h"
-#include "Battle/SB_PlayerState.h"
+#include "SB_PlayerState.h"
 #include "Vehicle/SB_Vehicle.h"
 //
 #include "Kismet/GameplayStatics.h"
@@ -33,7 +33,7 @@ void USB_TraceWeaponModule::UpdateFire()
 		const ASB_PlayerState* const TargetPlayerState = Cast<ASB_PlayerState>(HitVehicle->GetPlayerState());
 		if (SelfPlayerState && TargetPlayerState)
 		{
-			if (SelfPlayerState->GetTeam() != TargetPlayerState->GetTeam())
+			if (SelfPlayerState->GetTeamID() != TargetPlayerState->GetTeamID())
 			{
 				bWantsToFire = true;
 			}

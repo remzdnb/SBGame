@@ -4,6 +4,7 @@
 #include "RZ_UtilityLibrary.h"
 //
 #include "EngineUtils.h"
+#include "SB_GameState.h"
 #include "Net/UnrealNetwork.h"
 
 USB_ShipMovementComponent::USB_ShipMovementComponent()
@@ -19,6 +20,8 @@ void USB_ShipMovementComponent::InitializeComponent()
 		return;
 
 	SetIsReplicated(true);
+
+	GState = GetWorld()->GetGameState<ASB_GameState>();
 }
 
 void USB_ShipMovementComponent::BeginPlay()
@@ -61,7 +64,10 @@ void USB_ShipMovementComponent::MoveForward(float AxisValue)
 	if (OwningShip->GetState() == ESB_ShipState::Destroyed)
 		return;
 
-	if (OwningShip->GetLocalRole() < ROLE_Authority)
+	if (GState->GameType == ESB_GameType::Campaign || GState->GamePhase != ESB_GamePhase::Playing)
+		return;
+	
+	if (GetOwnerRole() < ROLE_Authority)
 		MoveForward_Server(AxisValue);
 
 	if (AxisValue > 0 /*&& OwningShip->ThrusterModule_Back->GetState() == ESB_ModuleState::Ready*/)

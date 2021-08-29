@@ -36,17 +36,17 @@ void ASB_PlayerState::PostInitializeComponents()
 	}
 }
 
-void ASB_PlayerState::SetName(bool bIsPlayer)
+void ASB_PlayerState::SetName(bool bIsPlayer, const FString& NewPlayerName)
 {
-	DisplayName = bIsPlayer ? "Player_" + FString::FromInt(FMath::RandRange(0, 9999)) : "Bot_" + FString::FromInt(FMath::RandRange(0, 9999));
-	GState->BroadcastGameStateUpdated();
+	DisplayName = bIsPlayer ? NewPlayerName : "Bot_" + FString::FromInt(FMath::RandRange(0, 9999));
+	//GState->BroadcastGameStateUpdated();
 }
 
 void ASB_PlayerState::SetTeamID(uint8 NewTeamID)
 {
 	TeamID = NewTeamID;
 
-	GState->BroadcastGameStateUpdated();
+	//GState->BroadcastGameStateUpdated();
 }
 
 void ASB_PlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

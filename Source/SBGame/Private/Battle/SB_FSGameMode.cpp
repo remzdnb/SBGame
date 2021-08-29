@@ -4,11 +4,20 @@
 #include "Vehicle/SB_Vehicle.h"
 #include "SB_PlayerStart.h"
 #include "SB_GameInstance.h"
+#include "SB_GameState.h"
+#include "SB_GameSettings.h"
 //
 #include "TimerManager.h"
 
 ASB_FSGameMode::ASB_FSGameMode()
 {
+}
+
+void ASB_FSGameMode::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	GState->GamePhase = ESB_GamePhase::Playing;
 }
 
 void ASB_FSGameMode::BeginPlay()
@@ -46,9 +55,9 @@ void ASB_FSGameMode::QueryFreeRespawnWithDelay(AController* const NewController,
 	GetWorld()->GetTimerManager().SetTimer(
 		FreeRespawnTimer,
 		FreeRespawnTimerDelegate,
-		GInstance->GameSettings.FreeRespawnTimer,
+		GInstance->GameSettings->FreeRespawnTimer,
 		false,
-		GInstance->GameSettings.FreeRespawnTimer
+		GInstance->GameSettings->FreeRespawnTimer
 	);
 }
 
@@ -79,7 +88,7 @@ void ASB_FSGameMode::HandleFreeRespawn()
 			{
 				ReadyToSpawnControllers.RemoveAt(0);
 				RegisterVehicle(NewVehicle);
-				NewVehicle->OnVehicleDestroyed.AddDynamic(this, &ASB_FSGameMode::UnregisterVehicle);
+				//NewVehicle->OnVehicleDestroyed.AddDynamic(this, &ASB_FSGameMode::UnregisterVehicle);
 			}
 		}
 	}
@@ -101,9 +110,9 @@ void ASB_FSGameMode::UnregisterVehicle(ASB_Vehicle* const VehicleToUnregister, A
 		GetWorld()->GetTimerManager().SetTimer(
 			FreeRespawnTimer,
 			FreeRespawnTimerDelegate,
-			GInstance->GameSettings.FreeRespawnTimer,
+			GInstance->GameSettings->FreeRespawnTimer,
 			false,
-			GInstance->GameSettings.FreeRespawnTimer
+			GInstance->GameSettings->FreeRespawnTimer
 		);
 
 		if (GInstance->DebugSettings.bIsDebugEnabled_GameMode)

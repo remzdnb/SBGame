@@ -56,7 +56,7 @@ private:
 public:
 
 	UFUNCTION()
-	void OnShipDurabilityUpdated(float NewDurability, float MaxDurability);
+	void OnVehicleDurabilityUpdated(float NewDurability, float MaxDurability);
 
 	UFUNCTION()
 	void OnShieldDurabilityUpdated(float NewDurability, float MaxDurability);

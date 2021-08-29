@@ -1,11 +1,33 @@
 #include "SB_GameState.h"
+#include "SB_PlayerState.h"
+#include "SB_GameInstance.h"
+#include "SB_PlayerStart.h"
+#include "SB_GameSettings.h"
 //
 #include "TimerManager.h"
+#include "EngineUtils.h"
 
 ASB_GameState::ASB_GameState()
 {
 	GameType = ESB_GameType::Battle;
 	GamePhase = ESB_GamePhase::Ready;
+}
+
+void ASB_GameState::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	
+	if (GetWorld() == nullptr || GetWorld()->IsGameWorld() == false)
+		return;
+	
+	GInstance = GetGameInstance<USB_GameInstance>();
+
+	for (TActorIterator<ASB_PlayerStart> PlayerStart(GetWorld()); PlayerStart; ++PlayerStart)
+	{
+		PlayerStarts.Add(*PlayerStart);
+	}
+
+	InitTeams();
 }
 
 void ASB_GameState::AddPlayerState(APlayerState* PlayerState)
@@ -25,38 +47,47 @@ void ASB_GameState::RemovePlayerState(APlayerState* PlayerState)
 
 	UE_LOG(LogTemp, Warning, TEXT("ASB_GameState - PlayerState removed."));
 }
-/*
-void ASB_GameState::InitGame()
+
+void ASB_GameState::AddPlayerToTeam(AController* PlayerToAdd, uint8 TeamID)
 {
-	if (GamePhase == ESB_GamePhase::Ready)
+	if (TeamsData.IsValidIndex(TeamID) == false)
+		return;
+
+	ASB_PlayerState* const PlayerState = PlayerToAdd->GetPlayerState<ASB_PlayerState>();
+
+	if (PlayerState->GetTeamID() == TeamID)
+		return;
+	
+	RemovePlayerFromTeam(PlayerToAdd);
+	TeamsData[TeamID].PlayerList.Add(PlayerToAdd);
+	PlayerState->SetTeamID(TeamID);
+	
+	OnGameStateUpdated.Broadcast();
+}
+
+void ASB_GameState::RemovePlayerFromTeam(AController* const PlayerToRemove)
+{
+	const ASB_PlayerState* const PlayerState = PlayerToRemove->GetPlayerState<ASB_PlayerState>();
+	TeamsData[PlayerState->GetTeamID()].PlayerList.Remove(PlayerToRemove);
+}
+
+void ASB_GameState::InitTeams()
+{
+	TeamsData.SetNum(GInstance->GameSettings->MaxTeams);
+	TeamsData[0].MaxPlayers = GInstance->GameSettings->MaxSpectators;
+	
+	for (const auto& PlayerStart : PlayerStarts)
 	{
-		GetWorld()->GetTimerManager().SetTimer(GamePhaseTimer, this, &ASB_GameState::StartGame, 5.0f, true, 0.0f);
-		
-		GamePhase = ESB_GamePhase::Starting;
+		if (TeamsData.IsValidIndex(PlayerStart->GetTeamID()))
+		{
+			if (PlayerStart->GetTeamID() != 0)
+			{
+				TeamsData[PlayerStart->GetTeamID()].MaxPlayers++;
+			}
+
+			TeamsData[PlayerStart->GetTeamID()].PlayerStartList.Add(PlayerStart);
+		}
 	}
-}
 
-void ASB_GameState::StartGame()
-{
-	if (GamePhase == ESB_GamePhase::Starting)
-	{
-		GamePhase = ESB_GamePhase::Playing;
-	}
-}
-
-void ASB_GameState::StopGame()
-{
-}
-
-void ASB_GameState::EndGame()
-{
-}
-
-void ASB_GameState::ResetGame()
-{
-}*/
-
-void ASB_GameState::BroadcastGameStateUpdated()
-{
 	OnGameStateUpdated.Broadcast();
 }

@@ -46,22 +46,19 @@ private:
 	ASB_BattleGameMode* GMode;
 	ASB_GameState* GState;
 	ASB_PlayerState* PState;
-
-	//
-
+	
 	TWeakObjectPtr<ASB_Vehicle> OwnedVehicle;
-	TWeakObjectPtr<ASB_Vehicle> TargetShip;
-	TWeakObjectPtr<AActor> CollisionActor_Right;
-	TWeakObjectPtr<AActor> CollisionActor_Left;
-
+	
 	//
 
 	FTimerDelegate FreeRespawnTimerDelegate;
 	FTimerHandle FreeRespawnTimer;
-	FTimerHandle DetectionUpdateTimer;
 
-	//
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///// AI
 
+private:
+	
 	UFUNCTION()
 	void UpdateDetection();
 
@@ -73,5 +70,13 @@ private:
 
 	UFUNCTION()
 	void UpdateTargetShip();
+
+	//
+
+	FTimerHandle DetectionUpdateTimer;
+
+	TWeakObjectPtr<ASB_Vehicle> TargetShip;
+	TWeakObjectPtr<AActor> CollisionActor_Right;
+	TWeakObjectPtr<AActor> CollisionActor_Left;
 	
 };

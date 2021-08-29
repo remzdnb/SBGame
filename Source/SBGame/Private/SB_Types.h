@@ -77,34 +77,6 @@ enum class ESB_ShieldState : uint8
 };
 
 #pragma region +++++ Settings ...
-
-USTRUCT(BlueprintType)
-struct FSB_GameSettings
-{
-	GENERATED_USTRUCT_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TArray<FString> TeamNames;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TArray<FColor> TeamColors;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<AActor> CampaignPostProcess_BP;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<AActor> BattlePostProcess_BP;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float FreeRespawnTimer;
-	
-	FSB_GameSettings()
-	{
-		CampaignPostProcess_BP = nullptr;
-		BattlePostProcess_BP = nullptr;
-		FreeRespawnTimer = 5.0f;
-	}
-};
 	
 USTRUCT(BlueprintType)
 struct FSB_ShieldSettings
@@ -202,9 +174,6 @@ struct FSB_AISettings
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<AActor> AIShipClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TArray<uint8> DefaultBotCountByTeam;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	float DetectionUpdateRate;

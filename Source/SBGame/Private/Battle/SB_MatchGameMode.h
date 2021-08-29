@@ -4,16 +4,18 @@
 #include "Battle/SB_BattleGameMode.h"
 //
 #include "CoreMinimal.h"
-#include "SB_TDMGameMode.generated.h"
+#include "SB_MatchGameMode.generated.h"
 
 UCLASS()
-class ASB_TDMGameMode : public ASB_BattleGameMode
+class ASB_MatchGameMode : public ASB_BattleGameMode
 {
 	GENERATED_BODY()
 
 public:
 
-	ASB_TDMGameMode();
+	ASB_MatchGameMode();
+
+	virtual void PostInitializeComponents() override;
 
 private:
 	
@@ -25,9 +27,6 @@ private:
 
 	UFUNCTION(Exec)
 	void StopGame();
-
-	UFUNCTION(Exec)
-	void EndGame();
 
 	UFUNCTION(Exec)
 	void ResetGame();

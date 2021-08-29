@@ -1,5 +1,5 @@
 ///// SB_PlayerStart.h - RemzDNB
-///// Ship spawn location.
+/////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
@@ -7,6 +7,9 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "SB_PlayerStart.generated.h"
+
+class USB_GameInstance;
+class USB_GameSettings;
 
 UCLASS()
 class ASB_PlayerStart : public AActor
@@ -35,6 +38,14 @@ public:
 
 private:
 
+	UFUNCTION()
+	void OnBeginOverlap(class UPrimitiveComponent* OverlappedComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	
+	UFUNCTION()
+	void OnEndOverlap(class UPrimitiveComponent* OverlappedComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	//
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UCapsuleComponent* CapsuleCT;
 
@@ -45,6 +56,10 @@ private:
 	class UParticleSystemComponent* StandParticleCT;
 
 	//
+
+	USB_GameInstance* GInstance;
+
+	USB_GameSettings* GlobalDA;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true")) 
 	uint8 TeamID;
@@ -60,6 +75,5 @@ private:
 
 	//
 
-	UFUNCTION() void OnBeginOverlap(class UPrimitiveComponent* OverlappedComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-	UFUNCTION() void OnEndOverlap(class UPrimitiveComponent* OverlappedComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
 };

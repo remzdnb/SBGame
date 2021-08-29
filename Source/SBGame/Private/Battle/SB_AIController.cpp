@@ -1,10 +1,11 @@
 #include "Battle/SB_AIController.h"
 #include "Battle/SB_BattleGameMode.h"
 #include "SB_GameState.h"
-#include "Battle/SB_PlayerState.h"
+#include "SB_PlayerState.h"
 #include "Vehicle/SB_Vehicle.h"
 #include "Vehicle/SB_ShipMovementComponent.h"
 #include "SB_GameInstance.h"
+#include "SB_GameSettings.h"
 //
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
@@ -32,7 +33,7 @@ void ASB_AIController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	GetWorldTimerManager().SetTimer(DetectionUpdateTimer, this, &ASB_AIController::UpdateDetection, GInstance->AISettings.DetectionUpdateRate, true, 0.0f);
+	//GetWorldTimerManager().SetTimer(DetectionUpdateTimer, this, &ASB_AIController::UpdateDetection, GInstance->AISettings.DetectionUpdateRate, true, 0.0f);
 }
 
 void ASB_AIController::Tick(float DeltaTime)
@@ -42,10 +43,10 @@ void ASB_AIController::Tick(float DeltaTime)
 	if (OwnedVehicle == nullptr)
 		return;
 
-	/*UpdateMovement();
+	//UpdateMovement();
 
 	// omg
-	if (OwnedVehicle.IsValid())
+	/*if (OwnedVehicle.IsValid())
 	{
 		if (OwnedVehicle->GetShipMovement())
 		{
@@ -63,7 +64,7 @@ uint8 ASB_AIController::GetTeamID()
 {
 	if (PState)
 	{
-		return PState->GetTeam();
+		return PState->GetTeamID();
 	}
 
 	return 0;
@@ -106,9 +107,9 @@ void ASB_AIController::OnVehicleDestroyed(AActor* const DestroyedVehicle)
 	GetWorldTimerManager().SetTimer(
 		FreeRespawnTimer,
 		FreeRespawnTimerDelegate,
-		GInstance->GameSettings.FreeRespawnTimer,
+		GInstance->GameSettings->FreeRespawnTimer,
 		true,
-		GInstance->GameSettings.FreeRespawnTimer
+		GInstance->GameSettings->FreeRespawnTimer
 	);
 }
 
@@ -125,7 +126,7 @@ void ASB_AIController::UpdateDetection()
 	UpdateCollisionActor(true);
 	UpdateCollisionActor(false);
 
-	UpdateTargetShip();
+	//UpdateTargetShip();
 }
 
 void ASB_AIController::UpdateCollisionActor(bool bIsRightActor)
@@ -144,21 +145,21 @@ void ASB_AIController::UpdateCollisionActor(bool bIsRightActor)
 		{
 			bIsRightActor ? CollisionActor_Right = Hit.Actor.Get() : CollisionActor_Left = Hit.Actor.Get();
 
-			/*if (GInstance->GameSettings.bIsDebugEnabled_AI)
+			if (GInstance->DebugSettings.bIsDebugEnabled_AI)
 			{
 				FString ActorRight = bIsRightActor ? "Right : " : "Left : ";
 				GEngine->AddOnScreenDebugMessage(-1, GInstance->AISettings.DetectionUpdateRate, FColor::Purple, *(ActorRight + Hit.Actor->GetName()));
 				UKismetSystemLibrary::DrawDebugSphere(GetWorld(), Hit.Location, GInstance->AISettings.CollisionDetectionSphereRadius, 10, FColor::Red, GInstance->AISettings.DetectionUpdateRate + 0.05f, 50.0f);
-			}*/
+			}
 
 			break;
 		}
 	}
 
-	/*if (GInstance->GameSettings.bIsDebugEnabled_AI)
+	if (GInstance->DebugSettings.bIsDebugEnabled_AI)
 	{
 		UKismetSystemLibrary::DrawDebugSphere(GetWorld(), EndLocation, GInstance->AISettings.CollisionDetectionSphereRadius, 10, FColor::Green, GInstance->AISettings.DetectionUpdateRate + 0.05f, 50.0f);
-	}*/
+	}
 }
 
 void ASB_AIController::UpdateMovement()

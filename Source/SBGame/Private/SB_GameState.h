@@ -6,6 +6,9 @@
 #include "GameFramework/GameStateBase.h"
 #include "SB_GameState.generated.h"
 
+class USB_GameInstance;
+class ASB_PlayerStart;
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGameStateUpdatedDelegate);
 
 UCLASS()
@@ -16,30 +19,18 @@ class ASB_GameState : public AGameStateBase
 public:
 
 	ASB_GameState();
-	
+
+	virtual void PostInitializeComponents() override;
 	virtual void AddPlayerState(APlayerState* PlayerState) override;
 	virtual void RemovePlayerState(APlayerState* PlayerState) override;
 
 	//
 
-	/*UFUNCTION()
-	void InitGame();
+	UFUNCTION()
+	void AddPlayerToTeam(AController* PlayerToAdd, uint8 TeamID);
 
 	UFUNCTION()
-	void StartGame();
-
-	UFUNCTION()
-	void StopGame();
-
-	UFUNCTION()
-	void EndGame();
-
-	UFUNCTION()
-	void ResetGame();*/
-
-	//
-
-	void BroadcastGameStateUpdated();
+	void RemovePlayerFromTeam(AController* const PlayerToRemove);
 
 	//
 
@@ -58,5 +49,12 @@ public:
 
 private:
 
+	UFUNCTION()
+	void InitTeams();
+
+	//
+
+	USB_GameInstance* GInstance;
+	TArray<ASB_PlayerStart*> PlayerStarts;
 	FTimerHandle GamePhaseTimer;
 };

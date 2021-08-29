@@ -23,11 +23,14 @@ void USB_ScoreboardMainWidget::Update()
 	
 	for (uint8 Index = 0; Index < GState->TeamsData.Num(); Index++)
 	{
-		USB_ScoreboardTeamWidget* const TeamWidget = CreateWidget<USB_ScoreboardTeamWidget>(GetWorld(), GInstance->UISettings.ScoreboardTeam_WBP);
-		if (TeamWidget)
+		if (GState->TeamsData[Index].MaxPlayers > 0 && GState->TeamsData[Index].PlayerList.Num() != 0)
 		{
-			TeamWidget->Init(Index);
-			TeamsContainerPanel->AddChild(TeamWidget);
+			USB_ScoreboardTeamWidget* const TeamWidget = CreateWidget<USB_ScoreboardTeamWidget>(GetWorld(), GInstance->UISettings.ScoreboardTeam_WBP);
+			if (TeamWidget)
+			{
+				TeamWidget->Init(Index);
+				TeamsContainerPanel->AddChild(TeamWidget);
+			}
 		}
 	}
 }

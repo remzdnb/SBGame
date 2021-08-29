@@ -2,6 +2,7 @@
 #include "Battle/SB_ScoreboardPlayerWidget.h"
 #include "SB_GameInstance.h"
 #include "SB_GameState.h"
+#include "SB_GameSettings.h"
 //
 #include "Components/PanelWidget.h"
 #include "Components/TextBlock.h"
@@ -24,15 +25,17 @@ void USB_ScoreboardTeamWidget::Init(uint8 NewTeamID)
 
 void USB_ScoreboardTeamWidget::Update()
 {
-	const FLinearColor TeamColor = FLinearColor(
-		GInstance->GameSettings.TeamColors[TeamID].R,
-		GInstance->GameSettings.TeamColors[TeamID].G,
-		GInstance->GameSettings.TeamColors[TeamID].B,
-		0.5f
-	);
-	TeamBorder->SetBrushColor(GInstance->GameSettings.TeamColors[TeamID]);
-	TeamNameText->SetText(FText::FromString(GInstance->GameSettings.TeamNames[TeamID]));
-	PlayerCountText->SetText(FText::FromString(FString::FromInt(GState->TeamsData[TeamID].MaxPlayers)));
+	if (GInstance->GameSettings->TeamColors.IsValidIndex(TeamID))
+		TeamBorder->SetBrushColor(GInstance->GameSettings->TeamColors[TeamID]);
+
+	if (GInstance->GameSettings->TeamNames.IsValidIndex(TeamID))
+		TeamNameText->SetText(FText::FromString(GInstance->GameSettings->TeamNames[TeamID]));
+	
+	PlayerCountText->SetText(FText::FromString(
+		FString::FromInt(GState->TeamsData[TeamID].PlayerList.Num()) +
+		" / " +
+		FString::FromInt(GState->TeamsData[TeamID].MaxPlayers)
+	));
 
 	PlayerWidgetsContainerPanel->ClearChildren();
 	

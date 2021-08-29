@@ -52,7 +52,7 @@ public:
 	//
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FSB_GameSettings GameSettings;
+	USB_GameSettings* GameSettings;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FSB_UISettings UISettings;

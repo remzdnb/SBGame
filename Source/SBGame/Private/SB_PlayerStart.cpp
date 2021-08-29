@@ -1,8 +1,11 @@
 #include "SB_PlayerStart.h"
+#include "SB_GameInstance.h"
+#include "SB_GameSettings.h"
 //
 #include "Components/CapsuleComponent.h"
 #include "Components/ArrowComponent.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "UObject/ConstructorHelpers.h"
 
 ASB_PlayerStart::ASB_PlayerStart()
 {
@@ -22,6 +25,21 @@ ASB_PlayerStart::ASB_PlayerStart()
 
 	//
 
+#if WITH_EDITOR
+
+	static ConstructorHelpers::FObjectFinder<USB_GameSettings> FoundDT(
+		TEXT("SB_GameSettings'/Game/Data/SB_GameSettings_DA.SB_GameSettings_DA'")
+	);
+	if (FoundDT.Succeeded())
+	{
+		GlobalDA = FoundDT.Object;
+		UE_LOG(LogTemp, Display, TEXT("ASB_PlayerStart::ASB_PlayerStart"));
+	}
+
+#endif
+
+	//
+
 	bIsEnabled = true;
 	bIsAvailable = true;
 }
@@ -29,19 +47,17 @@ ASB_PlayerStart::ASB_PlayerStart()
 void ASB_PlayerStart::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-
-	if (TeamID == 0)
-		ArrowCT->SetArrowColor(FLinearColor::White);
-	if (TeamID == 1)
-		ArrowCT->SetArrowColor(FLinearColor::Blue);
-	if (TeamID == 2)
-		ArrowCT->SetArrowColor(FLinearColor::Red);
+	
+	if (GlobalDA)
+	{
+		ArrowCT->SetArrowColor(GlobalDA->TeamColors[TeamID]);
+	}
 }
 
 void ASB_PlayerStart::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 	if (GetLocalRole() == ROLE_Authority)
 	{
 		CapsuleCT->OnComponentBeginOverlap.AddDynamic(this, &ASB_PlayerStart::OnBeginOverlap);

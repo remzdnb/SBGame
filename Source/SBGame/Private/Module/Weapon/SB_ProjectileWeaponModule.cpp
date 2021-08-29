@@ -2,6 +2,7 @@
 #include "Module/Weapon/SB_Projectile.h"
 #include "Vehicle/SB_Vehicle.h"
 #include "Vehicle/SB_TargetPoint.h"
+#include "SB_GameState.h"
 //
 #include "RZ_UtilityLibrary.h"
 #include "Kismet/GameplayStatics.h"
@@ -23,6 +24,11 @@ void USB_ProjectileWeaponModule::TickComponent(float DeltaTime, ELevelTick TickT
 void USB_ProjectileWeaponModule::UpdateFire()
 {
 	if (GetOwnerRole() < ROLE_Authority)
+		return;
+
+	if (WeaponModuleData == nullptr ||
+		GState->GameType != ESB_GameType::Battle ||
+		GState->GamePhase != ESB_GamePhase::Playing)
 		return;
 
 	// If facing enemy vehicle and rotation <= precision, set bWantsToFire = true.
@@ -75,7 +81,6 @@ void USB_ProjectileWeaponModule::UpdateFire()
 		LastFireTime = CurrentTime;
 	}
 }
-
 
 void USB_ProjectileWeaponModule::FireOnce()
 {

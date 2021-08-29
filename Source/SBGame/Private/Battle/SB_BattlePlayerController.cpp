@@ -2,11 +2,12 @@
 #include "Battle/SB_BattlePlayerController.h"
 #include "Battle/SB_BattleGameMode.h"
 #include "SB_GameState.h"
-#include "Battle/SB_PlayerState.h"
+#include "SB_PlayerState.h"
 #include "Battle/SB_HUDMainWidget.h"
 #include "Vehicle/SB_Vehicle.h"
 #include "Vehicle/SB_ShipMovementComponent.h"
 #include "SB_GameInstance.h"
+#include "SB_GameSettings.h"
 #include "SB_PlayerSaveGame.h"
 // Plugins
 #include "RZ_CameraActor.h"
@@ -25,15 +26,19 @@ void ASB_BattlePlayerController::BeginPlay()
 	Super::BeginPlay();
 
 	GMode = Cast<ASB_BattleGameMode>(GetWorld()->GetAuthGameMode());
-	GState = Cast<ASB_GameState>(GetWorld()->GetGameState());
+	GState = GetWorld()->GetGameState<ASB_GameState>();
 	PState = Cast<ASB_PlayerState>(PlayerState);
 
 	if (IsLocalPlayerController())
 	{
+		//
+
+		PState->SetName(true, GInstance->GetSaveGame()->PlayerName);
+		
 		// Spawn outline post process.
 		
 		const FActorSpawnParameters SpawnParameters;
-		GetWorld()->SpawnActor<AActor>(GInstance->GameSettings.BattlePostProcess_BP, SpawnParameters);
+		GetWorld()->SpawnActor<AActor>(GInstance->GameSettings->BattlePostProcess_BP, SpawnParameters);
 
 		// Init UI
 
@@ -72,11 +77,12 @@ void ASB_BattlePlayerController::OnRep_Pawn()
 	if (OwnedVehicle)
 	{
 		CameraActor->SetNewTargetActor(OwnedVehicle, FVector(0.0f, 0.0f, 5000.0f));
-		SetViewTargetWithBlend(CameraActor, 0.0f);
 		//OwnedVehicle->OnDestroyed.AddUniqueDynamic(this, &ASB_BattlePlayerController::OnVehicleDestroyed);
 		//OwnedVehicle->GetShipCameraManager()->SetArmRotation(FRotator(-25.0f, OwnedVehicle->GetActorRotation().Yaw - 145.0f, 0.0f), false);
 		//OwnedVehicle->GetShipCameraManager()->SetMaxTargetArmLength();
 	}
+
+	SetViewTargetWithBlend(CameraActor, 0.0f);
 }
 
 void ASB_BattlePlayerController::Respawn_Server_Implementation()
@@ -126,10 +132,18 @@ uint8 ASB_BattlePlayerController::GetTeamID()
 {
 	if (PState)
 	{
-		return PState->GetTeam();
+		return PState->GetTeamID();
 	}
 
 	return 0;
+}
+
+void ASB_BattlePlayerController::JoinTeam(uint8 TeamID)
+{
+	if (GState)
+	{
+		GState->AddPlayerToTeam(this, TeamID);
+	}
 }
 
 #pragma region +++++ Vehicle ...
@@ -157,6 +171,8 @@ void ASB_BattlePlayerController::OnDamageDealt_Client_Implementation(float Prima
 
 void ASB_BattlePlayerController::OnVehicleDestroyed(AActor* DestroyedVehicle)
 {
+	SetViewTargetWithBlend(CameraActor, 0.0f);
+	
 	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, "VehicleDestroyed BattlePC");
 }
 
@@ -251,9 +267,47 @@ void ASB_BattlePlayerController::SetupInputComponent()
 
 	check(InputComponent);
 
+	InputComponent->BindAxis("MoveForward", this, &ASB_BattlePlayerController::MoveForwardAxis).bConsumeInput = false;
+	InputComponent->BindAxis("MoveRight", this, &ASB_BattlePlayerController::MoveRightAxis).bConsumeInput = false;
 	InputComponent->BindAction("LeftMouseButton", IE_Pressed, this, &ASB_BattlePlayerController::LeftMouseButtonPressed).bConsumeInput = false;
 	InputComponent->BindAction("LeftMouseButton", IE_Released, this, &ASB_BattlePlayerController::LeftMouseButtonReleased).bConsumeInput = false;
 	InputComponent->BindAction("Tab", IE_Pressed, this, &ASB_BattlePlayerController::TabKeyPressed).bConsumeInput = false;
+}
+
+void ASB_BattlePlayerController::MoveForwardAxis(float AxisValue)
+{
+	if (OwnedVehicle && OwnedVehicle == GetPawn())
+	{
+		if (OwnedVehicle->GetShipMovement())
+		{
+			OwnedVehicle->GetShipMovement()->MoveForward(AxisValue);
+		}
+	}
+	else
+	{
+		if (CameraActor)
+		{
+			CameraActor->MoveForward(AxisValue);
+		}
+	}
+}
+
+void ASB_BattlePlayerController::MoveRightAxis(float AxisValue)
+{
+	if (OwnedVehicle && OwnedVehicle == GetPawn())
+	{
+		if (OwnedVehicle->GetShipMovement())
+		{
+			OwnedVehicle->GetShipMovement()->TurnRight(AxisValue);
+		}
+	}
+	else
+	{
+		if (CameraActor)
+		{
+			CameraActor->MoveRight(AxisValue);
+		}
+	}
 }
 
 void ASB_BattlePlayerController::LeftMouseButtonPressed()

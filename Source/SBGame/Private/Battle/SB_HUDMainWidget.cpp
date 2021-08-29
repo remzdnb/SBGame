@@ -40,10 +40,10 @@ void USB_HUDMainWidget::OnNewOwnedVehicle(ASB_Vehicle* const NewOwnedVehicle)
 	if (NewOwnedVehicle == nullptr)
 		return;
 
-	/*OnShipDurabilityUpdated(NewOwnedVehicle->GetDurability(), DataManager->ShipSettings.MaxDurability);
-	NewOwnedVehicle->OnDurabilityUpdated.AddUniqueDynamic(this, &USB_HUDMainWidget::OnShipDurabilityUpdated);
+	OnVehicleDurabilityUpdated(NewOwnedVehicle->GetDurability(), NewOwnedVehicle->GetVehicleData()->MaxDurability);
+	NewOwnedVehicle->OnVehicleDurabilityUpdated.AddUniqueDynamic(this, &USB_HUDMainWidget::OnVehicleDurabilityUpdated);
 
-	OnShieldDurabilityUpdated(NewOwnedVehicle->ShieldModule->GetShieldDurability(), DataManager->ShieldSettings.MaxDurability);
+	/*OnShieldDurabilityUpdated(NewOwnedVehicle->ShieldModule->GetShieldDurability(), DataManager->ShieldSettings.MaxDurability);
 	NewOwnedVehicle->ShieldModule->OnShieldDurabilityUpdated.AddUniqueDynamic(this, &USB_HUDMainWidget::OnShieldDurabilityUpdated);
 
 	OnShieldCooldownUpdated(1.0f, 1.0f);
@@ -83,7 +83,7 @@ void USB_HUDMainWidget::OnNewOwnedVehicle(ASB_Vehicle* const NewOwnedVehicle)
 	OnShipSpawnedBPI();
 }
 
-void USB_HUDMainWidget::OnShipDurabilityUpdated(float NewDurability, float MaxDurability)
+void USB_HUDMainWidget::OnVehicleDurabilityUpdated(float NewDurability, float MaxDurability)
 {
 	ShipDurabilityProgressBar->Update(NewDurability, MaxDurability);
 }

@@ -2,7 +2,7 @@
 #include "Module/Weapon/SB_Beam.h"
 #include "Vehicle/SB_Vehicle.h"
 #include "SB_GameInstance.h"
-#include "Battle/SB_PlayerState.h"
+#include "SB_PlayerState.h"
 //
 #include "SB_GameState.h"
 #include "Particles/ParticleSystemComponent.h" 
@@ -66,7 +66,7 @@ void USB_BeamWeaponModule::CheckBeamCollision()
 		const ASB_PlayerState* const TargetPlayerState = Cast<ASB_PlayerState>(HitVehicle->GetPlayerState());
 		if (SelfPlayerState && TargetPlayerState)
 		{
-			if (SelfPlayerState->GetTeam() != TargetPlayerState->GetTeam())
+			if (SelfPlayerState->GetTeamID() != TargetPlayerState->GetTeamID())
 			{
 				UpdateBeam();
 

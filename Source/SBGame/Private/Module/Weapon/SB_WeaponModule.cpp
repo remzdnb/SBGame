@@ -2,8 +2,9 @@
 #include "SB_WeaponModuleAnimInstance.h"
 #include "Vehicle/SB_Vehicle.h"
 #include "Vehicle/SB_TargetPoint.h"
+#include "SB_PlayerState.h"
 #include "SB_GameInstance.h"
-#include "Battle/SB_PlayerState.h"
+#include "SB_GameState.h"
 //
 #include "Components/SceneComponent.h"
 #include "Particles/ParticleSystemComponent.h"
@@ -14,6 +15,9 @@
 
 USB_WeaponModule::USB_WeaponModule()
 {
+	bNoSkeletonUpdate = false;
+	SetAllowAnimCurveEvaluation(true);
+	
 	bIsAIEnabled = false;
 	bWantsToFire = false;
 }
@@ -44,7 +48,9 @@ void USB_WeaponModule::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (WeaponModuleData == nullptr)
+	if (WeaponModuleData == nullptr ||
+		GState->GameType != ESB_GameType::Battle ||
+		GState->GamePhase != ESB_GamePhase::Playing)
 		return;
 
 	UpdateRotation(DeltaTime);
@@ -125,7 +131,7 @@ void USB_WeaponModule::UpdateWeaponTrace()
 		const ASB_PlayerState* const TargetPlayerState = Cast<ASB_PlayerState>(HitVehicle->GetPlayerState());
 		if (SelfPlayerState && TargetPlayerState)
 		{
-			if (SelfPlayerState->GetTeam() != TargetPlayerState->GetTeam())
+			if (SelfPlayerState->GetTeamID() != TargetPlayerState->GetTeamID())
 			{
 				if (GInstance->DebugSettings.bIsDebugEnabled_WeaponModule)
 				{

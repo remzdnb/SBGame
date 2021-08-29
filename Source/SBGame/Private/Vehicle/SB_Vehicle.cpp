@@ -8,7 +8,7 @@
 #include "Module/Weapon/SB_WeaponModule.h"
 #include "Battle/SB_BattleGameMode.h"
 #include "Battle/SB_BattlePlayerController.h"
-#include "Battle/SB_PlayerState.h"
+#include "SB_PlayerState.h"
 #include "Battle/SB_HUDVehicleOTMWidget.h"
 #include "SB_GameInstance.h"
 #include "SB_PlayerSaveGame.h"
@@ -236,7 +236,7 @@ void ASB_Vehicle::UpdateWeaponsTargets()
 	{
 		if (Ship->PState && Ship != PriorityTarget)
 		{
-			if (Ship->PState->GetTeam() != PState->GetTeam())
+			if (Ship->PState->GetTeamID() != PState->GetTeamID())
 			{
 				EnemyVehicles.Add(Ship.Get());
 			}
@@ -303,6 +303,12 @@ void ASB_Vehicle::DestroyVehicle()
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, "ASB_Vehicle::DestroyVehicle - Owner " + GetOwner()->GetName());
 	}
+
+	//ASB_BattleGameMode* BattleGMode = Cast<ASB_BattleGameMode>(GetWorld()->GetAuthGameMode());
+	if (BattleGMode)
+	{
+		BattleGMode->UnregisterVehicle(this, Cast<AController>(GetOwner()));
+	}
 	
 	ASB_FSGameMode* FSGMode = Cast<ASB_FSGameMode>(GetWorld()->GetAuthGameMode());
 	if (FSGMode)
@@ -315,10 +321,6 @@ void ASB_Vehicle::DestroyVehicle()
 
 void ASB_Vehicle::DestroyVehicle_Multicast_Implementation()
 {
-	OnVehicleDestroyed.Broadcast(this, Cast<AController>(GetOwner()));
-	
-	OTMWidget->RemoveFromParent();
-
 	UGameplayStatics::SpawnEmitterAtLocation(
 		GetWorld(),
 		VehicleData->OnDestroyedParticle,
@@ -341,6 +343,8 @@ void ASB_Vehicle::DestroyVehicle_Multicast_Implementation()
 	{
 		UGameplayStatics::FinishSpawningActor(DestructibleShip, ModuleArray[0]->GetComponentTransform());
 	}
+
+	OnVehicleDestroyed.Broadcast(this, Cast<AController>(GetOwner()));
 
 	this->Destroy();
 }

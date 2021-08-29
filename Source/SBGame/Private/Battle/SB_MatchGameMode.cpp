@@ -1,17 +1,24 @@
-#include "Battle/SB_TDMGameMode.h"
+#include "Battle/SB_MatchGameMode.h"
 #include "Battle/SB_BattlePlayerController.h"
 #include "Vehicle/SB_Vehicle.h"
 #include "SB_GameState.h"
 #include "SB_PlayerStart.h"
 
-ASB_TDMGameMode::ASB_TDMGameMode()
+ASB_MatchGameMode::ASB_MatchGameMode()
 {
 	PlayerControllerClass = ASB_BattlePlayerController::StaticClass();
 	
 	PrimaryActorTick.bCanEverTick = true;
 }
 
-void ASB_TDMGameMode::SetupGame()
+void ASB_MatchGameMode::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	GState->GamePhase = ESB_GamePhase::WaitingForPlayers;
+}
+
+void ASB_MatchGameMode::SetupGame()
 {
 	for (const auto& TeamData : GState->TeamsData)
 	{
@@ -35,24 +42,21 @@ void ASB_TDMGameMode::SetupGame()
 			Index++;
 		}
 	}
+
+	GState->GamePhase = ESB_GamePhase::Ready;
 }
 
-void ASB_TDMGameMode::StartGame()
+void ASB_MatchGameMode::StartGame()
 {
-	/*TArray<ASB_PlayerStart*> AvailablePlayerStarts;
-	TArray
-
-	for (auto& )*/
+	GState->GamePhase = ESB_GamePhase::Playing;
 }
 
-void ASB_TDMGameMode::StopGame()
+void ASB_MatchGameMode::StopGame()
 {
+	GState->GamePhase = ESB_GamePhase::Stopping;
 }
 
-void ASB_TDMGameMode::EndGame()
+void ASB_MatchGameMode::ResetGame()
 {
-}
-
-void ASB_TDMGameMode::ResetGame()
-{
+	GState->GamePhase = ESB_GamePhase::WaitingForPlayers;
 }

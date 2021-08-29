@@ -6,6 +6,7 @@
 #include "SB_PlayerController.generated.h"
 
 class USB_GameInstance;
+class ASB_GameState;
 class ARZ_UIManager;
 class ASB_Vehicle;
 class ARZ_CameraActor;
@@ -24,31 +25,51 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void OnRep_Pawn() override;
 
-	//
+protected:
 	
-	FORCEINLINE UFUNCTION() ARZ_UIManager* const GetUIManager() const { return UIManager; }
-	FORCEINLINE UFUNCTION() ASB_Vehicle* const GetOwnedVehicle() const { return OwnedVehicle; }
+	USB_GameInstance* GInstance;
+
+	///// Camera
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+public:
+
 	FORCEINLINE UFUNCTION() ARZ_CameraActor* const GetCameraActor() const { return CameraActor; }
+
+protected:
+
+	UPROPERTY()
+	ARZ_CameraActor* CameraActor;
+	
+	///// Vehicle
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+public:
+
+	FORCEINLINE UFUNCTION() ASB_Vehicle* const GetOwnedVehicle() const { return OwnedVehicle; }
 
 	//
 
 	FNewOwnedVehicleDelegate OnNewOwnedVehicle;
 
 protected:
-	
-	USB_GameInstance* GInstance;
-	ARZ_UIManager* UIManager;
-
-	//
 
 	UPROPERTY() 
 	ASB_Vehicle* OwnedVehicle;
 
-	UPROPERTY()
-	ARZ_CameraActor* CameraActor;
+	///// UI
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-///// Input
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+public:
+
+	FORCEINLINE UFUNCTION() ARZ_UIManager* const GetUIManager() const { return UIManager; }
+
+protected:
+
+	ARZ_UIManager* UIManager;
+	
+	///// Input
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 public:
 
@@ -59,8 +80,6 @@ private:
 	UFUNCTION() void LookUpAxis(float AxisValue);
 	UFUNCTION() void LookRightAxis(float AxisValue);
 	UFUNCTION() void ZoomAxis(float AxisValue);
-	UFUNCTION() void MoveForwardAxis(float AxisValue);
-	UFUNCTION() void MoveRightAxis(float AxisValue);
 	UFUNCTION() void RightMouseButtonPressed();
 	UFUNCTION() void RightMouseButtonReleased();
 	UFUNCTION() void ShiftKeyPressed();
